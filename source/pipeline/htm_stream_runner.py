@@ -8,7 +8,7 @@ _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..')
 sys.path.append(_SOURCE_DIR)
 
 from source.utils.utils import get_args, save_json
-from source.config.config import load_config
+from source.config.config import load_config, save_config
 from source.pipeline.htm_stream import stream_to_htm
 
 
@@ -27,7 +27,7 @@ def run_stream(args):
         # b. Store —> ML Inputs to ML Inputs Path (from: cfg[‘dir_data’])
         # c. Run —> stream_to_htm(ML Input Path, Config Path)
     print('\nRunning main loop...')
-    for _, row in data[:cfg['iter_max']].iterrows():
+    for _, row in data[:cfg['iter_stop']].iterrows():
         # Ensure targets all numeric
         row_numeric = {}
         for k,v in dict(row).items():
@@ -37,7 +37,7 @@ def run_stream(args):
                     row_numeric[k] = myfloat
             except:
                 pass
-        if len(row_numeric) < len(cfg['features']):
+        if len(row_numeric) < len(cfg['targets']):
             print(f'  skipping row: {_}')
             print(f'    data = {dict(row)}')
             continue
@@ -49,6 +49,19 @@ def run_stream(args):
         # print progress
         if _>(cfg['iter_samplesize']*10) and _ % 100 == 0:
             print(f'  completed row: {_}')
+
+    # 4. Reset Config:
+    #     a. iter_current —> 0
+    #     b. learn —> True
+    #     c. mode --> sample_data
+    print('\nResetting config...')
+    cfg['iter_current'] = 0
+    cfg['learn'] = True
+    cfg['mode'] = 'sample_data'
+    print('  iter_current = 0')
+    print('  learn = True')
+    print('  mode = sample_data')
+    save_config(cfg, args.config_path)
 
 
 if __name__ == '__main__':

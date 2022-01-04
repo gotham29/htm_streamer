@@ -68,19 +68,20 @@ def load_pickle_object_as_data(file_path):
 
 def save_models(targets_models, dir_models):
     for t, model in targets_models.items():
-        path_model = os.path.join(dir_models, f"{t.replace('.pkl','')}.pkl")
+        path_model = os.path.join(dir_models, f"{t}.pkl")
         save_data_as_pickle(model, path_model)
 
 
-def load_models(dir_models):
+def load_models(dir_models, targets):
     pkl_files = [f for f in os.listdir(dir_models) if '.pkl' in f]
     targets_models = {}
     for f in pkl_files:
         pkl_path = os.path.join(dir_models, f)
         model = load_pickle_object_as_data(pkl_path)
-        targets_models[f] = model
+        targets_models[f.replace('.pkl','')] = model
         # print(f'    loaded model --> {f}')
     return targets_models
+
 
 def save_outputs(targets_outputs, dir_out, iter_current):
     for t, output in targets_outputs.items():

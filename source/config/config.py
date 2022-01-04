@@ -28,6 +28,30 @@ def save_config(cfg, yaml_path):
     return cfg
 
 
+def build_enc_params(targets_samples, n, minmax_percentiles, sparsity, n_buckets):
+    targets_enc_params = {f:{} for f in targets_samples}
+    for f, sample in targets_samples.items():
+        targets_enc_params[f]['size'] = n
+        targets_enc_params[f]['sparsity'] = sparsity
+        targets_enc_params[f]['resolution'] = get_rdse_resolution(sample, minmax_percentiles, n_buckets)
+    return targets_enc_params
+
+
+def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
+    min_perc, max_perc = minmax_percentiles[0], minmax_percentiles[1]
+    f_min = np.percentile(sample, min_perc)
+    f_max = np.percentile(sample, max_perc)
+    minmax_range = f_max - f_min
+    resolution = max(0.001, ( minmax_range/float(n_buckets) ) )
+    return resolution
+
+
+def extend_targets_samples(targets_samples, data):
+    for f,sample in targets_samples.items():
+        sample.append(data[f])
+    return targets_samples
+
+
 def get_default_config():
     default_parameters = {
         # there are 2 (3) encoders: "value" (RDSE) & "time" (DateTime weekend, timeOfDay)
@@ -58,27 +82,3 @@ def get_default_config():
     }
 
     return default_parameters
-
-
-def build_enc_params(features_samples, n, minmax_percentiles, sparsity, n_buckets):
-    features_enc_params = {f:{} for f in features_samples}
-    for f, sample in features_samples.items():
-        features_enc_params[f]['size'] = n
-        features_enc_params[f]['sparsity'] = sparsity
-        features_enc_params[f]['resolution'] = get_rdse_resolution(sample, minmax_percentiles, n_buckets)
-    return features_enc_params
-
-
-def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
-    min_perc, max_perc = minmax_percentiles[0], minmax_percentiles[1]
-    f_min = np.percentile(sample, min_perc)
-    f_max = np.percentile(sample, max_perc)
-    minmax_range = f_max - f_min
-    resolution = max(0.001, ( minmax_range/float(n_buckets) ) )
-    return resolution
-
-
-def extend_features_samples(features_samples, data):
-    for f,sample in features_samples.items():
-        sample.append(data[f])
-    return features_samples
