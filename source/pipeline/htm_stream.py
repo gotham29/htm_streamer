@@ -71,7 +71,6 @@ def stream_to_htm(config_path, data_path):
     # 6. Update Config
     #     a. Check for —> mode change
     #     b. Increment —> iter_current
-
     if mode != cfg['mode']:
         print(f'  Mode changed!')
         print(f"      row = {cfg['iter_current']}")
