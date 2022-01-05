@@ -102,29 +102,22 @@ class HTMModel():
         ## Execute Spatial Pooling algorithm over input space.
         self.sp.compute(encoding, learn, activeColumns)
 
+        ## Get pred counts
+        self.tm.activateDendrites(learn=False)
+        pred_cells = self.tm.getPredictiveCells()
+        n_pred_cells = pred_cells.getSum()
+        n_cols_per_pred = round(self.models_params["sp"]["columnCount"] * self.models_params["sp"]["localAreaDensity"])
+        pred_count = n_pred_cells / n_cols_per_pred
+
         # TEMPORAL MEMORY
         ## Execute Temporal Memory algorithm over active mini-columns.
         self.tm.compute(activeColumns, learn=learn)
         ## Get anomaly metrics
         anomaly_score = self.tm.anomaly
         anomaly_liklihood = self.anomaly_history.compute(anomaly_score)
-
-        ## Get pred counts
-        self.tm.activateDendrites(learn=False)
-        pred_cells = self.tm.getPredictiveCells()
-        winner_cells = self.tm.getWinnerCells()
-        n_pred_cells = pred_cells.getSum()
-        n_winner_cells = winner_cells.getSum()
-        pred_count = n_pred_cells / n_winner_cells
-
-        # if n_pred_cells > 0:
-        #     print(f'\nn_pred_cells = {n_pred_cells}')
-        #     print(f'n_winner_cells = {n_winner_cells}')
-        #     print(f'  pred_count = {pred_count}')
-        #     print(f'  anom_score = {anomaly_score}')
-
-        # if anomaly_score < 1.0:
-        #     assert pred_count > 0, f"0 preds with anomaly={anomaly_score}"
+        ## Ensure pred_count > 0 when anomaly_score < 1.0
+        if anomaly_score < 1.0:
+            assert pred_count > 0, f"0 preds with anomaly={anomaly_score}"
 
         """
         # PREDICTOR
