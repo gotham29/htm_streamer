@@ -26,7 +26,7 @@ def run_stream(args):
     # 3. Delete any .pkl in dir_models
     pkl_files = [f for f in os.listdir(cfg['dir_models']) if '.pkl' in f]
     for f in pkl_files:
-        os.remove( os.path.join(cfg['dir_models'],f) )
+        os.remove( os.path.join(cfg['dir_models'], f))
 
     # 4. For row in Source Data:
         # a. Generate —> ML Inputs (from: row)
@@ -36,7 +36,7 @@ def run_stream(args):
     for _, row in data[:cfg['iter_stop']].iterrows():
         # ensure targets all numeric
         row_numeric = {}
-        for k,v in dict(row).items():
+        for k, v in dict(row).items():
             try:
                 myfloat = float(v)
                 if not np.isnan(myfloat):
@@ -54,10 +54,16 @@ def run_stream(args):
         # call htm module
         stream_to_htm(args.config_path, path_data)
         # print progress
-        if _>(cfg['iter_samplesize']*10) and _ % 100 == 0:
+        if _ > (cfg['iter_samplesize']*10) and _ % 100 == 0:
             print(f'  completed row: {_}')
 
-    # 5. Reset Config:
+    # 5. Delete stream data files
+    print('\nRemoving stream files...')
+    json_files = [f for f in os.listdir(cfg['dir_data'])]
+    for f in json_files:
+        os.remove( os.path.join(cfg['dir_data'],f) )
+
+    # 6. Reset Config:
     #     a. iter_current —> 0
     #     b. learn —> True
     #     c. mode --> sample_data
