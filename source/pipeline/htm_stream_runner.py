@@ -61,7 +61,7 @@ def run_stream(args):
     print('\nRemoving stream files...')
     json_files = [f for f in os.listdir(cfg['dir_data'])]
     for f in json_files:
-        os.remove( os.path.join(cfg['dir_data'],f) )
+        os.remove( os.path.join(cfg['dir_data'], f))
 
     # 6. Reset Config:
     #     a. iter_current —> 0
