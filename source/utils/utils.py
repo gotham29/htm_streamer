@@ -72,7 +72,7 @@ def save_models(targets_models, dir_models):
         save_data_as_pickle(model, path_model)
 
 
-def load_models(dir_models, targets):
+def load_models(dir_models):
     pkl_files = [f for f in os.listdir(dir_models) if '.pkl' in f]
     targets_models = {}
     for f in pkl_files:
