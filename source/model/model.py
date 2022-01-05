@@ -100,28 +100,31 @@ class HTMModel():
         ## Create an SDR to represent active columns -- must have the same dimensions as the Spatial Pooler.
         activeColumns = SDR(self.sp.getColumnDimensions())
         ## Execute Spatial Pooling algorithm over input space.
-        self.sp.compute(encoding, learn, activeColumns)  # True
+        self.sp.compute(encoding, learn, activeColumns)
 
-        # TEMOPRAL MEMORY
+        # TEMPORAL MEMORY
         ## Execute Temporal Memory algorithm over active mini-columns.
-        self.tm.compute(activeColumns, learn=learn)  # learn=True
+        self.tm.compute(activeColumns, learn=learn)
         ## Get anomaly metrics
         anomaly_score = self.tm.anomaly
         anomaly_liklihood = self.anomaly_history.compute(anomaly_score)
-        """
-        ## Get pred counts
-        # self.tm.activateDendrites()
-        # n_pred_cells = self.tm.getPredictiveCells().sum()
-        # n_cols_per_pred = self.tm.getWinnerCells().sum()
-        # pred_count = n_pred_cells / n_cols_per_pred
-        """
-        pred_count = np.nan
 
-        # print(f'    \nanomaly_score = {anomaly_score}')
-        # print(f'    anomaly_liklihood = {anomaly_liklihood}')
-        # print(f'    pred_count = {pred_count}')
-        # print(f'      n_cols_per_pred = {n_cols_per_pred}')
-        # print(f'      n_pred_cells = {n_pred_cells}')
+        ## Get pred counts
+        self.tm.activateDendrites(learn=False)
+        pred_cells = self.tm.getPredictiveCells()
+        winner_cells = self.tm.getWinnerCells()
+        n_pred_cells = pred_cells.getSum()
+        n_winner_cells = winner_cells.getSum()
+        pred_count = n_pred_cells / n_winner_cells
+
+        # if n_pred_cells > 0:
+        #     print(f'\nn_pred_cells = {n_pred_cells}')
+        #     print(f'n_winner_cells = {n_winner_cells}')
+        #     print(f'  pred_count = {pred_count}')
+        #     print(f'  anom_score = {anomaly_score}')
+
+        # if anomaly_score < 1.0:
+        #     assert pred_count > 0, f"0 preds with anomaly={anomaly_score}"
 
         """
         # PREDICTOR
