@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 
 import numpy as np
@@ -22,13 +23,18 @@ def run_stream(args):
     data = pd.read_csv(args.data_path)
     print(f'Loaded —> Data from: {args.data_path}')
 
-    # 3. For row in Source Data:
+    # 3. Delete any .pkl in dir_models
+    pkl_files = [f for f in os.listdir(cfg['dir_models']) if '.pkl' in f]
+    for f in pkl_files:
+        os.remove( os.path.join(cfg['dir_models'],f) )
+
+    # 4. For row in Source Data:
         # a. Generate —> ML Inputs (from: row)
         # b. Store —> ML Inputs to ML Inputs Path (from: cfg[‘dir_data’])
         # c. Run —> stream_to_htm(ML Input Path, Config Path)
     print('\nRunning main loop...')
     for _, row in data[:cfg['iter_stop']].iterrows():
-        # Ensure targets all numeric
+        # ensure targets all numeric
         row_numeric = {}
         for k,v in dict(row).items():
             try:
@@ -37,6 +43,7 @@ def run_stream(args):
                     row_numeric[k] = myfloat
             except:
                 pass
+        # skip rows where num numeric < num targets
         if len(row_numeric) < len(cfg['targets']):
             print(f'  skipping row: {_}')
             print(f'    data = {dict(row)}')
@@ -50,7 +57,7 @@ def run_stream(args):
         if _>(cfg['iter_samplesize']*10) and _ % 100 == 0:
             print(f'  completed row: {_}')
 
-    # 4. Reset Config:
+    # 5. Reset Config:
     #     a. iter_current —> 0
     #     b. learn —> True
     #     c. mode --> sample_data
