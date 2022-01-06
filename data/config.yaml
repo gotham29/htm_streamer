@@ -1,6 +1,11 @@
 dir_data: /Users/samheiserman/Desktop/repos/htm_streamer/data/stream
 dir_models: /Users/samheiserman/Desktop/repos/htm_streamer/models
 dir_results: /Users/samheiserman/Desktop/repos/htm_streamer/results
+features:
+- Solar_Panel_Voltage_X
+- Solar_Panel_Voltage_Y
+- Solar_Panel_Voltage_Z
+- Total_Photo_Current
 iter_current: 0
 iter_samplesize: 50
 iter_stop: 400
@@ -13,7 +18,7 @@ models_enc_minmax_percentiles:
 models_enc_n: 700
 models_enc_n_buckets: 140
 models_enc_sparsity: 0.02
-models_for_each_target: false
+models_for_each_feature: true
 models_params:
   anomaly:
     period: 1000
@@ -41,8 +46,3 @@ models_predictor_resolution: 1
 models_predictor_steps_ahead:
 - 1
 - 5
-targets:
-- Solar_Panel_Voltage_X
-- Solar_Panel_Voltage_Y
-- Solar_Panel_Voltage_Z
-- Total_Photo_Current

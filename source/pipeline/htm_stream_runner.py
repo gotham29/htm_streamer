@@ -1,11 +1,10 @@
 import os
-import shutil
 import sys
 
 import numpy as np
 import pandas as pd
 
-_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..')
+_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
 
 from source.utils.utils import get_args, save_json
@@ -34,17 +33,18 @@ def run_stream(args):
         # c. Run —> stream_to_htm(ML Input Path, Config Path)
     print('\nRunning main loop...')
     for _, row in data[:cfg['iter_stop']].iterrows():
-        # ensure targets all numeric
-        row_numeric = {}
-        for k, v in dict(row).items():
+        # check which features are numeric
+        features_numeric = {}
+        for f, v in dict(row).items():
             try:
-                myfloat = float(v)
-                if not np.isnan(myfloat):
-                    row_numeric[k] = myfloat
+                f_float = float(v)
+                if not np.isnan(f_float):
+                    features_numeric[f] = f_float
             except:
                 pass
-        # skip rows where num numeric < num targets
-        if len(row_numeric) < len(cfg['targets']):
+        # skip rows where any cfg['features'] aren't numeric
+        features_missing = [f for f in cfg['features'] if f not in features_numeric]
+        if len(features_missing) > 0:
             print(f'  skipping row: {_}')
             print(f'    data = {dict(row)}')
             continue

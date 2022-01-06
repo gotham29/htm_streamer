@@ -35,10 +35,8 @@ def load_json(path_json):
     return json.loads(f.read())
 
 
-def save_json(mydict, path_json):
-    # Serializing json
-    json_object = json.dumps(mydict, indent=4)
-    # Writing to sample.json
+def save_json(data, path_json):
+    json_object = json.dumps(data, indent=4)
     with open(path_json, "w") as outfile:
         outfile.write(json_object)
 
@@ -66,25 +64,24 @@ def load_pickle_object_as_data(file_path):
     return data
 
 
-def save_models(targets_models, dir_models):
-    for t, model in targets_models.items():
+def save_models(features_models, dir_models):
+    for t, model in features_models.items():
         path_model = os.path.join(dir_models, f"{t}.pkl")
         save_data_as_pickle(model, path_model)
 
 
 def load_models(dir_models):
     pkl_files = [f for f in os.listdir(dir_models) if '.pkl' in f]
-    targets_models = {}
+    features_models = {}
     for f in pkl_files:
         pkl_path = os.path.join(dir_models, f)
         model = load_pickle_object_as_data(pkl_path)
-        targets_models[f.replace('.pkl','')] = model
-        # print(f'    loaded model --> {f}')
-    return targets_models
+        features_models[f.replace('.pkl', '')] = model
+    return features_models
 
 
-def save_outputs(targets_outputs, dir_out, iter_current):
-    for t, output in targets_outputs.items():
+def save_outputs(features_outputs, dir_out, iter_current):
+    for t, output in features_outputs.items():
         dir_out_t = os.path.join(dir_out, t)
         make_dir(dir_out_t)
         path_json = os.path.join(dir_out_t, f'iter={iter_current}.json')
