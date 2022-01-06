@@ -9,16 +9,16 @@ from htm.encoders.date import DateEncoder
 from htm.encoders.rdse import RDSE, RDSE_Parameters
 
 
-class HTMModel():
+class HTMModel:
     def __init__(self, iter_count, features_model, features_enc_params, models_params,
-                 models_enc_timestamp, predictor_resolution, predictor_steps_ahead):
+                 models_enc_timestamp, predictor_config):
         self.iter_count = iter_count
         self.features_model = features_model
         self.features_enc_params = features_enc_params
         self.models_params = models_params
         self.models_enc_timestamp = models_enc_timestamp
-        self.predictor_resolution = predictor_resolution
-        self.predictor_steps_ahead = predictor_steps_ahead
+        self.predictor_resolution = predictor_config['resolution']
+        self.predictor_steps_ahead = predictor_config['steps_ahead']
         self.sp = None
         self.tm = None
         self.predictor = None
@@ -38,7 +38,7 @@ class HTMModel():
         # Add timestamp encoder -- if enabled
         if self.models_enc_timestamp['enable']:
             date_encoder = DateEncoder(timeOfDay=self.models_enc_timestamp["timeOfDay"],
-                                      weekend=self.models_enc_timestamp["weekend"])
+                                       weekend=self.models_enc_timestamp["weekend"])
             self.features_encs[self.models_enc_timestamp['feature']] = date_encoder
             self.encoding_width += date_encoder.size
 
@@ -130,39 +130,35 @@ class HTMModel():
         if anomaly_score < 1.0:
             assert pred_count > 0, f"0 preds with anomaly={anomaly_score}"
 
-        """
         # PREDICTOR
-        ## Predict what will happen -- IF models_for_each_target==True
-        targets_predictions = {}
-        pdf = self.predictor.infer(self.tm.getActiveCells())
-        for f in self.features_model:
-            predictions = {}
-            for step_ahead in self.predictor.steps:
+        ## Predict what will happen -- IF models_for_each_feature==True
+        steps_predictions = {}
+        if len(self.features_model) == 1:  # models_for_each_feature==True
+            feat = self.features_model[0]
+            pdf = self.predictor.infer(self.tm.getActiveCells())
+            steps_predictions = {}
+            for step_ahead in self.predictor_steps_ahead:
                 if pdf[step_ahead]:
-                    predictions[step_ahead] = np.argmax(pdf[step_ahead]) * self.predictor_resolution
+                    steps_predictions[step_ahead] = np.argmax(pdf[step_ahead]) * self.predictor_resolution
                 else:
-                    predictions[step_ahead] = np.nan
+                    steps_predictions[step_ahead] = np.nan
             # Train the predictor based on what just happened.
-            self.predictor.learn(self.iter_count, self.tm.getActiveCells(), int(features_data[f] / self.predictor_resolution))
-        """
+            self.predictor.learn(self.iter_count, self.tm.getActiveCells(),
+                                 int(features_data[feat] / self.predictor_resolution))
 
-        return anomaly_score, anomaly_liklihood, pred_count  # ,targets_predictions
+        return anomaly_score, anomaly_liklihood, pred_count, steps_predictions
 
 
-def init_models(iter_count, features_enc_params, predictor_steps_ahead, predictor_resolution,
-                models_params, models_for_each_feature, models_enc_timestamp):  # use_timestamp=False
+def init_models(iter_count, features_enc_params, predictor_config,
+                models_params, models_for_each_feature, models_enc_timestamp):
+
     features_models = {}
-
-    # if use_timestamp:
-    #     # Make the Encoders.  These will convert input data into binary representations.
-    #     dateEncoder = DateEncoder(timeOfDay= parameters["enc"]["time"]["timeOfDay"],
-    #                               weekend  = parameters["enc"]["time"]["weekend"])
 
     if models_for_each_feature:  # multiple models, one per feature
         for f in features_enc_params:
             features_model = [f]
             model = HTMModel(iter_count, features_model, features_enc_params, models_params,
-                             models_enc_timestamp, predictor_resolution, predictor_steps_ahead)
+                             models_enc_timestamp, predictor_config)
             model.init_model()
             features_models[f] = model
             print(f'  model initialized --> {f}')
@@ -171,7 +167,7 @@ def init_models(iter_count, features_enc_params, predictor_steps_ahead, predicto
     else:  # one multi-feature model
         features_model = list(features_enc_params.keys())
         model = HTMModel(iter_count, features_model, features_enc_params, models_params,
-                         models_enc_timestamp, predictor_resolution, predictor_steps_ahead)
+                         models_enc_timestamp, predictor_config)
         model.init_model()
         features_models[f'megamodel_features={len(features_model)}'] = model
         print(f"  model initialized --> megamodel_features={len(features_model)}")
@@ -183,8 +179,9 @@ def init_models(iter_count, features_enc_params, predictor_steps_ahead, predicto
 def run_models(features_models, data, learn):
     features_outputs = {t: {} for t in features_models}
     for t, model in features_models.items():
-        anomaly_score, anomaly_liklihood, pred_count = model.run(data, learn=learn)
+        anomaly_score, anomaly_likelihood, pred_count, steps_predictions = model.run(data, learn=learn)
         features_outputs[t] = {'anomaly_score': anomaly_score,
-                               'anomaly_liklihood': anomaly_liklihood,
-                               'pred_count': pred_count}
+                               'anomaly_likelihood': anomaly_likelihood,
+                               'pred_count': pred_count,
+                               'steps_predictions': steps_predictions}
     return features_outputs

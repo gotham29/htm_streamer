@@ -28,13 +28,17 @@ def save_config(cfg, yaml_path):
     return cfg
 
 
-def build_enc_params(features_samples, n, minmax_percentiles, sparsity, n_buckets):
+def build_enc_params(cfg, features_samples, models_encoders):
     features_enc_params = {f: {} for f in features_samples}
+    cfg['models_encoders']['resolutions'] = {}
     for f, sample in features_samples.items():
-        features_enc_params[f]['size'] = n
-        features_enc_params[f]['sparsity'] = sparsity
-        features_enc_params[f]['resolution'] = get_rdse_resolution(sample, minmax_percentiles, n_buckets)
-    return features_enc_params
+        features_enc_params[f]['size'] = models_encoders['n']
+        features_enc_params[f]['sparsity'] = models_encoders['sparsity']
+        features_enc_params[f]['resolution'] = get_rdse_resolution(sample,
+                                                                   models_encoders['minmax_percentiles'],
+                                                                   models_encoders['n_buckets'])
+        cfg['models_encoders']['resolutions'][f] = str(round(features_enc_params[f]['resolution'], 3))
+    return cfg, features_enc_params
 
 
 def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
@@ -42,7 +46,7 @@ def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
     f_min = np.percentile(sample, min_perc)
     f_max = np.percentile(sample, max_perc)
     minmax_range = f_max - f_min
-    resolution = max(0.001, (minmax_range/float(n_buckets)))
+    resolution = max(0.001, (minmax_range / float(n_buckets)))
     return resolution
 
 
