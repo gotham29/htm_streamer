@@ -1,20 +1,22 @@
 import numpy as np
-from htm.bindings.sdr import SDR, Metrics
-from htm.encoders.rdse import RDSE, RDSE_Parameters
-from htm.encoders.date import DateEncoder
-from htm.bindings.algorithms import SpatialPooler
-from htm.bindings.algorithms import TemporalMemory
+import pandas as pd
 from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
 from htm.bindings.algorithms import Predictor
+from htm.bindings.algorithms import SpatialPooler
+from htm.bindings.algorithms import TemporalMemory
+from htm.bindings.sdr import SDR, Metrics
+from htm.encoders.date import DateEncoder
+from htm.encoders.rdse import RDSE, RDSE_Parameters
 
 
 class HTMModel():
     def __init__(self, iter_count, features_model, features_enc_params, models_params,
-                 predictor_resolution, predictor_steps_ahead):
+                 models_enc_timestamp, predictor_resolution, predictor_steps_ahead):
         self.iter_count = iter_count
         self.features_model = features_model
         self.features_enc_params = features_enc_params
         self.models_params = models_params
+        self.models_enc_timestamp = models_enc_timestamp
         self.predictor_resolution = predictor_resolution
         self.predictor_steps_ahead = predictor_steps_ahead
         self.sp = None
@@ -33,6 +35,12 @@ class HTMModel():
             scalar_encoder = RDSE(scalar_encoder_params)
             self.encoding_width += scalar_encoder.size
             self.features_encs[f] = scalar_encoder
+        # Add timestamp encoder -- if enabled
+        if self.models_enc_timestamp['enable']:
+            date_encoder = DateEncoder(timeOfDay=self.models_enc_timestamp["timeOfDay"],
+                                      weekend=self.models_enc_timestamp["weekend"])
+            self.features_encs[self.models_enc_timestamp['feature']] = date_encoder
+            self.encoding_width += date_encoder.size
 
     def init_sp(self):
         spParams = self.models_params["sp"]
@@ -89,9 +97,12 @@ class HTMModel():
     def run(self, features_data, learn=True):
         # ENCODERS
         ## Call the encoders to create bit representations for each value.  These are SDR objects.
-        encs_bits = [ SDR(0) ]
-        for f in self.features_model:
-            f_bits = self.features_encs[f].encode(features_data[f])
+        encs_bits = [SDR(0)]
+        for f, enc in self.features_encs.items():  # for f in self.features_model:
+            ### convert timestamp data to datetime
+            if f == self.models_enc_timestamp['feature']:
+                features_data[f] = pd.to_datetime(features_data[f])
+            f_bits = enc.encode(features_data[f])
             encs_bits.append(f_bits)
         ## Concatenate all these encodings into one large encoding for Spatial Pooling.
         encoding = SDR(self.encoding_width).concatenate(encs_bits)
@@ -139,20 +150,19 @@ class HTMModel():
 
 
 def init_models(iter_count, features_enc_params, predictor_steps_ahead, predictor_resolution,
-                models_params, models_for_each_feature):  # use_timestamp=False
+                models_params, models_for_each_feature, models_enc_timestamp):  # use_timestamp=False
     features_models = {}
 
     # if use_timestamp:
     #     # Make the Encoders.  These will convert input data into binary representations.
     #     dateEncoder = DateEncoder(timeOfDay= parameters["enc"]["time"]["timeOfDay"],
     #                               weekend  = parameters["enc"]["time"]["weekend"])
-    #     encoders['timestamp'] = dateEncoder
 
     if models_for_each_feature:  # multiple models, one per feature
         for f in features_enc_params:
             features_model = [f]
             model = HTMModel(iter_count, features_model, features_enc_params, models_params,
-                             predictor_resolution, predictor_steps_ahead)
+                             models_enc_timestamp, predictor_resolution, predictor_steps_ahead)
             model.init_model()
             features_models[f] = model
             print(f'  model initialized --> {f}')
@@ -161,7 +171,7 @@ def init_models(iter_count, features_enc_params, predictor_steps_ahead, predicto
     else:  # one multi-feature model
         features_model = list(features_enc_params.keys())
         model = HTMModel(iter_count, features_model, features_enc_params, models_params,
-                         predictor_resolution, predictor_steps_ahead)
+                         models_enc_timestamp, predictor_resolution, predictor_steps_ahead)
         model.init_model()
         features_models[f'megamodel_features={len(features_model)}'] = model
         print(f"  model initialized --> megamodel_features={len(features_model)}")
@@ -171,10 +181,10 @@ def init_models(iter_count, features_enc_params, predictor_steps_ahead, predicto
 
 
 def run_models(features_models, data, learn):
-    features_outputs = {t:{} for t in features_models}
+    features_outputs = {t: {} for t in features_models}
     for t, model in features_models.items():
         anomaly_score, anomaly_liklihood, pred_count = model.run(data, learn=learn)
-        features_outputs[t] = {'anomaly_score':anomaly_score,
-                              'anomaly_liklihood':anomaly_liklihood,
-                              'pred_count':pred_count}
+        features_outputs[t] = {'anomaly_score': anomaly_score,
+                               'anomaly_liklihood': anomaly_liklihood,
+                               'pred_count': pred_count}
     return features_outputs

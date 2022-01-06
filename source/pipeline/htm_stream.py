@@ -43,7 +43,8 @@ def stream_to_htm(config_path, data_path):
                                       cfg['models_predictor_steps_ahead'],
                                       cfg['models_predictor_resolution'],
                                       cfg['models_params'],
-                                      cfg['models_for_each_feature'])
+                                      cfg['models_for_each_feature'],
+                                      cfg['models_enc_timestamp'])
         save_models(features_models, cfg['dir_models'])
 
     # 5. Else: (cfg['iter_current'] > cfg['iter_samplesize'])
