@@ -33,18 +33,13 @@ def stream_to_htm(config_path, data_path):
     elif cfg['iter_current'] == cfg['iter_samplesize']:
         mode = 'init_models'
         cfg['features_samples'] = extend_features_samples(cfg['features_samples'], data)
-        features_enc_params = build_enc_params(cfg['features_samples'],
-                                               cfg['models_enc_n'],
-                                               cfg['models_enc_minmax_percentiles'],
-                                               cfg['models_enc_sparsity'],
-                                               cfg['models_enc_n_buckets'])
+        cfg, features_enc_params = build_enc_params(cfg, cfg['features_samples'], cfg['models_encoders'])
         features_models = init_models(cfg['iter_current'],
                                       features_enc_params,
-                                      cfg['models_predictor_steps_ahead'],
-                                      cfg['models_predictor_resolution'],
+                                      cfg['models_predictor'],
                                       cfg['models_params'],
                                       cfg['models_for_each_feature'],
-                                      cfg['models_enc_timestamp'])
+                                      cfg['models_encoders']['timestamp'])
         save_models(features_models, cfg['dir_models'])
 
     # 5. Else: (cfg['iter_current'] > cfg['iter_samplesize'])
