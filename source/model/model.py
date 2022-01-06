@@ -17,20 +17,22 @@ class HTMModel():
         self.models_params = models_params
         self.predictor_resolution = predictor_resolution
         self.predictor_steps_ahead = predictor_steps_ahead
-        self.features_encs = {}
         self.sp = None
         self.tm = None
+        self.predictor = None
+        self.anomaly_history = None
         self.encoding_width = 0
+        self.features_encs = {}
 
     def init_encs(self):
         for f in self.features_model:
-            scalarEncoderParams = RDSE_Parameters()
-            scalarEncoderParams.size = self.features_enc_params[f]['size']
-            scalarEncoderParams.sparsity = self.features_enc_params[f]["sparsity"]
-            scalarEncoderParams.resolution = self.features_enc_params[f]['resolution']
-            scalarEncoder = RDSE(scalarEncoderParams)
-            self.encoding_width += scalarEncoder.size
-            self.features_encs[f] = scalarEncoder
+            scalar_encoder_params = RDSE_Parameters()
+            scalar_encoder_params.size = self.features_enc_params[f]['size']
+            scalar_encoder_params.sparsity = self.features_enc_params[f]["sparsity"]
+            scalar_encoder_params.resolution = self.features_enc_params[f]['resolution']
+            scalar_encoder = RDSE(scalar_encoder_params)
+            self.encoding_width += scalar_encoder.size
+            self.features_encs[f] = scalar_encoder
 
     def init_sp(self):
         spParams = self.models_params["sp"]
@@ -48,28 +50,26 @@ class HTMModel():
             wrapAround=True
         )
         # sp_info = Metrics( sp.getColumnDimensions(), 999999999 )
-        # return sp
         self.sp = sp
 
     def init_tm(self):
-        spParams = self.models_params["sp"]
-        tmParams = self.models_params["tm"]
+        sp_params = self.models_params["sp"]
+        tm_params = self.models_params["tm"]
         tm = TemporalMemory(
-            columnDimensions=(spParams["columnCount"],),
-            cellsPerColumn=tmParams["cellsPerColumn"],
-            activationThreshold=tmParams["activationThreshold"],
-            initialPermanence=tmParams["initialPerm"],
-            connectedPermanence=spParams["synPermConnected"],
-            minThreshold=tmParams["minThreshold"],
-            maxNewSynapseCount=tmParams["newSynapseCount"],
-            permanenceIncrement=tmParams["permanenceInc"],
-            permanenceDecrement=tmParams["permanenceDec"],
+            columnDimensions=(sp_params["columnCount"],),
+            cellsPerColumn=tm_params["cellsPerColumn"],
+            activationThreshold=tm_params["activationThreshold"],
+            initialPermanence=tm_params["initialPerm"],
+            connectedPermanence=sp_params["synPermConnected"],
+            minThreshold=tm_params["minThreshold"],
+            maxNewSynapseCount=tm_params["newSynapseCount"],
+            permanenceIncrement=tm_params["permanenceInc"],
+            permanenceDecrement=tm_params["permanenceDec"],
             predictedSegmentDecrement=0.0,
-            maxSegmentsPerCell=tmParams["maxSegmentsPerCell"],
-            maxSynapsesPerSegment=tmParams["maxSynapsesPerSegment"]
+            maxSegmentsPerCell=tm_params["maxSegmentsPerCell"],
+            maxSynapsesPerSegment=tm_params["maxSynapsesPerSegment"]
         )
         # tm_info = Metrics( [tm.numberOfCells()], 999999999 )
-        # return tm
         self.tm = tm
 
     def init_anomalyhistory(self):
@@ -139,8 +139,8 @@ class HTMModel():
 
 
 def init_models(iter_count, features_enc_params, predictor_steps_ahead, predictor_resolution,
-                models_params, models_for_each_target):  # use_timestamp=False
-    targets_models = {}
+                models_params, models_for_each_feature):  # use_timestamp=False
+    features_models = {}
 
     # if use_timestamp:
     #     # Make the Encoders.  These will convert input data into binary representations.
@@ -148,13 +148,13 @@ def init_models(iter_count, features_enc_params, predictor_steps_ahead, predicto
     #                               weekend  = parameters["enc"]["time"]["weekend"])
     #     encoders['timestamp'] = dateEncoder
 
-    if models_for_each_target:
+    if models_for_each_feature:  # multiple models, one per feature
         for f in features_enc_params:
             features_model = [f]
             model = HTMModel(iter_count, features_model, features_enc_params, models_params,
                              predictor_resolution, predictor_steps_ahead)
             model.init_model()
-            targets_models[f] = model
+            features_models[f] = model
             print(f'  model initialized --> {f}')
             print(f'    encoding_width = {model.encoding_width}')
 
@@ -163,18 +163,18 @@ def init_models(iter_count, features_enc_params, predictor_steps_ahead, predicto
         model = HTMModel(iter_count, features_model, features_enc_params, models_params,
                          predictor_resolution, predictor_steps_ahead)
         model.init_model()
-        targets_models[f'megamodel_features={len(features_model)}'] = model
+        features_models[f'megamodel_features={len(features_model)}'] = model
         print(f"  model initialized --> megamodel_features={len(features_model)}")
         print(f'    encoding_width = {model.encoding_width}')
 
-    return targets_models
+    return features_models
 
 
-def run_models(targets_models, data, learn):
-    targets_outputs = {t:{} for t in targets_models}
-    for t, model in targets_models.items():
+def run_models(features_models, data, learn):
+    features_outputs = {t:{} for t in features_models}
+    for t, model in features_models.items():
         anomaly_score, anomaly_liklihood, pred_count = model.run(data, learn=learn)
-        targets_outputs[t] = {'anomaly_score':anomaly_score,
+        features_outputs[t] = {'anomaly_score':anomaly_score,
                               'anomaly_liklihood':anomaly_liklihood,
                               'pred_count':pred_count}
-    return targets_outputs
+    return features_outputs
