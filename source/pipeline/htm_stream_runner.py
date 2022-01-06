@@ -67,13 +67,17 @@ def run_stream(args):
     #     a. iter_current —> 0
     #     b. learn —> True
     #     c. mode --> sample_data
+    #     d. features_samples --> deleted
     print('\nResetting config...')
     cfg['iter_current'] = 0
     cfg['learn'] = True
     cfg['mode'] = 'sample_data'
+    # del cfg['features_samples']
+    cfg = {k:v for k,v in cfg.items() if k != 'features_samples'}
     print('  iter_current = 0')
     print('  learn = True')
     print('  mode = sample_data')
+    print('  features_samples --> deleted')
     save_config(cfg, args.config_path)
 
 
