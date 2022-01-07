@@ -94,60 +94,72 @@ class HTMModel:
         self.init_anomalyhistory()
         self.init_predictor()
 
-    def run(self, features_data, learn=True):
-        # ENCODERS
-        ## Call the encoders to create bit representations for each value.  These are SDR objects.
+    def get_encoding(self, features_data):
         encs_bits = [SDR(0)]
-        for f, enc in self.features_encs.items():  # for f in self.features_model:
-            ### convert timestamp data to datetime
+        # Get encodings for all features
+        for f, enc in self.features_encs.items():
+            ## Convert timestamp feature to datetime
             if f == self.models_enc_timestamp['feature']:
                 features_data[f] = pd.to_datetime(features_data[f])
             f_bits = enc.encode(features_data[f])
             encs_bits.append(f_bits)
-        ## Concatenate all these encodings into one large encoding for Spatial Pooling.
+        # Combine all features encodings into one for Spatial Pooling
         encoding = SDR(self.encoding_width).concatenate(encs_bits)
+        return encoding
 
-        # SPATIAL POOLER
-        ## Create an SDR to represent active columns -- must have the same dimensions as the Spatial Pooler.
-        activeColumns = SDR(self.sp.getColumnDimensions())
-        ## Execute Spatial Pooling algorithm over input space.
-        self.sp.compute(encoding, learn, activeColumns)
-
-        ## Get pred counts
+    def get_predcount(self):
         self.tm.activateDendrites(learn=False)
         pred_cells = self.tm.getPredictiveCells()
+        # Count number of predicted cells
         n_pred_cells = pred_cells.getSum()
         n_cols_per_pred = round(self.models_params["sp"]["columnCount"] * self.models_params["sp"]["localAreaDensity"])
+        # Normalize to number of predictions
         pred_count = n_pred_cells / n_cols_per_pred
+        return pred_count
+
+    def get_preds(self, features_data):
+        feat = self.features_model[0]
+        pdf = self.predictor.infer(self.tm.getActiveCells())
+        steps_predictions = {}
+        # Get pred for each #/of steps ahead - IF available
+        for step_ahead in self.predictor_steps_ahead:
+            if pdf[step_ahead]:
+                steps_predictions[step_ahead] = np.argmax(pdf[step_ahead]) * self.predictor_resolution
+            else:
+                steps_predictions[step_ahead] = np.nan
+        # Train the predictor based on what just happened.
+        self.predictor.learn(self.iter_count, self.tm.getActiveCells(),
+                             int(features_data[feat] / self.predictor_resolution))
+        return steps_predictions
+
+    def run(self, features_data, learn=True):
+        # ENCODERS
+        # Call the encoders to create bit representations for each feature
+        encoding = self.get_encoding(features_data)
+
+        # SPATIAL POOLER
+        # Create an SDR to represent active columns
+        active_columns = SDR(self.sp.getColumnDimensions())
+        self.sp.compute(encoding, learn, active_columns)
 
         # TEMPORAL MEMORY
-        ## Execute Temporal Memory algorithm over active mini-columns.
-        self.tm.compute(activeColumns, learn=learn)
-        ## Get anomaly metrics
+        # Measure Prediction Density
+        pred_count = self.get_predcount()
+        self.tm.compute(active_columns, learn=learn)
+        # Get anomaly metrics
         anomaly_score = self.tm.anomaly
         anomaly_liklihood = self.anomaly_history.compute(anomaly_score)
-        ## Ensure pred_count > 0 when anomaly_score < 1.0
+        # Ensure pred_count > 0 when anomaly_score < 1.0
         if anomaly_score < 1.0:
             assert pred_count > 0, f"0 preds with anomaly={anomaly_score}"
 
         # PREDICTOR
-        ## Predict what will happen -- IF models_for_each_feature==True
+        # Predict raw feature value -- IF model is 1 feature (excluding timestamp)
         steps_predictions = {}
-        if len(self.features_model) == 1:  # models_for_each_feature==True
-            feat = self.features_model[0]
-            pdf = self.predictor.infer(self.tm.getActiveCells())
-            steps_predictions = {}
-            for step_ahead in self.predictor_steps_ahead:
-                if pdf[step_ahead]:
-                    steps_predictions[step_ahead] = np.argmax(pdf[step_ahead]) * self.predictor_resolution
-                else:
-                    steps_predictions[step_ahead] = np.nan
-            # Train the predictor based on what just happened.
-            self.predictor.learn(self.iter_count, self.tm.getActiveCells(),
-                                 int(features_data[feat] / self.predictor_resolution))
+        if len(self.features_model) == 1:
+            steps_predictions = self.get_preds(features_data)
 
         return anomaly_score, anomaly_liklihood, pred_count, steps_predictions
-
 
 def init_models(iter_count, features_enc_params, predictor_config,
                 models_params, models_for_each_feature, models_enc_timestamp):
