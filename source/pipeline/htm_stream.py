@@ -17,9 +17,9 @@ def stream_to_htm(config_path, data_path):
     data = load_json(data_path)
 
     # 3. Validate --> Config
-    validate_config(cfg=cfg,
-                    data=data,
-                    timestep=cfg['models_state']['timestep'])
+    cfg = validate_config(cfg=cfg,
+                          data=data,
+                          timestep=cfg['models_state']['timestep'])
 
     # 4. If Config['models_state']['timestep'] < Config['iters']['samplesize']:
     #     a. Store —> ML Inputs for Params

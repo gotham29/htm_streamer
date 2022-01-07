@@ -136,6 +136,11 @@ def validate_config(cfg, data, timestep):
     # Assert iter values valid
     assert cfg['iters']['stop'] > cfg['iters']['stoplearn'] > cfg['iters']['samplesize']
 
+    # Assert starting models_states -- IF timestep=0
+    if timestep == 0:
+        cfg['models_state']['learn'] = True
+        cfg['models_state']['mode'] = 'sample_data'
+
     # Assert valid params -- ONLY for INIT step
     if timestep == cfg['iters']['samplesize']:
 
@@ -258,3 +263,5 @@ def validate_config(cfg, data, timestep):
             param_v = cfg['models_params']['tm'][param]
             assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
         print(f'\n  Config validated!')
+
+    return cfg
