@@ -1,23 +1,27 @@
-dir_data: /Users/samheiserman/Desktop/repos/htm_streamer/data/stream
-dir_models: /Users/samheiserman/Desktop/repos/htm_streamer/models
-dir_results: /Users/samheiserman/Desktop/repos/htm_streamer/results
+dirs:
+  data: /Users/samheiserman/Desktop/repos/htm_streamer/data/stream
+  models: /Users/samheiserman/Desktop/repos/htm_streamer/models
+  results: /Users/samheiserman/Desktop/repos/htm_streamer/results
 features:
 - Solar_Panel_Voltage_X
 - 3.3_Bus_Current
 - Receiver_Doppler
 - Total_Photo_Current
-iter_current: 0
-iter_samplesize: 50
-iter_stop: 110
-iter_stoplearn: 100
-learn: true
-mode: sample_data
+iters:
+  samplesize: 50
+  stop: 110
+  stoplearn: 100
 models_encoders:
   minmax_percentiles:
   - 1
   - 99
   n: 700
   n_buckets: 140
+  resolutions:
+    3.3_Bus_Current: '0.132'
+    Receiver_Doppler: '0.108'
+    Solar_Panel_Voltage_X: '2.68'
+    Total_Photo_Current: '0.53'
   sparsity: 0.02
   timestamp:
     enable: true
@@ -26,7 +30,6 @@ models_encoders:
     - 30
     - 1
     weekend: 21
-models_for_each_feature: true
 models_params:
   anomaly:
     period: 1000
@@ -51,7 +54,13 @@ models_params:
     permanenceDec: 0.1
     permanenceInc: 0.1
 models_predictor:
+  enable: true
   resolution: 1
   steps_ahead:
   - 1
   - 5
+models_state:
+  learn: true
+  mode: sample_data
+  model_for_each_feature: true
+  timestep: 0

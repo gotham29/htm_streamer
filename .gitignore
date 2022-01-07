@@ -7,6 +7,7 @@ __pycache__/
 
 ## ALL DATA
 dist/
+Data/source/
 # Mac related
 .DS_Store
 **/.DS_Store

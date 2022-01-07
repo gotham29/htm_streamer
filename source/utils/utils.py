@@ -80,9 +80,9 @@ def load_models(dir_models):
     return features_models
 
 
-def save_outputs(features_outputs, dir_out, iter_current):
-    for t, output in features_outputs.items():
-        dir_out_t = os.path.join(dir_out, t)
-        make_dir(dir_out_t)
-        path_json = os.path.join(dir_out_t, f'iter={iter_current}.json')
+def save_outputs(timestep, features_outputs, dir_out):
+    for f, output in features_outputs.items():
+        dir_out_f = os.path.join(dir_out, f)
+        make_dir(dir_out_f)
+        path_json = os.path.join(dir_out_f, f'iter={timestep}.json')
         save_json(output, path_json)

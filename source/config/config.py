@@ -51,7 +51,7 @@ def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
     return resolution
 
 
-def extend_features_samples(features_samples, data):
+def extend_features_samples(data, features_samples):
     for f, sample in features_samples.items():
         sample.append(data[f])
     return features_samples
@@ -89,21 +89,14 @@ def get_default_config():
     return default_parameters
 
 
-def validate_config(cfg, data, iter_current):
+def validate_config(cfg, data, timestep):
     # Assert all expected params are present & correct type
     params_types = {
-        'dir_data': str,
-        'dir_models': str,
-        'dir_results': str,
+        'dirs': dict,
         'features': list,
-        'iter_current': int,
-        'iter_samplesize': int,
-        'iter_stop': int,
-        'iter_stoplearn': int,
-        'learn': bool,
-        'mode': str,
+        'iters': dict,
+        'models_state': dict,
         'models_encoders': dict,
-        'models_for_each_feature': bool,
         'models_params': dict,
         'models_predictor': dict,
     }
@@ -111,9 +104,29 @@ def validate_config(cfg, data, iter_current):
         param_v = cfg[param]
         assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
 
+    # Assert iters valid
+    iters_params_types = {
+        'samplesize': int,
+        'stop': int,
+        'stoplearn': int
+    }
+    for param, type in iters_params_types.items():
+        param_v = cfg['iters'][param]
+        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+
+    # Assert models_state valid
+    modelsstate_params_types = {
+        'learn': bool,
+        'mode': str,
+        'timestep': int,
+        'model_for_each_feature': bool,
+    }
+    for param, type in modelsstate_params_types.items():
+        param_v = cfg['models_state'][param]
+        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+
     # Assert dirs exist
-    dirs = [cfg['dir_data'], cfg['dir_models'], cfg['dir_results']]
-    for d in dirs:
+    for d in cfg['dirs']:
         assert os.path.exists(d), f"dir not found --> {d}"
 
     # Assert features present in data:
@@ -121,12 +134,12 @@ def validate_config(cfg, data, iter_current):
         assert f in data, f"features missing from data --> {f}\n  Found --> {data.keys()}"
 
     # Assert iter values valid
-    assert cfg['iter_stop'] > cfg['iter_stoplearn'] > cfg['iter_samplesize']
+    assert cfg['iters']['stop'] > cfg['iters']['stoplearn'] > cfg['iters']['samplesize']
 
     # Assert valid params -- ONLY for INIT step
-    if iter_current == cfg['iter_samplesize']:
+    if timestep == cfg['iters']['samplesize']:
 
-        # Assert models_encoders dict valid
+        # Assert valid models_encoders dict
         enc_params_types = {
             'minmax_percentiles': list,
             'n': int,
@@ -180,6 +193,7 @@ def validate_config(cfg, data, iter_current):
 
         # Assert valid models_predictor
         predictor_params_types = {
+            'enable': bool,
             'resolution': int,
             'steps_ahead': list,
         }
@@ -243,4 +257,4 @@ def validate_config(cfg, data, iter_current):
         for param, type in tm_params.items():
             param_v = cfg['models_params']['tm'][param]
             assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
-        print(f'\n  Config --> validated')
+        print(f'\n  Config validated!')
