@@ -8,8 +8,8 @@ features:
 - Total_Photo_Current
 iter_current: 0
 iter_samplesize: 50
-iter_stop: 310
-iter_stoplearn: 300
+iter_stop: 110
+iter_stoplearn: 100
 learn: true
 mode: sample_data
 models_encoders:
