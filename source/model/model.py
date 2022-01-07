@@ -161,6 +161,7 @@ class HTMModel:
 
         return anomaly_score, anomaly_liklihood, pred_count, steps_predictions
 
+
 def init_models(iter_count, features_enc_params, predictor_config,
                 models_params, models_for_each_feature, models_enc_timestamp):
 
