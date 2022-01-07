@@ -5,7 +5,7 @@ _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..
 sys.path.append(_SOURCE_DIR)
 
 from source.utils.utils import get_args, load_json, save_models, load_models, save_outputs
-from source.config.config import load_config, save_config, build_enc_params, extend_features_samples
+from source.config.config import load_config, save_config, build_enc_params, extend_features_samples, validate_config
 from source.model.model import init_models, run_models
 
 
@@ -16,7 +16,10 @@ def stream_to_htm(config_path, data_path):
     # 2. Load —> ML Inputs from ML Inputs Path
     data = load_json(data_path)
 
-    # 3. If Config[‘iter_current’] < Config[‘iter_samplesize’]:
+    # 3. Validate --> Config
+    validate_config(cfg, data)
+
+    # 4. If Config[‘iter_current’] < Config[‘iter_samplesize’]:
     #     a. Store —> ML Inputs for Params
     if cfg['iter_current'] < cfg['iter_samplesize']:
         mode = 'sample_data'
@@ -25,7 +28,7 @@ def stream_to_htm(config_path, data_path):
         else:
             cfg['features_samples'] = extend_features_samples(cfg['features_samples'], data)
 
-    # 4. Elif cfg[‘iter_current’] == cfg[‘iter_samplesize’]:
+    # 5. Elif cfg[‘iter_current’] == cfg[‘iter_samplesize’]:
     #     a. Store —> ML Inputs for Params
     #     b. Build —> Params
     #     c. Init —> Models
@@ -42,7 +45,7 @@ def stream_to_htm(config_path, data_path):
                                       cfg['models_encoders']['timestamp'])
         save_models(features_models, cfg['dir_models'])
 
-    # 5. Else: (cfg['iter_current'] > cfg['iter_samplesize'])
+    # 6. Else: (cfg['iter_current'] > cfg['iter_samplesize'])
     #     a. Load —> Models (from: cfg['dir_models'])
     #     b. Check —> if learn still true
     #     c. Run —> ML Inputs thru Models
@@ -62,7 +65,7 @@ def stream_to_htm(config_path, data_path):
             print(f"      {cfg['learn']} --> {learn}")
             cfg['learn'] = learn
 
-    # 6. Update Config
+    # 7. Update Config
     #     a. Check for —> mode change
     #     b. Increment —> iter_current
     if mode != cfg['mode']:
@@ -72,7 +75,7 @@ def stream_to_htm(config_path, data_path):
     cfg['mode'] = mode
     cfg['iter_current'] += 1
 
-    # 7. Store —> Config
+    # 8. Store —> Config
     save_config(cfg, config_path)
 
 
