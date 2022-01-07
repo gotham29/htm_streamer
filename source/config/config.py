@@ -117,7 +117,6 @@ def validate_config(cfg, data, timestep):
     # Assert models_state valid
     modelsstate_params_types = {
         'learn': bool,
-        'mode': str,
         'timestep': int,
         'model_for_each_feature': bool,
     }

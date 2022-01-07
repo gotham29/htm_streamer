@@ -11,15 +11,21 @@ iters:
   samplesize: 50
   stop: 110
   stoplearn: 100
+mode: sample_data
 models_encoders:
   minmax_percentiles:
   - 1
   - 99
   n: 700
   n_buckets: 140
+  resolutions:
+    3.3_Bus_Current: '0.132'
+    Receiver_Doppler: '0.108'
+    Solar_Panel_Voltage_X: '2.68'
+    Total_Photo_Current: '0.53'
   sparsity: 0.02
   timestamp:
-    enable: true
+    enable: false
     feature: satellite_time
     timeOfDay:
     - 30
@@ -49,11 +55,11 @@ models_params:
     permanenceDec: 0.1
     permanenceInc: 0.1
 models_predictor:
-  enable: true
+  enable: false
   resolution: 1
   steps_ahead:
   - 1
-  - 5
+  - 2
 models_state:
   learn: true
   mode: sample_data

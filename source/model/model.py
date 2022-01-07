@@ -43,27 +43,26 @@ class HTMModel:
             self.encoding_width += date_encoder.size
 
     def init_sp(self):
-        spParams = self.models_params["sp"]
-        sp = SpatialPooler(
+        sp_params = self.models_params["sp"]
+        self.sp = SpatialPooler(
             inputDimensions=(self.encoding_width,),
-            columnDimensions=(spParams["columnCount"],),
-            potentialPct=spParams["potentialPct"],
+            columnDimensions=(sp_params["columnCount"],),
+            potentialPct=sp_params["potentialPct"],
             potentialRadius=self.encoding_width,
             globalInhibition=True,
-            localAreaDensity=spParams["localAreaDensity"],
-            synPermInactiveDec=spParams["synPermInactiveDec"],
-            synPermActiveInc=spParams["synPermActiveInc"],
-            synPermConnected=spParams["synPermConnected"],
-            boostStrength=spParams["boostStrength"],
+            localAreaDensity=sp_params["localAreaDensity"],
+            synPermInactiveDec=sp_params["synPermInactiveDec"],
+            synPermActiveInc=sp_params["synPermActiveInc"],
+            synPermConnected=sp_params["synPermConnected"],
+            boostStrength=sp_params["boostStrength"],
             wrapAround=True
         )
         # sp_info = Metrics( sp.getColumnDimensions(), 999999999 )
-        self.sp = sp
 
     def init_tm(self):
         sp_params = self.models_params["sp"]
         tm_params = self.models_params["tm"]
-        tm = TemporalMemory(
+        self.tm = TemporalMemory(
             columnDimensions=(sp_params["columnCount"],),
             cellsPerColumn=tm_params["cellsPerColumn"],
             activationThreshold=tm_params["activationThreshold"],
@@ -78,7 +77,6 @@ class HTMModel:
             maxSynapsesPerSegment=tm_params["maxSynapsesPerSegment"]
         )
         # tm_info = Metrics( [tm.numberOfCells()], 999999999 )
-        self.tm = tm
 
     def init_anomalyhistory(self):
         self.anomaly_history = AnomalyLikelihood(self.models_params["anomaly"]["period"])
@@ -165,7 +163,6 @@ class HTMModel:
 
 def init_models(iter_count, features_enc_params, predictor_config,
                 models_params, model_for_each_feature, models_enc_timestamp):
-
     features_models = {}
 
     if model_for_each_feature:  # multiple models, one per feature
@@ -202,8 +199,8 @@ def run_models(iter, data, learn, features_models, timestamp_config, predictor_c
                                'anomaly_likelihood': anomaly_likelihood,
                                'pred_count': pred_count,
                                'steps_predictions': steps_predictions}
-        # add timestamp data -- IF enabled
-        if timestamp_config['enable']:
+        # add timestamp data -- IF feature present
+        if timestamp_config['feature'] in data:
             time_feat = timestamp_config['feature']
             features_outputs[t][time_feat] = str(data[time_feat])
     return features_outputs

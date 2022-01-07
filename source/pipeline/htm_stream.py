@@ -25,6 +25,7 @@ def stream_to_htm(config_path, data_path):
     #     a. Store —> ML Inputs for Params
     if cfg['models_state']['timestep'] < cfg['iters']['samplesize']:
         mode = 'sample_data'
+        cfg['mode'] = mode
         if cfg['models_state']['timestep'] == 0:
             cfg['features_samples'] = {f: [] for f in cfg['features']}
         else:
