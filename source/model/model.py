@@ -189,7 +189,7 @@ def init_models(iter_count, features_enc_params, predictor_config,
     return features_models
 
 
-def run_models(features_models, data, learn):
+def run_models(features_models, data, learn, timestamp_config):
     features_outputs = {t: {} for t in features_models}
     for t, model in features_models.items():
         anomaly_score, anomaly_likelihood, pred_count, steps_predictions = model.run(data, learn=learn)
@@ -197,4 +197,8 @@ def run_models(features_models, data, learn):
                                'anomaly_likelihood': anomaly_likelihood,
                                'pred_count': pred_count,
                                'steps_predictions': steps_predictions}
+        # add timestamp data -- IF enabled
+        if timestamp_config['enable']:
+            time_feat = timestamp_config['feature']
+            features_outputs[t][time_feat] = str(data[time_feat])
     return features_outputs

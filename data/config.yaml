@@ -20,7 +20,7 @@ models_encoders:
   n_buckets: 140
   sparsity: 0.02
   timestamp:
-    enable: false
+    enable: true
     feature: satellite_time
     timeOfDay:
     - 30

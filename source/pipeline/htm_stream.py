@@ -55,7 +55,7 @@ def stream_to_htm(config_path, data_path):
         mode = 'run_models'
         features_models = load_models(cfg['dir_models'])
         learn = True if cfg['iter_current'] < cfg['iter_stoplearn'] else False
-        features_outputs = run_models(features_models, data, learn)
+        features_outputs = run_models(features_models, data, learn, cfg['models_encoders']['timestamp'])
         save_outputs(features_outputs, cfg['dir_results'], cfg['iter_current'])
         save_models(features_models, cfg['dir_models'])
 
