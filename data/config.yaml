@@ -17,11 +17,6 @@ models_encoders:
   - 99
   n: 700
   n_buckets: 140
-  resolutions:
-    3.3_Bus_Current: '0.132'
-    Receiver_Doppler: '0.108'
-    Solar_Panel_Voltage_X: '2.68'
-    Total_Photo_Current: '0.53'
   sparsity: 0.02
   timestamp:
     enable: true
