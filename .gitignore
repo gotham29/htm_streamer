@@ -23,6 +23,7 @@ develop-eggs/
 dist/
 downloads/
 results/
+models/
 
 eggs/
 .eggs/

@@ -17,7 +17,7 @@ def stream_to_htm(config_path, data_path):
     data = load_json(data_path)
 
     # 3. Validate --> Config
-    validate_config(cfg, data)
+    validate_config(cfg, data, cfg['iter_current'])
 
     # 4. If Config[‘iter_current’] < Config[‘iter_samplesize’]:
     #     a. Store —> ML Inputs for Params
