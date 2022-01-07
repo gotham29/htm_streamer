@@ -194,7 +194,7 @@ def run_models(iter, data, learn, features_models, timestamp_config, predictor_c
     features_outputs = {t: {} for t in features_models}
     # Get outputs for all features_model
     for t, model in features_models.items():
-        anomaly_score, anomaly_likelihood, pred_count, steps_predictions = model.run(data,
+        anomaly_score, anomaly_likelihood, pred_count, steps_predictions = model.run(features_data=data,
                                                                                      iter=iter,
                                                                                      learn=learn,
                                                                                      predictor_config=predictor_config)
