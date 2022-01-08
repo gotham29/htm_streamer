@@ -32,7 +32,7 @@ def run_stream(args):
         # b. Store —> ML Inputs to ML Inputs Path (from: cfg[‘dirs’]['data'])
         # c. Run —> stream_to_htm(ML Input Path, Config Path)
     print('\nRunning main loop...')
-    for _, row in data[:cfg['iters']['stop']].iterrows():
+    for _, row in data[:cfg['timesteps_stop']['running']].iterrows():
         # check which features are numeric
         features_numeric = {}
         for f, v in dict(row).items():
@@ -54,7 +54,7 @@ def run_stream(args):
         # call htm module
         stream_to_htm(args.config_path, path_data)
         # print progress
-        if _ > (cfg['iters']['samplesize']*10) and _ % 100 == 0:
+        if _ > (cfg['timesteps_stop']['sampling']*10) and _ % 100 == 0:
             print(f'  completed row: {_}')
 
     # 5. Delete stream data files

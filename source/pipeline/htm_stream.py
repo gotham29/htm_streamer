@@ -21,23 +21,22 @@ def stream_to_htm(config_path, data_path):
                           data=data,
                           timestep=cfg['models_state']['timestep'])
 
-    # 4. If Config['models_state']['timestep'] < Config['iters']['samplesize']:
+    # 4. If Config['models_state']['timestep'] < Config['timesteps_stop']['sampling']:
     #     a. Store —> ML Inputs for Params
-    if cfg['models_state']['timestep'] < cfg['iters']['samplesize']:
+    if cfg['models_state']['timestep'] < cfg['timesteps_stop']['sampling']:
         mode = 'sample_data'
-        cfg['mode'] = mode
         if cfg['models_state']['timestep'] == 0:
             cfg['features_samples'] = {f: [] for f in cfg['features']}
         else:
             cfg['features_samples'] = extend_features_samples(data=data,
                                                               features_samples=cfg['features_samples'])
 
-    # 5. Elif cfg['models_state']['timestep'] == cfg['iters']['samplesize']:
+    # 5. Elif cfg['models_state']['timestep'] == cfg['timesteps_stop']['sampling']:
     #     a. Store —> ML Inputs for Params
     #     b. Build —> Params
     #     c. Init —> Models
     #     d. Store —> Models
-    elif cfg['models_state']['timestep'] == cfg['iters']['samplesize']:
+    elif cfg['models_state']['timestep'] == cfg['timesteps_stop']['sampling']:
         mode = 'init_models'
         cfg['features_samples'] = extend_features_samples(data=data,
                                                           features_samples=cfg['features_samples'])
@@ -53,7 +52,7 @@ def stream_to_htm(config_path, data_path):
         save_models(features_models=features_models,
                     dir_models=cfg['dirs']['models'])
 
-    # 6. Else: (cfg['models_state']['timestep'] > cfg['iters']['samplesize'])
+    # 6. Else: (cfg['models_state']['timestep'] > cfg['timesteps_stop']['sampling'])
     #     a. Load —> Models (from: cfg['dirs']['models'])
     #     b. Check —> if learn still true
     #     c. Run —> ML Inputs thru Models
@@ -62,7 +61,7 @@ def stream_to_htm(config_path, data_path):
     else:
         mode = 'run_models'
         features_models = load_models(cfg['dirs']['models'])
-        learn = True if cfg['models_state']['timestep'] < cfg['iters']['stoplearn'] else False
+        learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
         features_outputs = run_models(iter=cfg['models_state']['timestep'],
                                       data=data,
                                       learn=learn,

@@ -7,22 +7,12 @@ features:
 - 3.3_Bus_Current
 - Receiver_Doppler
 - Total_Photo_Current
-iters:
-  samplesize: 50
-  stop: 110
-  stoplearn: 100
-mode: sample_data
 models_encoders:
   minmax_percentiles:
   - 1
   - 99
   n: 700
   n_buckets: 140
-  resolutions:
-    3.3_Bus_Current: '0.132'
-    Receiver_Doppler: '0.108'
-    Solar_Panel_Voltage_X: '2.68'
-    Total_Photo_Current: '0.53'
   sparsity: 0.02
   timestamp:
     enable: false
@@ -65,3 +55,7 @@ models_state:
   mode: sample_data
   model_for_each_feature: true
   timestep: 0
+timesteps_stop:
+  learning: 100
+  running: 110
+  sampling: 50

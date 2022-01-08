@@ -94,7 +94,7 @@ def validate_config(cfg, data, timestep):
     params_types = {
         'dirs': dict,
         'features': list,
-        'iters': dict,
+        'timesteps_stop': dict,
         'models_state': dict,
         'models_encoders': dict,
         'models_params': dict,
@@ -104,14 +104,14 @@ def validate_config(cfg, data, timestep):
         param_v = cfg[param]
         assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
 
-    # Assert iters valid
-    iters_params_types = {
-        'samplesize': int,
-        'stop': int,
-        'stoplearn': int
+    # Assert timesteps_stop valid
+    timesteps_stop_params_types = {
+        'sampling': int,
+        'learning': int,
+        'running': int
     }
-    for param, type in iters_params_types.items():
-        param_v = cfg['iters'][param]
+    for param, type in timesteps_stop_params_types.items():
+        param_v = cfg['timesteps_stop'][param]
         assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
 
     # Assert models_state valid
@@ -132,16 +132,21 @@ def validate_config(cfg, data, timestep):
     for f in cfg['features']:
         assert f in data, f"features missing from data --> {f}\n  Found --> {data.keys()}"
 
-    # Assert iter values valid
-    assert cfg['iters']['stop'] > cfg['iters']['stoplearn'] > cfg['iters']['samplesize']
+    # Assert timesteps_stop values valid
+    running, learning, sampling = cfg['timesteps_stop']['running'], cfg['timesteps_stop']['learning'], \
+                                  cfg['timesteps_stop']['sampling']
+    assert running > learning > sampling, f"In 'timesteps_stop' config, expected 'running' > 'learning' > 'sampling'" \
+                                          f"but Found\n  'running' = {running}\n  " \
+                                          f"'learning' = {learning}\n  " \
+                                          f"'sampling' = {sampling}"
 
     # Assert starting models_states -- IF timestep=0
-    if timestep < cfg['iters']['samplesize']:
+    if timestep < cfg['timesteps_stop']['sampling']:
         cfg['models_state']['learn'] = True
         cfg['models_state']['mode'] = 'sample_data'
 
     # Assert valid params -- ONLY for INIT step
-    elif timestep == cfg['iters']['samplesize']:
+    elif timestep == cfg['timesteps_stop']['sampling']:
 
         # Assert valid models_encoders dict
         enc_params_types = {
@@ -263,7 +268,7 @@ def validate_config(cfg, data, timestep):
             assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
         print(f'\n  Config validated!')
 
-    else:  #timestep > cfg['iters']['samplesize']
+    else:  # timestep > cfg['timesteps_stop']['sampling']
         pass
 
     return cfg
