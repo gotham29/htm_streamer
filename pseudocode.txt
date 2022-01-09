@@ -1,0 +1,43 @@
+source.pipeline.htm_stream_runner.run_stream()
+
+    1. Load --> Config
+        * From: args.config_path
+    2. Load —> Batch Data
+        * From: args.data_path
+    3. For Row in Batch Data
+        1. Generate —> ML Inputs
+            * From: Row
+        2. Store —> ML Inputs
+            * To: Config['dirs']['data']
+        3. Run —> stream_to_htm()
+            * From: source.pipeline.htm_stream
+
+source.pipeline.htm_stream.stream_to_htm()
+
+    1. Load —> Config
+        * From: args.config_path
+    2. Load --> Stream Data
+        * From: args.data_path
+    3. Validate Config
+    if mode == 'sample_data':
+        4. Store Data
+            * To: Config['features_samples']
+    elif mode == 'init_models':
+        4. Store Data
+            * To: Config['features_samples']
+        5. Build Encoder Params
+            * From: Config['features_samples']
+        6. Initialize HTM model(s)
+            * From: Encoder Params & Config['models_params']
+        7. Store HTM model(s)
+            * To: Config['dirs']['models']
+    else: (mode='run_models')
+        4. Load HTM model(s)
+            * From: Config['dirs']['models']
+        5. Run Stream Data thru HTM model(s)
+        6. Store HTM models() outputs
+            * To: Config['dirs']['results']
+        7. Store HTM models()
+            * To: Config['dirs']['models']
+    8. Store Config
+        * To: args.config_path
