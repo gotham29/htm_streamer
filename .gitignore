@@ -15,6 +15,7 @@ Data/source/
 
 # C extensions
 *.so
+*.key
 
 # Distribution / packaging
 .Python
