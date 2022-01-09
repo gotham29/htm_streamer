@@ -5,9 +5,9 @@ source.pipeline.htm_stream_runner.run_stream()
     2. Load —> Batch Data
         * From: args.data_path
     3. For Row in Batch Data
-        1. Generate —> ML Inputs
+        1. Generate —> Stream Data
             * From: Row
-        2. Store —> ML Inputs
+        2. Store —> Stream Data
             * To: Config['dirs']['data']
         3. Run —> stream_to_htm()
             * From: source.pipeline.htm_stream
