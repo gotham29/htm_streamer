@@ -18,7 +18,7 @@ source.pipeline.htm_stream.stream_to_htm()
         * From: args.config_path
     2. Load —-> Stream Data
         * From: args.data_path
-    3. Validate Config
+    3. Validate —-> Config
     if mode == 'sample_data':
         4. Store —-> Stream Data
             * To: Config['features_samples']
