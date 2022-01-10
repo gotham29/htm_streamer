@@ -13,6 +13,7 @@ From command line:
 From command line:
 * **Clone htm_streamer repo**: `git clone https://github.com/gotham29/htm_streamer.git`
 * **CD to htm_streamer dir**:
+  * `cd ..`
   * `cd htm_streamer`
   
 ### 4) Run Integration Test
