@@ -15,6 +15,7 @@ From command line:
 * **CD to htm_streamer dir**:
   * `cd ..`
   * `cd htm_streamer`
+* **Install packages**: `pip install -r requirements.txt`
   
 ### 4) Run Integration Test
 From command line:

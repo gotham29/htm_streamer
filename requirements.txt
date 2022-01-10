@@ -2,6 +2,8 @@
 
 setuptools>=34.4.0 # needed for Windows with MSVC
 pip>=19.3.1
+pandas>=1.2.4
+PyYAML==6.0
 wheel>=0.33.6
 cmake>=3.14 #>=3.7, >=3.14 needed for MSVC 2019
 ## for python bindings (in /bindings/py/)
