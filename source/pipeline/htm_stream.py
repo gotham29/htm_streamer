@@ -9,7 +9,7 @@ from source.config.config import load_config, save_config, build_enc_params, ext
 from source.model.model import init_models, run_models
 
 
-def stream_to_htm(config_path, data_path):
+def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
     # 1. Load —> Config from Config Path
     cfg = load_config(config_path)
 
@@ -19,6 +19,8 @@ def stream_to_htm(config_path, data_path):
     # 3. Validate --> Config
     cfg = validate_config(cfg=cfg,
                           data=data,
+                          models_dir=models_dir,
+                          outputs_dir=outputs_dir,
                           timestep=cfg['models_state']['timestep'])
 
     # 4. If Config['models_state']['timestep'] < Config['timesteps_stop']['sampling']:
@@ -50,7 +52,7 @@ def stream_to_htm(config_path, data_path):
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'],
                                       models_enc_timestamp=cfg['models_encoders']['timestamp'])
         save_models(features_models=features_models,
-                    dir_models=cfg['dirs']['models'])
+                    dir_models=models_dir)  #cfg['dirs']['models']
 
     # 6. Else: (cfg['models_state']['timestep'] > cfg['timesteps_stop']['sampling'])
     #     a. Load —> Models (from: cfg['dirs']['models'])
@@ -60,7 +62,7 @@ def stream_to_htm(config_path, data_path):
     #     e. Store —> Models (to: cfg['dirs']['models'])
     else:
         mode = 'run_models'
-        features_models = load_models(cfg['dirs']['models'])
+        features_models = load_models(models_dir)  #cfg['dirs']['models']
         learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
         features_outputs = run_models(iter=cfg['models_state']['timestep'],
                                       data=data,
@@ -70,9 +72,9 @@ def stream_to_htm(config_path, data_path):
                                       predictor_config=cfg['models_predictor'])
         save_outputs(timestep=cfg['models_state']['timestep'],
                      features_outputs=features_outputs,
-                     dir_out=cfg['dirs']['results'])
+                     dir_out=outputs_dir)  #cfg['dirs']['results']
         save_models(features_models=features_models,
-                    dir_models=cfg['dirs']['models'])
+                    dir_models=models_dir)  #cfg['dirs']['models']
 
         if learn != cfg['models_state']['learn']:
             print(f'  Learn changed!')
@@ -97,4 +99,4 @@ def stream_to_htm(config_path, data_path):
 
 if __name__ == '__main__':
     args = get_args()
-    stream_to_htm(args.config_path, args.data_path)
+    stream_to_htm(args.config_path, args.data_path, args.models_dir, args.outputs_dir)

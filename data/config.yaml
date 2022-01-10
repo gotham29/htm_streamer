@@ -1,7 +1,3 @@
-dirs:
-  data: /Users/samheiserman/Desktop/repos/htm_streamer/data/stream
-  models: /Users/samheiserman/Desktop/repos/htm_streamer/models
-  results: /Users/samheiserman/Desktop/repos/htm_streamer/results
 features:
 - Solar_Panel_Voltage_X
 - 3.3_Bus_Current

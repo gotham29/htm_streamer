@@ -89,10 +89,10 @@ def get_default_config():
     return default_parameters
 
 
-def validate_config(cfg, data, timestep):
+def validate_config(cfg, data, timestep, models_dir, outputs_dir):
     # Assert all expected params are present & correct type
     params_types = {
-        'dirs': dict,
+        # 'dirs': dict,
         'features': list,
         'timesteps_stop': dict,
         'models_state': dict,
@@ -125,7 +125,7 @@ def validate_config(cfg, data, timestep):
         assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
 
     # Assert dirs exist
-    for d in cfg['dirs']:
+    for d in [models_dir, outputs_dir]:
         assert os.path.exists(d), f"dir not found --> {d}"
 
     # Assert features present in data:

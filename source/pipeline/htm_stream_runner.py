@@ -12,24 +12,24 @@ from source.config.config import load_config, save_config
 from source.pipeline.htm_stream import stream_to_htm
 
 
-def run_stream(args):
+def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir):
 
     # 1. Load —> Config from Config Path
-    cfg = load_config(args.config_path)
-    print(f'\nLoaded —> Config from: {args.config_path}')
+    cfg = load_config(config_path)
+    print(f'\nLoaded —> Config from: {config_path}')
 
     # 2. Load —> ML Inputs from ML Inputs Path
-    data = pd.read_csv(args.data_path)
-    print(f'Loaded —> Data from: {args.data_path}')
+    data = pd.read_csv(data_path)
+    print(f'Loaded —> Data from: {data_path}')
 
     # 3. Delete any .pkl in dir_models
-    pkl_files = [f for f in os.listdir(cfg['dirs']['models']) if '.pkl' in f]
+    pkl_files = [f for f in os.listdir(models_dir) if '.pkl' in f]
     for f in pkl_files:
-        os.remove( os.path.join(cfg['dirs']['models'], f))
+        os.remove( os.path.join(models_dir, f))
 
     # 4. For row in Source Data:
         # a. Generate —> ML Inputs (from: row)
-        # b. Store —> ML Inputs to ML Inputs Path (from: cfg[‘dirs’]['data'])
+        # b. Store —> ML Inputs to ML Inputs Path (from: data_stream_dir)
         # c. Run —> stream_to_htm(ML Input Path, Config Path)
     print('\nRunning main loop...')
     for _, row in data[:cfg['timesteps_stop']['running']].iterrows():
@@ -49,19 +49,19 @@ def run_stream(args):
             print(f'    data = {dict(row)}')
             continue
         # write data
-        path_data = os.path.join(cfg['dirs']['data'], f'inputrow={_}.json')
-        save_json(dict(row), path_data)
+        data_stream_path = os.path.join(data_stream_dir, f'inputrow={_}.json')
+        save_json(dict(row), data_stream_path)
         # call htm module
-        stream_to_htm(args.config_path, path_data)
+        stream_to_htm(config_path, data_stream_path, models_dir, outputs_dir)
         # print progress
         if _ > (cfg['timesteps_stop']['sampling']*10) and _ % 100 == 0:
             print(f'  completed row: {_}')
 
     # 5. Delete stream data files
     print('\nRemoving stream files...')
-    json_files = [f for f in os.listdir(cfg['dirs']['data'])]
+    json_files = [f for f in os.listdir(data_stream_dir)]
     for f in json_files:
-        os.remove( os.path.join(cfg['dirs']['data'], f))
+        os.remove( os.path.join(data_stream_dir, f))
 
     # 6. Reset Config:
     #     a. models_state['timestep'] —> 0
@@ -78,9 +78,9 @@ def run_stream(args):
     print('  learn = True')
     print('  mode = sample_data')
     print('  features_samples --> deleted')
-    save_config(cfg, args.config_path)
+    save_config(cfg, config_path)
 
 
 if __name__ == '__main__':
     args = get_args()
-    run_stream(args)
+    run_stream(args.config_path, args.data_path, args.models_dir, args.outputs_dir)

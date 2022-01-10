@@ -12,8 +12,14 @@ def get_args():
     parser.add_argument('-c', '--config_path', required=True,
                         help='path to yaml config')
 
-    parser.add_argument('-d', '--data_path', required=False,
+    parser.add_argument('-d', '--data_path', required=True,
                         help='path to json data file')
+
+    parser.add_argument('-m', '--models_dir', required=True,
+                        help='dir to store models')
+
+    parser.add_argument('-o', '--outputs_dir', required=True,
+                        help='dir to store outputs')
 
     return parser.parse_args()
 
@@ -32,7 +38,9 @@ def make_dir(mydir):
 
 def load_json(path_json):
     f = open(path_json, "r")
-    return json.loads(f.read())
+    data = json.loads(f.read())
+    f.close()
+    return data
 
 
 def save_json(data, path_json):
