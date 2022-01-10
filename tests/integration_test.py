@@ -20,7 +20,7 @@ make_dir(_OUTPUTS_DIR)
 make_dir(_MODELS_DIR)
 make_dir(_DATA_STREAM_DIR)
 
-print(f'_MODELS_DIR = {_MODELS_DIR}')
+print(f'\n_MODELS_DIR = {_MODELS_DIR}')
 print(f'_DATA_STREAM_DIR = {_DATA_STREAM_DIR}')
 print(f'_OUTPUTS_DIR = {_OUTPUTS_DIR}\n')
 
