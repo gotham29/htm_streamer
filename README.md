@@ -7,7 +7,7 @@ From command line:
 * **Create fresh env**: `conda create -n htm_env python=3.9.7`
 * **Switch to fresh env**: `conda activate htm_env`
 * **Install packages**: `pip install -r requirements.txt`
-* **Run setup.py**: `python setup.py --install`
+* **Run setup.py**: `python setup.py install`
 
 ### 2) Setup htm_streamer module
 From command line:
