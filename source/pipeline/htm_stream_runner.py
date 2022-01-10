@@ -13,6 +13,32 @@ from source.pipeline.htm_stream import stream_to_htm
 
 
 def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir):
+    """
+    Purpose:
+        Loop over all rows in batch csv
+            generate inputs for 'stream_to_htm'
+            run 'stream_to_htm'
+    Inputs:
+        config_path
+            type: str
+            meaning: path to config (yaml)
+        data_path
+            type: str
+            meaning: path to batch data (csv)
+        data_stream_dir
+            type: str
+            meaning: path to dir where stream datas (json) are written to
+        outputs_dir
+            type: str
+            meaning: path to dir where 'stream_to_htm' outputs are written to
+        models_dir
+            type: str
+            meaning: path to dir where 'stream_to_htm' models are written to
+    Outputs:
+        stream datas --> written to 'data_stream_dir'
+        'stream_to_htm' --> called for each stream data
+        'config.yaml' --> reset after last stream data
+    """
 
     # 1. Load —> Config from Config Path
     cfg = load_config(config_path)

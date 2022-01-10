@@ -10,6 +10,37 @@ from source.model.model import init_models, run_models
 
 
 def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
+    """
+    Purpose:
+        Run HTM module -- in mode either: Sampling/Initializing/Running (depending on timestep)
+    Inputs:
+        config_path
+            type: str
+            meaning: path to config (yaml)
+        data_path
+            type: str
+            meaning: path to stream data (json)
+        models_dir
+            type: str
+            meaning: path to dir where HTM models are written to
+        outputs_dir
+            type: str
+            meaning: path to dir where HTM outputs are written to
+    Outputs:
+        if mode == 'sample_data':
+            stream data --> stored
+        elif mode == 'init_models':
+            stream data --> stored
+            HTM models --> built
+            HTM models --> stored
+        else mode == 'run_models':
+            HTM models --> loaded
+            HTM models --> called on stream data
+            HTM outputs --> stored
+            HTM models --> stored
+        config --> updated & stored
+    """
+
     # 1. Load —> Config from Config Path
     cfg = load_config(config_path)
 
@@ -45,12 +76,11 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
         cfg, features_enc_params = build_enc_params(cfg=cfg,
                                                     features_samples=cfg['features_samples'],
                                                     models_encoders=cfg['models_encoders'])
-        features_models = init_models(iter_count=cfg['models_state']['timestep'],
-                                      features_enc_params=features_enc_params,
+        features_models = init_models(features_enc_params=features_enc_params,
                                       predictor_config=cfg['models_predictor'],
                                       models_params=cfg['models_params'],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'],
-                                      models_enc_timestamp=cfg['models_encoders']['timestamp'])
+                                      timestamp_config=cfg['models_encoders']['timestamp'])
         save_models(features_models=features_models,
                     dir_models=models_dir)  #cfg['dirs']['models']
 
@@ -64,8 +94,8 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
         mode = 'run_models'
         features_models = load_models(models_dir)  #cfg['dirs']['models']
         learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
-        features_outputs = run_models(iter=cfg['models_state']['timestep'],
-                                      data=data,
+        features_outputs = run_models(timestep=cfg['models_state']['timestep'],
+                                      features_data=data,
                                       learn=learn,
                                       features_models=features_models,
                                       timestamp_config=cfg['models_encoders']['timestamp'],

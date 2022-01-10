@@ -5,11 +5,16 @@ import yaml
 
 def load_config(yaml_path):
     """
-    Load config from path
+    Purpose:
+        Load config from path
     Inputs:
-        yaml_path: .yaml path to load from
+        yaml_path
+            type: str
+            meaning: .yaml path to load from
     Outputs:
-        cfg: dict
+        cfg
+            type: dict
+            meaning: config (yaml) -- loaded
     """
     with open(yaml_path, 'r') as yamlfile:
         cfg = yaml.load(yamlfile, Loader=yaml.FullLoader)
@@ -18,11 +23,19 @@ def load_config(yaml_path):
 
 def save_config(cfg, yaml_path):
     """
+    Purpose:
+        Save config to path
     Inputs:
-        cfg: config from yaml (dict)
-        yaml_path: .yaml path to save to (string)
+        cfg
+            type: dict
+            meaning: config (yaml)
+        yaml_path
+            type: str
+            meaning: .yaml path to save to
     Outputs:
-        cfg_out: config from yaml (dict)
+        cfg
+            type: dict
+            meaning: config (yaml) -- saved
     """
     with open(yaml_path, 'w') as outfile:
         yaml.dump(cfg, outfile, default_flow_style=False)
@@ -30,6 +43,28 @@ def save_config(cfg, yaml_path):
 
 
 def build_enc_params(cfg, features_samples, models_encoders):
+    """
+    Purpose:
+        Set encoder params fpr each feature using sampled data
+    Inputs:
+        cfg
+            type: dict
+            meaning: config (yaml)
+        features_samples
+            type: dict
+            meaning: list of sampled values for each feature
+        models_encoders
+            type: dict
+            meaning: encoder param values (user-specified in config.yaml)
+    Outputs:
+        cfg:
+            type: dict
+            meaning: config (yaml) -- updated to include RDSE resolutions for all features
+        features_enc_params
+            type: dict
+            meaning: set of encoder params for each feature ('size, sparsity', 'resolution')
+    """
+
     features_enc_params = {f: {} for f in features_samples}
     cfg['models_encoders']['resolutions'] = {}
     for f, sample in features_samples.items():
@@ -43,6 +78,24 @@ def build_enc_params(cfg, features_samples, models_encoders):
 
 
 def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
+    """
+    Purpose:
+        Calculate 'resolution' pararm to RDSE for given feature
+    Inputs:
+        sample
+            type: list
+            meaning: values sampled for given feature
+        minmax_percentiles
+            type: list
+            meaning: percentiles applied to feature's sample to get (max-min) range
+        n_buckets
+            type: int
+            meaning: number of categories to divide (max-min) range over
+    Outputs:
+        resolution
+            type: float
+            meaning: param calculated for feature's RDSE encoder
+    """
     min_perc, max_perc = minmax_percentiles[0], minmax_percentiles[1]
     f_min = np.percentile(sample, min_perc)
     f_max = np.percentile(sample, max_perc)
@@ -52,12 +105,37 @@ def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
 
 
 def extend_features_samples(data, features_samples):
+    """
+    Purpose:
+        Add given data to feature's sample list
+    Inputs:
+        data
+            type: dict
+            meaning: current data for each feature
+        features_samples
+            type: dict
+            meaning: list of samples collected for each feature so far
+    Outputs:
+        features_samples
+            type: dict
+            meaning: features_samples -- extemded to include current data
+    """
     for f, sample in features_samples.items():
         sample.append(data[f])
     return features_samples
 
 
 def get_default_config():
+    """
+    Purpose:
+        Provide default HTM model config -- as set in nupic.core/py/htm/example/hotgym.py
+    Inputs:
+        none
+    Outputs:
+        default_parameters
+            type: dict
+            meaning: HTM model config -- as set in hotgym.py
+    """
     default_parameters = {
         # there are 2 (3) encoders: "value" (RDSE) & "time" (DateTime weekend, timeOfDay)
         'enc': {
@@ -90,6 +168,31 @@ def get_default_config():
 
 
 def validate_config(cfg, data, timestep, models_dir, outputs_dir):
+    """
+    Purpose:
+        Ensure validity of all config values
+    Inputs:
+        cfg
+            type: dict
+            meaning: config (yaml)
+        data
+            type: dict
+            meaning: current data for each feature
+        timestep
+            type: int
+            meaning: current timestep
+        models_dir
+            type: str
+            meaning: path to dir where HTM models are written
+        outputs_dir
+            type: str
+            meaning: path to dir where HTM outputs are written
+    Outputs:
+        cfg
+            type: dict
+            meaning: config (yaml) -- validated
+    """
+
     # Assert all expected params are present & correct type
     params_types = {
         # 'dirs': dict,

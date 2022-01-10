@@ -5,7 +5,16 @@ import pickle
 
 
 def get_args():
-
+    """
+    Purpose:
+        Load module args
+    Inputs:
+        none
+    Outputs:
+        args
+            type: dict
+            meaning: object containing module arg values
+    """
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -26,17 +35,32 @@ def get_args():
 
 def make_dir(mydir):
     """
-    Make directory
+    Purpose:
+        Make directory
     Inputs:
-        mydir: (str) path to dir to make
+        mydir
+            type: sty
+            meaning: path to dir to make
     Outputs:
-        NA (dir made)
+        none (dir made)
     """
     if not os.path.exists(mydir):
         os.mkdir(mydir)
 
 
 def load_json(path_json):
+    """
+    Purpose:
+        Load json file
+    Inputs:
+        path_json
+            type: str
+            meaning: path to load json file from
+    Outputs:
+        data
+            type: dict
+            meaning: json data loaded
+    """
     f = open(path_json, "r")
     data = json.loads(f.read())
     f.close()
@@ -44,6 +68,19 @@ def load_json(path_json):
 
 
 def save_json(data, path_json):
+    """
+    Purpose:
+        Save data to json file
+    Inputs:
+        data
+            type: dict
+            meaning: data to save in json format
+        path_json
+            type: str
+            meaning: path to json file
+    Outputs:
+        none (json written)
+    """
     json_object = json.dumps(data, indent=4)
     with open(path_json, "w") as outfile:
         outfile.write(json_object)
@@ -51,10 +88,19 @@ def save_json(data, path_json):
 
 def save_data_as_pickle(data_struct, f_path):
     """
-    Saves a dictionary as pickle object to f_path
-    :param data_struct: Data object (dict/list) you want to save
-    :param f_path: File path
-    :return: True flag
+    Purpose:
+        Save data to pkl file
+    Inputs:
+        data_struct
+            type: any
+            meaning: data to save in pkl format
+        f_path
+            type: str
+            meaning: path to pkl file
+    Outputs:
+        True
+            type: bool
+            meaning: function ran
     """
     with open(f_path, 'wb') as handle:
         pickle.dump(data_struct, handle)
@@ -63,9 +109,16 @@ def save_data_as_pickle(data_struct, f_path):
 
 def load_pickle_object_as_data(file_path):
     """
-    Loads a pickle object from path
-    :param file_path: file path to load pickle object from
-    :return: Returns object
+    Purpose:
+        Load data from pkl file
+    Inputs:
+        file_path
+            type: str
+            meaning: path to pkl file
+    Outputs:
+        data
+            type: pkl
+            meaning: pkl data loaded
     """
     with open(file_path, 'rb') as f_handle:
         data = pickle.load(f_handle)
@@ -73,12 +126,37 @@ def load_pickle_object_as_data(file_path):
 
 
 def save_models(features_models, dir_models):
+    """
+    Purpose:
+        Save models to pkl
+    Inputs:
+        features_models
+            type: dict
+            meaning: model obj for each feature
+        dir_models
+            type: str
+            meaning: path to dir where pkl models are written to
+    Outputs:
+        none (pkls written)
+    """
     for t, model in features_models.items():
         path_model = os.path.join(dir_models, f"{t}.pkl")
         save_data_as_pickle(model, path_model)
 
 
 def load_models(dir_models):
+    """
+    Purpose:
+        Load pkl models for each feature from dir
+    Inputs:
+        dir_models
+            type: str
+            meaning: path to dir where pkl models are loaded from
+    Outputs:
+        features_models
+            type: dict
+            meaning: model obj for each feature
+    """
     pkl_files = [f for f in os.listdir(dir_models) if '.pkl' in f]
     features_models = {}
     for f in pkl_files:
@@ -89,6 +167,22 @@ def load_models(dir_models):
 
 
 def save_outputs(timestep, features_outputs, dir_out):
+    """
+    Purpose:
+        Save model outputs for all features (json)
+    Inputs:
+        timestep
+            type: int
+            meaning: current timestep
+        features_outputs
+            type: dict
+            meaning: model outputs for each feature
+        dir_out
+            type: str
+            meaning: path to dir where json outputs are written to
+    Outputs:
+        none (jsons written)
+    """
     for f, output in features_outputs.items():
         dir_out_f = os.path.join(dir_out, f)
         make_dir(dir_out_f)
