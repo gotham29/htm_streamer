@@ -3,55 +3,12 @@ features:
 - 3.3_Bus_Current
 - Receiver_Doppler
 - Total_Photo_Current
-models_encoders:
-  minmax_percentiles:
-  - 1
-  - 99
-  n: 700
-  n_buckets: 140
-  sparsity: 0.02
-  timestamp:
-    enable: false
-    feature: satellite_time
-    timeOfDay:
-    - 30
-    - 1
-    weekend: 21
-models_params:
-  anomaly:
-    period: 1000
-  predictor:
-    sdrc_alpha: 0.1
-  sp:
-    boostStrength: 3.0
-    columnCount: 1638
-    localAreaDensity: 0.04395604395604396
-    potentialPct: 0.85
-    synPermActiveInc: 0.04
-    synPermConnected: 0.13999999999999999
-    synPermInactiveDec: 0.006
-  tm:
-    activationThreshold: 17
-    cellsPerColumn: 13
-    initialPerm: 0.21
-    maxSegmentsPerCell: 128
-    maxSynapsesPerSegment: 64
-    minThreshold: 10
-    newSynapseCount: 32
-    permanenceDec: 0.1
-    permanenceInc: 0.1
-models_predictor:
-  enable: false
-  resolution: 1
-  steps_ahead:
-  - 1
-  - 2
 models_state:
   learn: true
   mode: sample_data
   model_for_each_feature: true
   timestep: 0
 timesteps_stop:
-  learning: 100
-  running: 110
+  learning: 60
+  running: 65
   sampling: 50
