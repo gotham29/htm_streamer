@@ -68,7 +68,7 @@ def build_enc_params(cfg, features_samples, models_encoders):
     features_enc_params = {f: {} for f in features_samples}
     cfg['models_encoders']['resolutions'] = {}
     for f, sample in features_samples.items():
-        features_enc_params[f]['size'] = models_encoders['n']
+        features_enc_params[f]['size'] = int(models_encoders['n'] * models_encoders['features_weights'][f])
         features_enc_params[f]['sparsity'] = models_encoders['sparsity']
         features_enc_params[f]['resolution'] = get_rdse_resolution(sample,
                                                                    models_encoders['minmax_percentiles'],
@@ -100,7 +100,7 @@ def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
     f_min = np.percentile(sample, min_perc)
     f_max = np.percentile(sample, max_perc)
     minmax_range = f_max - f_min
-    resolution = max(0.001, (minmax_range / float(n_buckets)))
+    resolution = minmax_range / float(n_buckets)
     return resolution
 
 
@@ -125,7 +125,7 @@ def extend_features_samples(data, features_samples):
     return features_samples
 
 
-def get_default_config():
+def get_default_params_htm():
     """
     Purpose:
         Provide default HTM model config -- as set in nupic.core/py/htm/example/hotgym.py
@@ -137,13 +137,7 @@ def get_default_config():
             meaning: HTM model config -- as set in hotgym.py
     """
     default_parameters = {
-        # there are 2 (3) encoders: "value" (RDSE) & "time" (DateTime weekend, timeOfDay)
-        'enc': {
-            "value":
-                {'resolution': 0.88, 'size': 700, 'sparsity': 0.02},
-            "time":
-                {'timeOfDay': (30, 1), 'weekend': 21}
-        },
+        'anomaly': {'period': 1000},
         'predictor': {'sdrc_alpha': 0.1},
         'sp': {'boostStrength': 3.0,
                'columnCount': 1638,
@@ -161,9 +155,33 @@ def get_default_config():
                'newSynapseCount': 32,
                'permanenceDec': 0.1,
                'permanenceInc': 0.1},
-        'anomaly': {'period': 1000},
     }
+    return default_parameters
 
+
+def get_default_params_predictor():
+    default_parameters = {
+        'enable': False,
+        'resolution': 1,
+        'steps_ahead': [1, 2]
+    }
+    return default_parameters
+
+
+def get_default_params_encoder(features):
+    default_parameters = {
+        'minmax_percentiles': [1, 99],
+        'n': 700,
+        'n_buckets': 140,
+        'sparsity': 0.02,
+        'timestamp': {
+            'enable': False,
+            'feature': 'timestamp',
+            'timeOfDay': [30, 1],
+            'weekend': 21
+        },
+        'features_weights': {f: 1.0 for f in features}
+    }
     return default_parameters
 
 
@@ -195,13 +213,9 @@ def validate_config(cfg, data, timestep, models_dir, outputs_dir):
 
     # Assert all expected params are present & correct type
     params_types = {
-        # 'dirs': dict,
         'features': list,
-        'timesteps_stop': dict,
         'models_state': dict,
-        'models_encoders': dict,
-        'models_params': dict,
-        'models_predictor': dict,
+        'timesteps_stop': dict,
     }
     for param, type in params_types.items():
         param_v = cfg[param]
@@ -243,13 +257,25 @@ def validate_config(cfg, data, timestep, models_dir, outputs_dir):
                                           f"'learning' = {learning}\n  " \
                                           f"'sampling' = {sampling}"
 
-    # Assert starting models_states -- IF timestep=0
+    # Assert starting models_states -- IF timestep < timesteps_stop['sampling']
     if timestep < cfg['timesteps_stop']['sampling']:
         cfg['models_state']['learn'] = True
         cfg['models_state']['mode'] = 'sample_data'
 
     # Assert valid params -- ONLY for INIT step
     elif timestep == cfg['timesteps_stop']['sampling']:
+
+        # Get default model_params -- IF not provided
+        if 'models_params' not in cfg:
+            cfg['models_params'] = get_default_params_htm()
+
+        # Get default models_predictor -- IF not provided
+        if 'models_predictor' not in cfg:
+            cfg['models_predictor'] = get_default_params_predictor()
+
+        # Get default models_encoders -- IF not provided
+        if 'models_encoders' not in cfg:
+            cfg['models_encoders'] = get_default_params_encoder(cfg['features'])
 
         # Assert valid models_encoders dict
         enc_params_types = {
