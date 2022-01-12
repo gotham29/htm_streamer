@@ -185,7 +185,7 @@ def get_default_params_encoder(features):
     return default_parameters
 
 
-def validate_config(cfg, data, timestep, models_dir, outputs_dir):
+def validate_config(cfg, data, models_dir, outputs_dir):
     """
     Purpose:
         Ensure validity of all config values
@@ -220,6 +220,10 @@ def validate_config(cfg, data, timestep, models_dir, outputs_dir):
     for param, type in params_types.items():
         param_v = cfg[param]
         assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+
+    # Assert timestamp=0 -- IF not found in cfg['models_state']
+    if 'timestep' not in cfg['models_state']:
+        cfg['models_state']['timestep'] = 0
 
     # Assert timesteps_stop valid
     timesteps_stop_params_types = {
@@ -257,13 +261,13 @@ def validate_config(cfg, data, timestep, models_dir, outputs_dir):
                                           f"'learning' = {learning}\n  " \
                                           f"'sampling' = {sampling}"
 
-    # Assert starting models_states -- IF timestep < timesteps_stop['sampling']
-    if timestep < cfg['timesteps_stop']['sampling']:
+    # Assert starting models_states -- IF current_timestep < timesteps_stop['sampling']
+    if cfg['models_state']['timestep'] < cfg['timesteps_stop']['sampling']:
         cfg['models_state']['learn'] = True
         cfg['models_state']['mode'] = 'sample_data'
 
     # Assert valid params -- ONLY for INIT step
-    elif timestep == cfg['timesteps_stop']['sampling']:
+    elif cfg['models_state']['timestep'] == cfg['timesteps_stop']['sampling']:
 
         # Get default model_params -- IF not provided
         if 'models_params' not in cfg:

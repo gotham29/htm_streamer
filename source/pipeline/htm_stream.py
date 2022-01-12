@@ -51,8 +51,7 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
     cfg = validate_config(cfg=cfg,
                           data=data,
                           models_dir=models_dir,
-                          outputs_dir=outputs_dir,
-                          timestep=cfg['models_state']['timestep'])
+                          outputs_dir=outputs_dir)
 
     # 4. If Config['models_state']['timestep'] < Config['timesteps_stop']['sampling']:
     #     a. Store —> ML Inputs for Params
@@ -101,7 +100,7 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
                                       timestamp_config=cfg['models_encoders']['timestamp'],
                                       predictor_config=cfg['models_predictor'])
         save_outputs(features_outputs=features_outputs,
-                     split_output_files=cfg['models_state']['split_output_files'],
+                     save_outputs_accumulated=cfg['models_state']['save_outputs_accumulated'],
                      timestep_current=cfg['models_state']['timestep'],
                      timestep_sampling=cfg['timesteps_stop']['sampling'],
                      dir_out=outputs_dir)
