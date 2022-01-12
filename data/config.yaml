@@ -9,6 +9,6 @@ models_state:
   model_for_each_feature: true
   timestep: 0
 timesteps_stop:
-  learning: 60
-  running: 65
+  learning: 100
+  running: 110
   sampling: 50

@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import pandas as pd
 import pickle
 
 
@@ -184,7 +185,11 @@ def save_outputs(timestep, features_outputs, dir_out):
         none (jsons written)
     """
     for f, output in features_outputs.items():
-        dir_out_f = os.path.join(dir_out, f)
-        make_dir(dir_out_f)
-        path_json = os.path.join(dir_out_f, f'iter={timestep}.json')
-        save_json(output, path_json)
+        result_current = pd.DataFrame({k: [v] for k, v in output.items()})
+        path_result_total = os.path.join(dir_out, f"{f}.csv")
+        result_found = os.path.exists(path_result_total)
+        if result_found:
+            result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
+        else:
+            result_total = result_current
+        result_total.to_csv(path_result_total, index=False)
