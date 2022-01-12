@@ -167,7 +167,7 @@ def load_models(dir_models):
     return features_models
 
 
-def save_outputs(features_outputs, timestep_current, timestep_sampling, dir_out):
+def save_outputs(features_outputs, timestep_current, timestep_sampling, split_output_files, dir_out):
     """
     Purpose:
         Save model outputs for all features (json)
@@ -184,14 +184,39 @@ def save_outputs(features_outputs, timestep_current, timestep_sampling, dir_out)
     Outputs:
         none (jsons written)
     """
+
+    first_output = True if (timestep_current == 1+timestep_sampling) else False
     for f, output in features_outputs.items():
         result_current = pd.DataFrame({k: [v] for k, v in output.items()})
-        path_result_total = os.path.join(dir_out, f"{f}.csv")
-
-        first_output = True if (timestep_current == 1+timestep_sampling) else False
-        if first_output:
-            result_total = result_current
+        result_total = result_current
+        if split_output_files:
+            dir_out_t = os.path.join(dir_out, f)
+            make_dir(dir_out_t)
+            path_result_total = os.path.join(dir_out_t, f"timestep={timestep_current}.csv")
         else:
-            result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
-
+            path_result_total = os.path.join(dir_out, f"{f}.csv")
+            if not first_output:
+                result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
         result_total.to_csv(path_result_total, index=False)
+    if first_output:
+        print(f"\nSplit Output Files = {split_output_files}\n")
+
+    # if split_output_files:
+    #     for f, output in features_outputs.items():
+    #         result_current = pd.DataFrame({k: [v] for k, v in output.items()})
+    #         result_total = result_current
+    #         dir_out_t = os.path.join(dir_out, f)
+    #         make_dir(dir_out_t)
+    #         path_result_total = os.path.join(dir_out_t, f"timestep={timestep_current}.csv")
+    # else:
+    #     for f, output in features_outputs.items():
+    #         result_current = pd.DataFrame({k: [v] for k, v in output.items()})
+    #         path_result_total = os.path.join(dir_out, f"{f}.csv")
+    #
+    #         first_output = True if (timestep_current == 1+timestep_sampling) else False
+    #         if first_output:
+    #             result_total = result_current
+    #         else:
+    #             result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
+    #
+    # result_total.to_csv(path_result_total, index=False)
