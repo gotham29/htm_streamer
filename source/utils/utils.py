@@ -167,7 +167,7 @@ def load_models(dir_models):
     return features_models
 
 
-def save_outputs(features_outputs, dir_out):
+def save_outputs(features_outputs, timestep_current, timestep_sampling, dir_out):
     """
     Purpose:
         Save model outputs for all features (json)
@@ -187,9 +187,11 @@ def save_outputs(features_outputs, dir_out):
     for f, output in features_outputs.items():
         result_current = pd.DataFrame({k: [v] for k, v in output.items()})
         path_result_total = os.path.join(dir_out, f"{f}.csv")
-        result_found = os.path.exists(path_result_total)
-        if result_found:
-            result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
-        else:
+
+        first_output = True if (timestep_current == 1+timestep_sampling) else False
+        if first_output:
             result_total = result_current
+        else:
+            result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
+
         result_total.to_csv(path_result_total, index=False)
