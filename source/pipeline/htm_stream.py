@@ -101,6 +101,8 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
                                       timestamp_config=cfg['models_encoders']['timestamp'],
                                       predictor_config=cfg['models_predictor'])
         save_outputs(features_outputs=features_outputs,
+                     timestep_current=cfg['models_state']['timestep'],
+                     timestep_sampling=cfg['timesteps_stop']['sampling'],
                      dir_out=outputs_dir)
         save_models(features_models=features_models,
                     dir_models=models_dir)
