@@ -55,6 +55,7 @@ models_state:
   learn: true
   mode: sample_data
   model_for_each_feature: true
+  split_output_files: false
   timestep: 0
 timesteps_stop:
   learning: 100
