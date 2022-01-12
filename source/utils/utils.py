@@ -201,22 +201,3 @@ def save_outputs(features_outputs, timestep_current, timestep_sampling, split_ou
     if first_output:
         print(f"\nSplit Output Files = {split_output_files}\n")
 
-    # if split_output_files:
-    #     for f, output in features_outputs.items():
-    #         result_current = pd.DataFrame({k: [v] for k, v in output.items()})
-    #         result_total = result_current
-    #         dir_out_t = os.path.join(dir_out, f)
-    #         make_dir(dir_out_t)
-    #         path_result_total = os.path.join(dir_out_t, f"timestep={timestep_current}.csv")
-    # else:
-    #     for f, output in features_outputs.items():
-    #         result_current = pd.DataFrame({k: [v] for k, v in output.items()})
-    #         path_result_total = os.path.join(dir_out, f"{f}.csv")
-    #
-    #         first_output = True if (timestep_current == 1+timestep_sampling) else False
-    #         if first_output:
-    #             result_total = result_current
-    #         else:
-    #             result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
-    #
-    # result_total.to_csv(path_result_total, index=False)
