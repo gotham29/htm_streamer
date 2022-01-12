@@ -167,7 +167,7 @@ def load_models(dir_models):
     return features_models
 
 
-def save_outputs(features_outputs, timestep_current, timestep_sampling, split_output_files, dir_out):
+def save_outputs(features_outputs, timestep_current, timestep_sampling, save_outputs_accumulated, dir_out):
     """
     Purpose:
         Save model outputs for all features (json)
@@ -185,19 +185,24 @@ def save_outputs(features_outputs, timestep_current, timestep_sampling, split_ou
         none (jsons written)
     """
 
-    first_output = True if (timestep_current == 1+timestep_sampling) else False
+    first_output = False if (timestep_current > 1+timestep_sampling) else True
     for f, output in features_outputs.items():
+        # Save current output
         result_current = pd.DataFrame({k: [v] for k, v in output.items()})
-        result_total = result_current
-        if split_output_files:
-            dir_out_t = os.path.join(dir_out, f)
-            make_dir(dir_out_t)
-            path_result_total = os.path.join(dir_out_t, f"timestep={timestep_current}.csv")
-        else:
+        path_result_current = os.path.join(dir_out, f"{f}--timestep={timestep_current}.csv")
+        result_current.to_csv(path_result_current)
+        path_result_previous = os.path.join(dir_out, f"{f}--timestep={timestep_current-1}.csv")
+        if os.path.exists(path_result_previous):
+            os.remove(path_result_previous)
+        result_current.to_csv(path_result_current)
+
+        # Save total output
+        if save_outputs_accumulated:
+            result_total = result_current
             path_result_total = os.path.join(dir_out, f"{f}.csv")
             if not first_output:
                 result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
-        result_total.to_csv(path_result_total, index=False)
+            result_total.to_csv(path_result_total, index=False)
     if first_output:
-        print(f"\nSplit Output Files = {split_output_files}\n")
+        print(f"\nSave Outputs Accumulated = {save_outputs_accumulated}\n")
 
