@@ -82,7 +82,7 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'],
                                       timestamp_config=cfg['models_encoders']['timestamp'])
         save_models(features_models=features_models,
-                    dir_models=models_dir)  #cfg['dirs']['models']
+                    dir_models=models_dir)
 
     # 6. Else: (cfg['models_state']['timestep'] > cfg['timesteps_stop']['sampling'])
     #     a. Load —> Models (from: cfg['dirs']['models'])
@@ -92,7 +92,7 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
     #     e. Store —> Models (to: cfg['dirs']['models'])
     else:
         mode = 'run_models'
-        features_models = load_models(models_dir)  #cfg['dirs']['models']
+        features_models = load_models(models_dir)
         learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
         features_outputs = run_models(timestep=cfg['models_state']['timestep'],
                                       features_data=data,
@@ -102,9 +102,9 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
                                       predictor_config=cfg['models_predictor'])
         save_outputs(timestep=cfg['models_state']['timestep'],
                      features_outputs=features_outputs,
-                     dir_out=outputs_dir)  #cfg['dirs']['results']
+                     dir_out=outputs_dir)
         save_models(features_models=features_models,
-                    dir_models=models_dir)  #cfg['dirs']['models']
+                    dir_models=models_dir)
 
         if learn != cfg['models_state']['learn']:
             print(f'  Learn changed!')

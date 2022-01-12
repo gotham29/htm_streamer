@@ -420,7 +420,8 @@ def run_models(timestep, features_data, learn, features_models, timestamp_config
                                                                                      timestep=timestep,
                                                                                      learn=learn,
                                                                                      predictor_config=predictor_config)
-        features_outputs[t] = {'anomaly_score': anomaly_score,
+        features_outputs[t] = {'timestep': timestep,
+                               'anomaly_score': anomaly_score,
                                'anomaly_likelihood': anomaly_likelihood,
                                'pred_count': pred_count,
                                'steps_predictions': steps_predictions}
