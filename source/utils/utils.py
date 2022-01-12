@@ -167,7 +167,7 @@ def load_models(dir_models):
     return features_models
 
 
-def save_outputs(timestep, features_outputs, dir_out):
+def save_outputs(features_outputs, dir_out):
     """
     Purpose:
         Save model outputs for all features (json)
