@@ -187,10 +187,12 @@ def save_outputs(features_outputs, timestep_current, timestep_sampling, save_out
 
     first_output = False if (timestep_current > 1+timestep_sampling) else True
     for f, output in features_outputs.items():
+
         # Save current output
         result_current = pd.DataFrame({k: [v] for k, v in output.items()})
         path_result_current = os.path.join(dir_out, f"{f}--timestep={timestep_current}.csv")
         result_current.to_csv(path_result_current)
+        # Delete prior output
         path_result_previous = os.path.join(dir_out, f"{f}--timestep={timestep_current-1}.csv")
         if os.path.exists(path_result_previous):
             os.remove(path_result_previous)
