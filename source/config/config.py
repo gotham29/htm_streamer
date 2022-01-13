@@ -70,14 +70,16 @@ def build_enc_params(cfg, features_samples, models_encoders):
     for f, sample in features_samples.items():
         features_enc_params[f]['size'] = int(models_encoders['n'] * models_encoders['features_weights'][f])
         features_enc_params[f]['sparsity'] = models_encoders['sparsity']
-        features_enc_params[f]['resolution'] = get_rdse_resolution(sample,
+        features_enc_params[f]['resolution'] = get_rdse_resolution(f,
+                                                                   sample,
                                                                    models_encoders['minmax_percentiles'],
                                                                    models_encoders['n_buckets'])
         cfg['models_encoders']['resolutions'][f] = str(round(features_enc_params[f]['resolution'], 3))
+    features_enc_params = {k:v for k,v in features_enc_params.items() if v['resolution'] != 0}
     return cfg, features_enc_params
 
 
-def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
+def get_rdse_resolution(feature, sample, minmax_percentiles, n_buckets):
     """
     Purpose:
         Calculate 'resolution' pararm to RDSE for given feature
@@ -101,6 +103,8 @@ def get_rdse_resolution(sample, minmax_percentiles, n_buckets):
     f_max = np.percentile(sample, max_perc)
     minmax_range = f_max - f_min
     resolution = minmax_range / float(n_buckets)
+    if resolution == 0:
+        print(f"Dropping feature, due to no variation in sample\n  --> {feature}")
     return resolution
 
 
