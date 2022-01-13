@@ -6,7 +6,7 @@ sys.path.append(_SOURCE_DIR)
 
 from source.utils.utils import get_args, load_json, save_models, load_models, save_outputs
 from source.config.config import load_config, save_config, build_enc_params, extend_features_samples, validate_config
-from source.model.model import init_models, run_models
+from source.model.model import init_models, run_models, run_models_parallelized
 
 
 def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
@@ -93,12 +93,20 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
         mode = 'run_models'
         features_models = load_models(models_dir)
         learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
+
         features_outputs = run_models(timestep=cfg['models_state']['timestep'],
                                       features_data=data,
                                       learn=learn,
                                       features_models=features_models,
                                       timestamp_config=cfg['models_encoders']['timestamp'],
                                       predictor_config=cfg['models_predictor'])
+        # features_outputs = run_models_parallelized(timestep=cfg['models_state']['timestep'],
+        #                                            features_data=data,
+        #                                            learn=learn,
+        #                                            features_models=features_models,
+        #                                            timestamp_config=cfg['models_encoders']['timestamp'],
+        #                                            predictor_config=cfg['models_predictor'])
+
         save_outputs(features_outputs=features_outputs,
                      save_outputs_accumulated=cfg['models_state']['save_outputs_accumulated'],
                      timestep_current=cfg['models_state']['timestep'],

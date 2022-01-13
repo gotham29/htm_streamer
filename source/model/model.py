@@ -1,3 +1,5 @@
+import concurrent.futures
+import multiprocessing
 import numpy as np
 import pandas as pd
 from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
@@ -413,14 +415,14 @@ def run_models(timestep, features_data, learn, features_models, timestamp_config
             type: dict
             meaning: HTMModel outputs for each feature
     """
-    features_outputs = {t: {} for t in features_models}
+    features_outputs = {f: {} for f in features_models}
     # Get outputs for all features_model
-    for t, model in features_models.items():
+    for f, model in features_models.items():
         anomaly_score, anomaly_likelihood, pred_count, steps_predictions = model.run(features_data=features_data,
                                                                                      timestep=timestep,
                                                                                      learn=learn,
                                                                                      predictor_config=predictor_config)
-        features_outputs[t] = {'timestep': timestep,
+        features_outputs[f] = {'timestep': timestep,
                                'anomaly_score': anomaly_score,
                                'anomaly_likelihood': anomaly_likelihood,
                                'pred_count': pred_count,
@@ -428,5 +430,68 @@ def run_models(timestep, features_data, learn, features_models, timestamp_config
         # add timestamp data -- IF feature present
         if timestamp_config['feature'] in features_data:
             time_feat = timestamp_config['feature']
-            features_outputs[t][time_feat] = str(features_data[time_feat])
+            features_outputs[f][time_feat] = str(features_data[time_feat])
+    return features_outputs
+
+
+def run_model(args):
+    feature, HTMModel, features_data, timestep, learn, predictor_config = args
+    anomaly_score, anomaly_likelihood, pred_count, steps_predictions = HTMModel.run(features_data=features_data,
+                                                                                 timestep=timestep,
+                                                                                 learn=learn,
+                                                                                 predictor_config=predictor_config)
+    out_dict = {
+        'timestep': timestep,
+        'feature': feature,
+        'anomaly_score': anomaly_score,
+        'anomaly_likelihood': anomaly_likelihood,
+        'pred_count': pred_count,
+        'steps_predictions': steps_predictions,
+    }
+    return out_dict
+
+
+
+def run_models_parallelized(timestep, features_data, learn, features_models, timestamp_config, predictor_config):
+
+    features_outputs = {}
+    models_count = len(features_models)
+    features = []
+    models = []
+    learns = [learn for _ in range(models_count)]
+    timesteps = [timestep for _ in range(models_count)]
+    features_datas = [features_data for _ in range(models_count)]
+    predictor_configs = [predictor_config for _ in range(models_count)]
+
+    for f, model in features_models.items():
+        features.append(f)
+        models.append(model)
+
+    print(f"\nTIME = {timestep}")
+    print(f"  features --> {features}")
+    print(f"  timesteps --> {timesteps}")
+    print(f"  models --> {models}")
+    print(f"  features_datas --> {features_datas}")
+
+    tasks = list(zip(features, models, features_datas, timesteps, learns, predictor_configs))
+    max_workers = multiprocessing.cpu_count() - 1
+    chunksize = round(len(tasks) / max_workers / 4)
+    chunksize = max(chunksize, 1)
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        results = executor.map(run_model, tasks, chunksize=chunksize)
+
+    for res in results:
+        features_outputs[res['feature']] = {
+            'timestep': res['timestep'],
+            'anomaly_score': res['anomaly_score'],
+            'anomaly_likelihood': res['anomaly_likelihood'],
+            'pred_count': res['pred_count'],
+            'steps_predictions': res['steps_predictions'],
+        }
+        # add timestamp data -- IF feature present
+        if timestamp_config['feature'] in features_data:
+            time_feat = timestamp_config['feature']
+            features_outputs[res['feature']][time_feat] = str(features_data[time_feat])
+
     return features_outputs
