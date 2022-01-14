@@ -98,7 +98,6 @@ def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir)
     cfg['models_state']['timestep'] = 0
     cfg['models_state']['learn'] = True
     cfg['models_state']['mode'] = 'sample_data'
-    # del cfg['features_samples']
     cfg = {k:v for k,v in cfg.items() if k != 'features_samples'}
     print('  timestep = 0')
     print('  learn = True')

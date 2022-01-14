@@ -6,7 +6,7 @@ sys.path.append(_SOURCE_DIR)
 
 from source.utils.utils import get_args, load_json, save_models, load_models, save_outputs
 from source.config.config import load_config, save_config, build_enc_params, extend_features_samples, validate_config
-from source.model.model import init_models, run_models, run_models_parallelized
+from source.model.model import init_models, run_models, run_models_parallel
 
 
 def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
@@ -73,15 +73,15 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
         cfg['features_samples'] = extend_features_samples(data=data,
                                                           features_samples=cfg['features_samples'])
         cfg, features_enc_params = build_enc_params(cfg=cfg,
-                                                    features_samples=cfg['features_samples'],
-                                                    models_encoders=cfg['models_encoders'])
+                                                    models_encoders=cfg['models_encoders'],
+                                                    features_samples=cfg['features_samples'])
         features_models = init_models(features_enc_params=features_enc_params,
-                                      predictor_config=cfg['models_predictor'],
                                       models_params=cfg['models_params'],
-                                      model_for_each_feature=cfg['models_state']['model_for_each_feature'],
-                                      timestamp_config=cfg['models_encoders']['timestamp'])
-        save_models(features_models=features_models,
-                    dir_models=models_dir)
+                                      predictor_config=cfg['models_predictor'],
+                                      timestamp_config=cfg['models_encoders']['timestamp'],
+                                      model_for_each_feature=cfg['models_state']['model_for_each_feature'])
+        save_models(dir_models=models_dir,
+                    features_models=features_models)
 
     # 6. Else: (cfg['models_state']['timestep'] > cfg['timesteps_stop']['sampling'])
     #     a. Load —> Models (from: cfg['dirs']['models'])
@@ -93,27 +93,19 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
         mode = 'run_models'
         features_models = load_models(models_dir)
         learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
-
-        features_outputs = run_models(timestep=cfg['models_state']['timestep'],
-                                      features_data=data,
-                                      learn=learn,
-                                      features_models=features_models,
-                                      timestamp_config=cfg['models_encoders']['timestamp'],
-                                      predictor_config=cfg['models_predictor'])
-        # features_outputs = run_models_parallelized(timestep=cfg['models_state']['timestep'],
-        #                                            features_data=data,
-        #                                            learn=learn,
-        #                                            features_models=features_models,
-        #                                            timestamp_config=cfg['models_encoders']['timestamp'],
-        #                                            predictor_config=cfg['models_predictor'])
-
-        save_outputs(features_outputs=features_outputs,
-                     save_outputs_accumulated=cfg['models_state']['save_outputs_accumulated'],
+        features_outputs, features_models = run_models(learn=learn,
+                                                       features_data=data,
+                                                       features_models=features_models,
+                                                       timestep=cfg['models_state']['timestep'],
+                                                       predictor_config=cfg['models_predictor'],
+                                                       timestamp_config=cfg['models_encoders']['timestamp'])
+        save_outputs(dir_out=outputs_dir,
+                     features_outputs=features_outputs,
                      timestep_current=cfg['models_state']['timestep'],
                      timestep_sampling=cfg['timesteps_stop']['sampling'],
-                     dir_out=outputs_dir)
-        save_models(features_models=features_models,
-                    dir_models=models_dir)
+                     save_outputs_accumulated=cfg['models_state']['save_outputs_accumulated'])
+        save_models(dir_models=models_dir,
+                    features_models=features_models)
 
         if learn != cfg['models_state']['learn']:
             print(f'  Learn changed!')
