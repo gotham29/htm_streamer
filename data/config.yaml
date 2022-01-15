@@ -4,11 +4,8 @@ features:
 - Receiver_Doppler
 - Total_Photo_Current
 models_state:
-  learn: true
-  mode: sample_data
   model_for_each_feature: true
   save_outputs_accumulated: true
-  timestep: 0
 timesteps_stop:
   learning: 100
   running: 110

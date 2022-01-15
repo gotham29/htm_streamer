@@ -11,7 +11,7 @@ from htm.encoders.date import DateEncoder
 from htm.encoders.rdse import RDSE, RDSE_Parameters
 
 
-class HTMModel:
+class HTMmodel:
     def __init__(self, features_model, features_enc_params, models_params,
                  timestamp_config, predictor_config):
         self.features_model = features_model
@@ -30,19 +30,19 @@ class HTMModel:
     def init_encs(self):
         """
         Purpose:
-            Init HTMModel encoders
+            Init HTMmodel encoders
         Inputs:
-            HTMModel.features_model
+            HTMmodel.features_model
                 type: list
-                meaning: which data features to build HTMModels for
-            HTMModel.features_enc_params
+                meaning: which data features to build HTMmodels for
+            HTMmodel.features_enc_params
                 type: dict
                 meaning: encoder params built for each modeled feature
         Outputs:
-            HTMModel.features_encs
+            HTMmodel.features_encs
                 type: dict
-                meaning: HTMModel encoder object for each feature modeled
-            HTMModel.encodingwidth
+                meaning: HTMmodel encoder object for each feature modeled
+            HTMmodel.encodingwidth
                 type: int
                 meaning: size in bits of total concatenated encoder (input to SP)
         """
@@ -64,16 +64,16 @@ class HTMModel:
     def init_sp(self):
         """
         Purpose:
-            Init HTMModel.sp
+            Init HTMmodel.sp
         Inputs:
-            HTMModel.models_params
+            HTMmodel.models_params
                 type: dict
                 meaning: HTM hyperparams (user-provided in config.yaml)
-            HTMModel.encoding_width
+            HTMmodel.encoding_width
                 type: int
                 meaning: size in bits of total concatenated encoder (input to SP)
         Outputs:
-            HTMModel.sp
+            HTMmodel.sp
                 type: htm.core.SpatialPooler
                 meaning: HTM native alg that selects activeColumns for input to TM
         """
@@ -96,13 +96,13 @@ class HTMModel:
     def init_tm(self):
         """
         Purpose:
-            Init HTMModel.tm
+            Init HTMmodel.tm
         Inputs:
-            HTMModel.models_params
+            HTMmodel.models_params
                 type: dict
                 meaning: HTM hyperparams (user-provided in config.yaml)
         Outputs:
-            HTMModel.tm
+            HTMmodel.tm
                 type: htm.core.TemporalMemory
                 meaning: HTM native alg that activates & depolarizes activeColumns' cells within HTM region
         """
@@ -127,13 +127,13 @@ class HTMModel:
     def init_anomalyhistory(self):
         """
         Purpose:
-            Init HTMModel.anomaly_history
+            Init HTMmodel.anomaly_history
         Inputs:
-            HTMModel.models_params
+            HTMmodel.models_params
                 type: dict
                 meaning: HTM hyperparams (user-provided in config.yaml)
         Outputs:
-            HTMModel.anomaly_history
+            HTMmodel.anomaly_history
                 type: htm.core.AnomalyLikelihood
                 meaning: HTM native alg that yields normalized anomaly metric (likelihood) from window of anomaly scores
         """
@@ -142,16 +142,16 @@ class HTMModel:
     def init_predictor(self):
         """
         Purpose:
-            Init HTMModel.predictor
+            Init HTMmodel.predictor
         Inputs:
-            HTMModel.models_params
+            HTMmodel.models_params
                 type: dict
                 meaning: HTM hyperparams (user-provided in config.yaml)
-            HTMModel.predictor_steps_ahead
+            HTMmodel.predictor_steps_ahead
                 type: list
                 meaning: values for how many timestep(s) ahead to predict
         Outputs:
-            HTMModel.predictor
+            HTMmodel.predictor
                 type: htm.core.Predictor
                 meaning: HTM native alg that yields predicted values for each step ahead -- in raw feature values
         """
@@ -161,12 +161,12 @@ class HTMModel:
     def init_model(self):
         """
         Purpose:
-            Init entire HTMModel -- element by element
+            Init entire HTMmodel -- element by element
         Inputs:
             all data specified as input to consituent 'init_xx()' functions
         Outputs:
-            HTMModel
-                type: HTMModel
+            HTMmodel
+                type: HTMmodel
                 meaning: Object that runs entire HTM process (enc+sp+tm+anomlikl+predictor) given raw data
         """
         self.init_encs()
@@ -183,13 +183,13 @@ class HTMModel:
             features_data
                 type: dict
                 meaning: current data for each feature
-            HTMModel.features_encs
+            HTMmodel.features_encs
                 type: dict
                 meaning: encoder objects for each feature
-            HTMModel.timestamp_config
+            HTMmodel.timestamp_config
                 type: dict
                 meaning: params for timestep encoding (user-provided in config.yaml)
-            HTMModel.encoding_width
+            HTMmodel.encoding_width
                 type: int
                 meaning: size in bits of total concatenated encoder (input to SP)
         Outputs:
@@ -214,10 +214,10 @@ class HTMModel:
         Purpose:
             Get number of predictions made by TM at current timestep
         Inputs:
-            HTMModel.tm
+            HTMmodel.tm
                 type: nupic.core.TemporalMemory
-                meaning: TemporalMemory component of HTMModel
-            HTMModel.models_params
+                meaning: TemporalMemory component of HTMmodel
+            HTMmodel.models_params
                 type: dict
                 meaning: HTM hyperparams (user-provided in config.yaml)
         Outputs:
@@ -245,18 +245,18 @@ class HTMModel:
             f_data
                 type: float
                 meaning: current value for given feature
-            HTMModel.predictor
+            HTMmodel.predictor
                 type: htm.core.Predictor
                 meaning: HTM native alg that yields predicted values for each step ahead -- in raw feature values
-            HTMModel.tm
+            HTMmodel.tm
                 type: nupic.core.TemporalMemory
-                meaning: TemporalMemory component of HTMModel
-            HTMModel.predictor_steps_ahead
+                meaning: TemporalMemory component of HTMmodel
+            HTMmodel.predictor_steps_ahead
                 type: list
-                meaning: set of steps ahead for HTMModel.predictor
-            HTMModel.predictor_resolution
+                meaning: set of steps ahead for HTMmodel.predictor
+            HTMmodel.predictor_resolution
                 type: int
-                meaning: resolution param for HTMModel.predictor
+                meaning: resolution param for HTMmodel.predictor
         Outputs:
             steps_predictions
                 type: dict
@@ -278,7 +278,7 @@ class HTMModel:
     def run(self, features_data, timestep, learn, predictor_config):
         """
         Purpose:
-            Run HTMModel -- yielding all outputs & updating model (if 'learn'==True)
+            Run HTMmodel -- yielding all outputs & updating model (if 'learn'==True)
         Inputs:
             features_data
                 type: dict
@@ -288,10 +288,10 @@ class HTMModel:
                 meaning: current timestep
             learn
                 type: bool
-                meaning: whether learning is enabled in HTMModel
+                meaning: whether learning is enabled in HTMmodel
             predictor_config
                 type: dict
-                meaning: param values for HTMModel.predictor (user-specified in config.yaml)
+                meaning: param values for HTMmodel.predictor (user-specified in config.yaml)
         Outputs:
             anomaly_score
                 type: float
@@ -341,14 +341,14 @@ def init_models(features_enc_params, predictor_config,
                 models_params, model_for_each_feature, timestamp_config):
     """
     Purpose:
-        Build HTMModels for each feature (features --> user-provided in config.yaml)
+        Build HTMmodels for each feature (features --> user-provided in config.yaml)
     Inputs:
         features_enc_params
             type: dict
             meaning: encoder params built for each modeled feature
         predictor_config
             type: dict
-            meaning: param values for HTMModel.predictor (user-specified in config.yaml)
+            meaning: param values for HTMmodel.predictor (user-specified in config.yaml)
         models_params
             type: dict
             meaning: HTM hyperparams (user-provided in config.yaml)
@@ -361,21 +361,21 @@ def init_models(features_enc_params, predictor_config,
     Outputs:
         features_models
             type: dict
-            meaning: HTMModel for each feature
+            meaning: HTMmodel for each feature
     """
     features_models = {}
 
     if model_for_each_feature:  # multiple models, one per feature
         for f in features_enc_params:
             features_model = [f]
-            model = HTMModel(features_model, features_enc_params, models_params,
+            model = HTMmodel(features_model, features_enc_params, models_params,
                              timestamp_config, predictor_config)
             model.init_model()
             features_models[f] = model
 
     else:  # one multi-feature model
         features_model = list(features_enc_params.keys())
-        model = HTMModel(features_model, features_enc_params, models_params,
+        model = HTMmodel(features_model, features_enc_params, models_params,
                          timestamp_config, predictor_config)
         model.init_model()
         features_models[f'megamodel_features={len(features_model)}'] = model
@@ -390,7 +390,7 @@ def init_models(features_enc_params, predictor_config,
 def run_models(timestep, features_data, learn, features_models, timestamp_config, predictor_config):
     """
     Purpose:
-        Get HTMModel(s) outputs for all features
+        Update HTMmodel(s) & collect results for all features -- run in serial
     Inputs:
         timestep
             type: int
@@ -400,44 +400,31 @@ def run_models(timestep, features_data, learn, features_models, timestamp_config
             meaning: current timestep data for each feature
         learn
             type: bool
-            meaning: whether learning is enabled in HTMModel
+            meaning: whether learning is enabled in HTMmodel
         features_models
             type: dict
-            meaning: HTMModel for each feature
+            meaning: HTMmodel for each feature
         timestamp_config
             type: dict
             meaning: params for timestamp encoder (user-specified in config.yaml)
         predictor_config
             type: dict
-            meaning: param values for HTMModel.predictor (user-specified in config.yaml)
+            meaning: param values for HTMmodel.predictor (user-specified in config.yaml)
     Outputs:
         features_outputs
             type: dict
-            meaning: HTMModel outputs for each feature
+            meaning: HTMmodel outputs for each feature
+        features_models
+            type: dict
+            meaning: HTMmodels for each feature
     """
     features_outputs = {f: {} for f in features_models}
-    # Get outputs for all features_model
+    # Get outputs & update models
     for f, model in features_models.items():
-        anomaly_score, anomaly_likelihood, pred_count, steps_predictions = model.run(learn=learn,
-                                                                                     timestep=timestep,
-                                                                                     features_data=features_data,
-                                                                                     predictor_config=predictor_config)
-        features_models[f] = model
-        features_outputs[f] = {'timestep': timestep,
-                               'pred_count': pred_count,
-                               'anomaly_score': anomaly_score,
-                               'steps_predictions': steps_predictions,
-                               'anomaly_likelihood': anomaly_likelihood}
-
-        # args = (f, model, features_data, timestep, learn, predictor_config)
-        # res = run_model(args)
-        # features_models[f] = res['model']
-        # features_outputs[f] = {'timestep': res['timestep'],
-        #                        'pred_count': res['pred_count'],
-        #                        'anomaly_score': res['anomaly_score'],
-        #                        'steps_predictions': res['steps_predictions'],
-        #                        'anomaly_likelihood': res['anomaly_likelihood']}
-
+        args = (f, model, features_data, timestep, learn, predictor_config)
+        result = run_model(args)
+        features_models[f] = result['model']
+        features_outputs[f] = {k: v for k, v in result.items() if k not in ['model', 'feature']}
         # add timestamp data -- IF feature present
         if timestamp_config['feature'] in features_data:
             time_feat = timestamp_config['feature']
@@ -447,28 +434,84 @@ def run_models(timestep, features_data, learn, features_models, timestamp_config
 
 
 def run_model(args):
-    feature, HTMModel, features_data, timestep, learn, predictor_config = args
-    anomaly_score, anomaly_likelihood, pred_count, steps_predictions = HTMModel.run(learn=learn,
+    """
+    Purpose:
+        Update HTMmodel & collect result for 1 feature
+    Inputs:
+        timestep
+            type: int
+            meaning: current timestep
+        features_data
+            type: dict
+            meaning: current timestep data for each feature
+        learn
+            type: bool
+            meaning: whether learning is enabled in HTMmodel
+        features_models
+            type: dict
+            meaning: HTMmodel for each feature
+        timestamp_config
+            type: dict
+            meaning: params for timestamp encoder (user-specified in config.yaml)
+        predictor_config
+            type: dict
+            meaning: param values for HTMmodel.predictor (user-specified in config.yaml)
+    Outputs:
+        result
+            type: dict
+            meaning: all outputs from HTMmodel.run() for given feature
+    """
+    feature, HTMmodel, features_data, timestep, learn, predictor_config = args
+    anomaly_score, anomaly_likelihood, pred_count, steps_predictions = HTMmodel.run(learn=learn,
                                                                                     timestep=timestep,
                                                                                     features_data=features_data,
                                                                                     predictor_config=predictor_config)
-    out_dict = {'model': HTMModel,
-                'feature': feature,
-                'timestep': timestep,
-                'pred_count': pred_count,
-                'anomaly_score': anomaly_score,
-                'steps_predictions': steps_predictions,
-                'anomaly_likelihood': anomaly_likelihood}
-    return out_dict
+    result = {'model': HTMmodel,
+              'feature': feature,
+              'timestep': timestep,
+              'pred_count': pred_count,
+              'anomaly_score': anomaly_score,
+              'steps_predictions': steps_predictions,
+              'anomaly_likelihood': anomaly_likelihood}
 
+    return result
 
 
 def run_models_parallel(timestep, features_data, learn, features_models, timestamp_config, predictor_config):
-
+    """
+    Purpose:
+        Update HTMmodel(s) & collect results for all features -- run in parallel
+    Inputs:
+        timestep
+            type: int
+            meaning: current timestep
+        features_data
+            type: dict
+            meaning: current timestep data for each feature
+        learn
+            type: bool
+            meaning: whether learning is enabled in HTMmodel
+        features_models
+            type: dict
+            meaning: HTMmodel for each feature
+        timestamp_config
+            type: dict
+            meaning: params for timestamp encoder (user-specified in config.yaml)
+        predictor_config
+            type: dict
+            meaning: param values for HTMmodel.predictor (user-specified in config.yaml)
+    Outputs:
+        features_outputs
+            type: dict
+            meaning: HTMmodel outputs for each feature
+        features_models
+            type: dict
+            meaning: HTMmodels for each feature
+    """
     features_outputs = {}
-    models_count = len(features_models)
     models = []
     features = []
+    models_count = len(features_models)
     learns = [learn for _ in range(models_count)]
     timesteps = [timestep for _ in range(models_count)]
     features_datas = [features_data for _ in range(models_count)]
@@ -486,18 +529,18 @@ def run_models_parallel(timestep, features_data, learn, features_models, timesta
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         results = executor.map(run_model, tasks, chunksize=chunksize)
 
-    for res in results:
-        features_models[res['feature']] = res['model']
-        features_outputs[res['feature']] = {
-            'timestep': res['timestep'],
-            'pred_count': res['pred_count'],
-            'anomaly_score': res['anomaly_score'],
-            'steps_predictions': res['steps_predictions'],
-            'anomaly_likelihood': res['anomaly_likelihood'],
+    for result in results:
+        features_models[result['feature']] = result['model']
+        features_outputs[result['feature']] = {
+            'timestep': result['timestep'],
+            'pred_count': result['pred_count'],
+            'anomaly_score': result['anomaly_score'],
+            'steps_predictions': result['steps_predictions'],
+            'anomaly_likelihood': result['anomaly_likelihood'],
         }
         # add timestamp data -- IF feature present
         if timestamp_config['feature'] in features_data:
             time_feat = timestamp_config['feature']
-            features_outputs[res['feature']][time_feat] = str(features_data[time_feat])
+            features_outputs[result['feature']][time_feat] = str(features_data[time_feat])
 
     return features_outputs, features_models

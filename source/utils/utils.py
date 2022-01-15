@@ -1,5 +1,6 @@
 import argparse
 import json
+import numpy as np
 import os
 import pandas as pd
 import pickle
@@ -185,7 +186,7 @@ def save_outputs(features_outputs, timestep_current, timestep_sampling, save_out
         none (jsons written)
     """
 
-    first_output = False if (timestep_current > 1+timestep_sampling) else True
+    first_output = False if (timestep_current > 1 + timestep_sampling) else True
     for f, output in features_outputs.items():
 
         # Save current output
@@ -193,7 +194,7 @@ def save_outputs(features_outputs, timestep_current, timestep_sampling, save_out
         path_result_current = os.path.join(dir_out, f"{f}--timestep={timestep_current}.csv")
         result_current.to_csv(path_result_current)
         # Delete prior output
-        path_result_previous = os.path.join(dir_out, f"{f}--timestep={timestep_current-1}.csv")
+        path_result_previous = os.path.join(dir_out, f"{f}--timestep={timestep_current - 1}.csv")
         if os.path.exists(path_result_previous):
             os.remove(path_result_previous)
         result_current.to_csv(path_result_current)
@@ -206,5 +207,19 @@ def save_outputs(features_outputs, timestep_current, timestep_sampling, save_out
                 result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
             result_total.to_csv(path_result_total, index=False)
     if first_output:
-        print(f"\nSave Outputs Accumulated = {save_outputs_accumulated}\n")
+        print(f"\n  Save Outputs Accumulated = {save_outputs_accumulated}\n")
 
+
+def checkfor_missing_features(row, features_expected):
+    # check which features are numeric
+    features_numeric = {}
+    for f, v in dict(row).items():
+        try:
+            f_float = float(v)
+            if not np.isnan(f_float):
+                features_numeric[f] = f_float
+        except:
+            pass
+    # check if any expected features aren't valid numeric
+    features_missing = [f for f in features_expected if f not in features_numeric]
+    return features_missing
