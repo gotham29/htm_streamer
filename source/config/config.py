@@ -229,6 +229,10 @@ def validate_config(cfg, data, models_dir, outputs_dir):
     if 'timestep' not in cfg['models_state']:
         cfg['models_state']['timestep'] = 0
 
+    # Assert timestamp=0 -- IF not found in cfg['models_state']
+    if 'learn' not in cfg['models_state']:
+        cfg['models_state']['learn'] = True
+
     # Assert timesteps_stop valid
     timesteps_stop_params_types = {
         'sampling': int,
