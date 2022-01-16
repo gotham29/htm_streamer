@@ -12,7 +12,7 @@ models/
 tests/data/
 tests/results/
 tests/models/
-# Data/batch/
+tests/validate--NAB
 
 # Mac related
 .DS_Store
