@@ -42,7 +42,7 @@ def save_config(cfg, yaml_path):
     return cfg
 
 
-def build_enc_params(cfg, features_samples, models_encoders):
+def build_enc_params(cfg, models_encoders, features_weights):
     """
     Purpose:
         Set encoder params fpr each feature using sampled data
@@ -65,31 +65,44 @@ def build_enc_params(cfg, features_samples, models_encoders):
             meaning: set of encoder params for each feature ('size, sparsity', 'resolution')
     """
 
-    features_enc_params = {f: {} for f in features_samples}
-    cfg['models_encoders']['resolutions'] = {}
-    for f, sample in features_samples.items():
-        features_enc_params[f]['size'] = int(models_encoders['n'] * models_encoders['features_weights'][f])
+    features_minmax = cfg.get('features_minmax', None)
+    features_samples = cfg.get('features_samples', None)
+
+    # if 'features_minmax' not user-provided, get from 'features_samples'
+    if features_minmax is not None:
+        pass
+    else:
+        min_perc, max_perc = models_encoders['minmax_percentiles']
+        features_minmax = {feat: [np.percentile(sample, min_perc), np.percentile(sample, max_perc)] for feat, sample in
+                           features_samples.items()}
+
+    features_enc_params = {f: {} for f in features_minmax}
+    cfg['features_minmax'] = {k: [str(v[0]), str(v[1])] for k, v in features_minmax.items()}
+    cfg['features_resolutions'] = {}
+
+    for f, minmax in features_minmax.items():
+        features_enc_params[f]['size'] = int(models_encoders['n'] * features_weights[f])  #models_encoders['features_weights'][f]
         features_enc_params[f]['sparsity'] = models_encoders['sparsity']
         features_enc_params[f]['resolution'] = get_rdse_resolution(f,
-                                                                   sample,
-                                                                   models_encoders['minmax_percentiles'],
+                                                                   minmax,
                                                                    models_encoders['n_buckets'])
-        cfg['models_encoders']['resolutions'][f] = str(round(features_enc_params[f]['resolution'], 3))
-    features_enc_params = {k:v for k,v in features_enc_params.items() if v['resolution'] != 0}
+        # cfg['models_encoders']['resolutions'][f] = str(round(features_enc_params[f]['resolution'], 3))
+        cfg['features_resolutions'][f] = str(round(features_enc_params[f]['resolution'], 3))
+    features_enc_params = {k: v for k, v in features_enc_params.items() if v['resolution'] != 0}
     return cfg, features_enc_params
 
 
-def get_rdse_resolution(feature, sample, minmax_percentiles, n_buckets):
+def get_rdse_resolution(feature, minmax, n_buckets):
     """
     Purpose:
         Calculate 'resolution' pararm to RDSE for given feature
     Inputs:
         sample
+            type: str
+            meaning: name of given feature
+        minmax
             type: list
-            meaning: values sampled for given feature
-        minmax_percentiles
-            type: list
-            meaning: percentiles applied to feature's sample to get (max-min) range
+            meaning: min & max feature values
         n_buckets
             type: int
             meaning: number of categories to divide (max-min) range over
@@ -98,10 +111,7 @@ def get_rdse_resolution(feature, sample, minmax_percentiles, n_buckets):
             type: float
             meaning: param calculated for feature's RDSE encoder
     """
-    min_perc, max_perc = minmax_percentiles[0], minmax_percentiles[1]
-    f_min = np.percentile(sample, min_perc)
-    f_max = np.percentile(sample, max_perc)
-    minmax_range = f_max - f_min
+    minmax_range = float(minmax[1]) - float(minmax[0])
     resolution = minmax_range / float(n_buckets)
     if resolution == 0:
         print(f"Dropping feature, due to no variation in sample\n  --> {feature}")
@@ -172,7 +182,12 @@ def get_default_params_predictor():
     return default_parameters
 
 
-def get_default_params_encoder(features):
+def get_default_params_weights(features):
+    default_parameters = {f: 1.0 for f in features}
+    return default_parameters
+
+
+def get_default_params_encoder():
     default_parameters = {
         'minmax_percentiles': [1, 99],
         'n': 700,
@@ -184,9 +199,48 @@ def get_default_params_encoder(features):
             'timeOfDay': [30, 1],
             'weekend': 21
         },
-        'features_weights': {f: 1.0 for f in features}
     }
     return default_parameters
+
+
+def get_mode(cfg):
+
+    """
+    Purpose:
+        Determine which mode to run ('sampling' / 'initializing' / 'running')
+    Inputs:
+        cfg:
+            type: dict
+            meaning: config yaml
+    Outputs:
+        mode:
+            type: string
+            meaning: which mode to use in current timestep
+    """
+
+    mode_prev = cfg['models_state'].get('mode', None)
+
+    # sampling --> if: 'features_minmax' not in cfg
+    if 'features_minmax' not in cfg:
+        sampling_done = False if cfg['models_state']['timestep'] < cfg['timesteps_stop']['sampling'] else True
+        mode = 'initializing'
+        if not sampling_done:
+            mode = 'sampling'
+
+    else:  # sampling done
+        # init --> if: 'timestep_initialized' doesn't exist yet
+        if 'timestep_initialized' not in cfg['models_state']:  # models not built
+            mode = 'initializing'
+        # run --> otherwise
+        else:  # models built
+            mode = 'running'
+
+    if mode_prev != mode:
+        print(f'  Mode changed!')
+        print(f"      row = {cfg['models_state']['timestep']}")
+        print(f"      {mode_prev} --> {mode}")
+
+    return mode
 
 
 def validate_config(cfg, data, models_dir, outputs_dir):
@@ -215,6 +269,14 @@ def validate_config(cfg, data, models_dir, outputs_dir):
             meaning: config (yaml) -- validated
     """
 
+    # Add params (timestep 0)
+    if 'timestep' not in cfg['models_state']:
+        cfg['models_state']['timestep'] = 0
+        cfg['models_state']['learn'] = False
+
+    # Get mode
+    cfg['models_state']['mode'] = get_mode(cfg)
+
     # Assert all expected params are present & correct type
     params_types = {
         'features': list,
@@ -224,16 +286,6 @@ def validate_config(cfg, data, models_dir, outputs_dir):
     for param, type in params_types.items():
         param_v = cfg[param]
         assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
-
-    # Assert timestamp=0 -- IF not found in cfg['models_state']
-    if 'timestep' not in cfg['models_state']:
-        cfg['models_state']['timestep'] = 0
-        print(f"timestep set --> 0")
-
-    # Assert timestamp=0 -- IF not found in cfg['models_state']
-    if 'learn' not in cfg['models_state']:
-        cfg['models_state']['learn'] = True
-        print(f"learn set --> True")
 
     # Assert timesteps_stop valid
     timesteps_stop_params_types = {
@@ -271,13 +323,13 @@ def validate_config(cfg, data, models_dir, outputs_dir):
                                           f"'learning' = {learning}\n  " \
                                           f"'sampling' = {sampling}"
 
-    # Assert starting models_states -- IF current_timestep < timesteps_stop['sampling']
-    if cfg['models_state']['timestep'] < cfg['timesteps_stop']['sampling']:
-        cfg['models_state']['learn'] = True
-        cfg['models_state']['mode'] = 'sample_data'
+    # Assert starting models_states -- IF mode == 'sampling'
+    if cfg['models_state']['mode'] == 'sampling':
+        cfg['models_state']['learn'] = False
 
     # Assert valid params -- ONLY for INIT step
-    elif cfg['models_state']['timestep'] == cfg['timesteps_stop']['sampling']:
+    elif cfg['models_state']['mode'] == 'initializing':
+        cfg['models_state']['learn'] = True
 
         # Get default model_params -- IF not provided
         if 'models_params' not in cfg:
@@ -289,7 +341,10 @@ def validate_config(cfg, data, models_dir, outputs_dir):
 
         # Get default models_encoders -- IF not provided
         if 'models_encoders' not in cfg:
-            cfg['models_encoders'] = get_default_params_encoder(cfg['features'])
+            cfg['models_encoders'] = get_default_params_encoder()
+
+        if 'features_weights' not in cfg:
+            cfg['features_weights'] = get_default_params_weights(cfg['features'])
 
         # Assert valid models_encoders dict
         enc_params_types = {
@@ -411,7 +466,7 @@ def validate_config(cfg, data, models_dir, outputs_dir):
             assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
         print(f'\n  Config validated!')
 
-    else:  # timestep > cfg['timesteps_stop']['sampling']
+    else:  # Mode == 'running'
         pass
 
     return cfg

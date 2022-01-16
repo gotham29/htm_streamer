@@ -73,8 +73,8 @@ def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir)
         # call htm module
         stream_to_htm(config_path, data_stream_path, models_dir, outputs_dir)
         # print progress
-        if _ % 1000 == 0:
-            print(f'  completed row: {_}')
+        # if _ % 1000 == 0:
+        #     print(f'  completed row: {_}')
 
     # 5. Delete stream data files
     print('\nRemoving stream files...')

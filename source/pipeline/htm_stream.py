@@ -53,28 +53,23 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
                           models_dir=models_dir,
                           outputs_dir=outputs_dir)
 
-    # 4. If Config['models_state']['timestep'] < Config['timesteps_stop']['sampling']:
+    # 4. Mode == 'sampling'
     #     a. Store —> ML Inputs for Params
-    if cfg['models_state']['timestep'] < cfg['timesteps_stop']['sampling']:
-        mode = 'sample_data'
+    if cfg['models_state']['mode'] == 'sampling':
         if cfg['models_state']['timestep'] == 0:
             cfg['features_samples'] = {f: [] for f in cfg['features']}
         else:
             cfg['features_samples'] = extend_features_samples(data=data,
                                                               features_samples=cfg['features_samples'])
 
-    # 5. Elif cfg['models_state']['timestep'] == cfg['timesteps_stop']['sampling']:
-    #     a. Store —> ML Inputs for Params
-    #     b. Build —> Params
-    #     c. Init —> Models
-    #     d. Store —> Models
-    elif cfg['models_state']['timestep'] == cfg['timesteps_stop']['sampling']:
-        mode = 'init_models'
-        cfg['features_samples'] = extend_features_samples(data=data,
-                                                          features_samples=cfg['features_samples'])
+    # 5. Mode == 'initializing':
+    #     a. Build —> Params
+    #     b. Init —> Models
+    #     c. Store —> Models
+    elif cfg['models_state']['mode'] == 'initializing':
         cfg, features_enc_params = build_enc_params(cfg=cfg,
                                                     models_encoders=cfg['models_encoders'],
-                                                    features_samples=cfg['features_samples'])
+                                                    features_weights=cfg['features_weights'])
         features_models = init_models(features_enc_params=features_enc_params,
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
@@ -82,15 +77,15 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         save_models(dir_models=models_dir,
                     features_models=features_models)
+        cfg['models_state']['timestep_initialized'] = cfg['models_state']['timestep']
 
-    # 6. Else: (cfg['models_state']['timestep'] > cfg['timesteps_stop']['sampling'])
+    # 6. Mode == 'running'
     #     a. Load —> Models (from: cfg['dirs']['models'])
     #     b. Check —> if learn still true
     #     c. Run —> ML Inputs thru Models
     #     d. Store —> Models outputs (to: cfg['dirs']['results'])
     #     e. Store —> Models (to: cfg['dirs']['models'])
     else:
-        mode = 'run_models'
         features_models = load_models(models_dir)
         learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
         features_outputs, features_models = run_models(learn=learn,
@@ -100,9 +95,9 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
                                                        predictor_config=cfg['models_predictor'],
                                                        timestamp_config=cfg['models_encoders']['timestamp'])
         save_outputs(dir_out=outputs_dir,
+                     timestep_init=cfg['models_state']['timestep_initialized'],
                      features_outputs=features_outputs,
                      timestep_current=cfg['models_state']['timestep'],
-                     timestep_sampling=cfg['timesteps_stop']['sampling'],
                      save_outputs_accumulated=cfg['models_state']['save_outputs_accumulated'])
         save_models(dir_models=models_dir,
                     features_models=features_models)
@@ -114,13 +109,7 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
             cfg['models_state']['learn'] = learn
 
     # 7. Update Config
-    #     a. Check for —> mode change
-    #     b. Increment —> timestep
-    if mode != cfg['models_state']['mode']:
-        print(f'  Mode changed!')
-        print(f"      row = {cfg['models_state']['timestep']}")
-        print(f"      {cfg['models_state']['mode']} --> {mode}")
-    cfg['models_state']['mode'] = mode
+    #     a. Increment —> timestep
     cfg['models_state']['timestep'] += 1
 
     # 8. Store —> Config

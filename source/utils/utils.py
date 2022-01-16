@@ -168,7 +168,7 @@ def load_models(dir_models):
     return features_models
 
 
-def save_outputs(features_outputs, timestep_current, timestep_sampling, save_outputs_accumulated, dir_out):
+def save_outputs(features_outputs, timestep_init, timestep_current, save_outputs_accumulated, dir_out):
     """
     Purpose:
         Save model outputs for all features (json)
@@ -186,7 +186,8 @@ def save_outputs(features_outputs, timestep_current, timestep_sampling, save_out
         none (jsons written)
     """
 
-    first_output = False if (timestep_current > 1 + timestep_sampling) else True
+    # first_output = False if (timestep_current > 1 + timestep_sampling) else True
+    first_output = True if (timestep_current == 1+timestep_init) else False
     for f, output in features_outputs.items():
 
         # Save current output
