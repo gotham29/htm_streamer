@@ -3,6 +3,11 @@ features:
 - 3.3_Bus_Current
 - Receiver_Doppler
 - Total_Photo_Current
+features_weights:
+  3.3_Bus_Current: 1.0
+  Receiver_Doppler: 0.9
+  Solar_Panel_Voltage_X: 1.1
+  Total_Photo_Current: 0.8
 models_state:
   model_for_each_feature: true
   save_outputs_accumulated: true
