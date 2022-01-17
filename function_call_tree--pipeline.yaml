@@ -7,11 +7,13 @@ run_stream
     load_json
     validate_config
       get_mode
+      validate_params_required
       if mode == 'initializing':
-        get_default_params_htm
-        get_default_params_predictor
-        get_default_params_encoder
-        get_default_params_weights
+        validate_params_init
+          get_default_params_htm
+          get_default_params_predictor
+          get_default_params_encoder
+          get_default_params_weights
     if mode == 'sampling':
       extend_features_samples
     elif mode == 'initializing':
