@@ -267,7 +267,7 @@ def validate_config(cfg, data, models_dir, outputs_dir):
             meaning: config (yaml) -- validated
     """
 
-    # Add params -- IF not found
+    # Add params -- IF not found (first timestep)
     if 'timestep' not in cfg['models_state']:
         cfg['models_state']['timestep'] = 0
         cfg['models_state']['learn'] = False
