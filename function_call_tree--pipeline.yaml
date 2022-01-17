@@ -1,0 +1,47 @@
+run_stream
+  load_config
+  checkfor_missing_features
+  save_json
+  stream_to_htm
+    load_config
+    load_json
+    validate_config
+      get_mode
+      if mode == 'initializing':
+        get_default_params_htm
+        get_default_params_predictor
+        get_default_params_encoder
+        get_default_params_weights
+    if mode == 'sampling':
+      extend_features_samples
+    elif mode == 'initializing':
+      build_enc_params
+        get_rdse_resolution
+      init_models
+        HTMmodel.init_model
+      save_models
+        save_data_as_pickle
+    else (mode == 'running'):
+      load_models
+        load_pickle_object_as_data
+      run_models
+        run_model
+          HTMmodel.run
+            HTMmodel.get_encoding
+              htm.core.RDSE.encode
+              htm.core.SDR.concatenate
+            htm.core.SDR
+            htm.core.SpatialPooler.compute
+            HTMmodel.get_predcount
+              htm.core.TemporalMemory.activateDendrites
+              htm.core.TemporalMemory.getPredictiveCells
+            htm.core.TemporalMemory.compute
+            htm.core.AnomalyLikelihood.compute
+            HTMmodel.get_preds
+              htm.core.TemporalMemory.getActiveCells
+              htm.core.Predictor.infer
+              htm.core.Predictor.learn
+      save_outputs
+      save_models
+        save_data_as_pickle
+    save_config

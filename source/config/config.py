@@ -81,12 +81,11 @@ def build_enc_params(cfg, models_encoders, features_weights):
     cfg['features_resolutions'] = {}
 
     for f, minmax in features_minmax.items():
-        features_enc_params[f]['size'] = int(models_encoders['n'] * features_weights[f])  #models_encoders['features_weights'][f]
+        features_enc_params[f]['size'] = int(models_encoders['n'] * features_weights[f])
         features_enc_params[f]['sparsity'] = models_encoders['sparsity']
         features_enc_params[f]['resolution'] = get_rdse_resolution(f,
                                                                    minmax,
                                                                    models_encoders['n_buckets'])
-        # cfg['models_encoders']['resolutions'][f] = str(round(features_enc_params[f]['resolution'], 3))
         cfg['features_resolutions'][f] = str(round(features_enc_params[f]['resolution'], 3))
     features_enc_params = {k: v for k, v in features_enc_params.items() if v['resolution'] != 0}
     return cfg, features_enc_params
