@@ -57,6 +57,7 @@ def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir)
     # a. Generate —> ML Inputs (from: row)
     # b. Store —> ML Inputs to ML Inputs Path (from: data_stream_dir)
     # c. Run —> stream_to_htm(ML Input Path, Config Path)
+    # d. Delete —> ML Inputs
     print('\nRunning main loop...')
     for _, row in data[:cfg['timesteps_stop']['running']].iterrows():
         # skip rows where any cfg['features'] aren't numeric
@@ -72,23 +73,11 @@ def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir)
         save_json(dict(row), data_stream_path)
         # call htm module
         stream_to_htm(config_path, data_stream_path, models_dir, outputs_dir)
+        # delete data
+        os.remove(data_stream_path)
         # print progress
-        # if _ % 1000 == 0:
-        #     print(f'  completed row: {_}')
-
-    # 5. Delete stream data files
-    print('\nRemoving stream files...')
-    json_files = [f for f in os.listdir(data_stream_dir)]
-    for f in json_files:
-        os.remove(os.path.join(data_stream_dir, f))
-
-    # 6. Reset Config:
-    #     a. features_samples --> deleted
-
-    print('\nResetting config...')
-    cfg = {k: v for k, v in cfg.items() if k != 'features_samples'}
-    print('  features_samples --> deleted')
-    save_config(cfg, config_path)
+        if _ > 1000 and _ % 1000 == 0:
+            print(f'  completed row: {_}')
 
 
 if __name__ == '__main__':
