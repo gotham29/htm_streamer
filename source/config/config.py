@@ -147,7 +147,7 @@ def get_default_params_htm():
     Outputs:
         default_parameters
             type: dict
-            meaning: HTM model config -- as set in hotgym.py
+            meaning: 'models_params' (in config.yaml)
     """
     default_parameters = {
         'anomaly': {'period': 1000},
@@ -173,6 +173,16 @@ def get_default_params_htm():
 
 
 def get_default_params_predictor():
+    """
+    Purpose:
+        Provide default config for htm.core Predictor
+    Inputs:
+        none
+    Outputs:
+        default_parameters
+            type: dict
+            meaning: 'models_predictor' (in config.yaml)
+    """
     default_parameters = {
         'enable': False,
         'resolution': 1,
@@ -182,11 +192,31 @@ def get_default_params_predictor():
 
 
 def get_default_params_weights(features):
+    """
+    Purpose:
+        Provide weight of 1.0 for each feature
+    Inputs:
+        none
+    Outputs:
+        default_parameters
+            type: dict
+            meaning: 'features_weights' (in config.yaml)
+    """
     default_parameters = {f: 1.0 for f in features}
     return default_parameters
 
 
 def get_default_params_encoder():
+    """
+    Purpose:
+        Provide default config for htm.core RDSE
+    Inputs:
+        none
+    Outputs:
+        default_parameters
+            type: dict
+            meaning: 'models_encoders' (in config.yaml)
+    """
     default_parameters = {
         'minmax_percentiles': [1, 99],
         'n': 700,
@@ -295,6 +325,25 @@ def validate_config(cfg, data, models_dir, outputs_dir):
 
 
 def validate_params_required(cfg, data, models_dir, outputs_dir):
+    """
+    Purpose:
+        Ensure valid entries for required config params
+    Inputs:
+        cfg
+            type: dict
+            meaning: config (yaml)
+        data
+            type: dict
+            meaning: current data for each feature
+        models_dir
+            type: str
+            meaning: path to dir where HTM models are written
+        outputs_dir
+            type: str
+            meaning: path to dir where HTM outputs are written
+    Outputs:
+        cfg (unchanged)
+    """
     # Assert all expected params are present & correct type
     params_types = {
         'features': list,
@@ -343,6 +392,16 @@ def validate_params_required(cfg, data, models_dir, outputs_dir):
 
 
 def validate_params_init(cfg):
+    """
+    Purpose:
+        Ensure valid entries for config params -- used only in 'initializing' mode
+    Inputs:
+        cfg
+            type: dict
+            meaning: config (yaml)
+    Outputs:
+        cfg -- extended with all needed default params
+    """
     # Get default model_params -- IF not provided
     if 'models_params' not in cfg:
         cfg['models_params'] = get_default_params_htm()
