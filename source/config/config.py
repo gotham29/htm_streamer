@@ -294,7 +294,7 @@ def validate_config(cfg, data, models_dir, outputs_dir):
     Outputs:
         cfg
             type: dict
-            meaning: config (yaml) -- validated
+            meaning: config (yaml) -- validated & extended w/defaults
     """
 
     # Add params -- IF not found (first timestep)
