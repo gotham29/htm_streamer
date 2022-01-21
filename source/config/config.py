@@ -382,9 +382,7 @@ def validate_params_required(cfg, data, models_dir, outputs_dir):
 
     # Assert timesteps_stop valid
     timesteps_stop_params_types = {
-        k:int for k,v in cfg['timesteps_stop'].items()
-        # 'sampling': int,
-        # 'learning': int,
+        k: int for k, v in cfg['timesteps_stop'].items()
     }
     for param, type in timesteps_stop_params_types.items():
         param_v = cfg['timesteps_stop'][param]
