@@ -6,6 +6,7 @@ run_stream
     load_config
     load_json
     validate_config
+      validate_params_timestep0
       get_mode
       validate_params_required
       if mode == 'initializing':

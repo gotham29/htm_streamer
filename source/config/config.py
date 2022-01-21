@@ -271,6 +271,35 @@ def get_mode(cfg):
     return mode
 
 
+def validate_params_timestep0(cfg):
+    """
+    Purpose:
+        Add required params to config
+    Inputs:
+        cfg
+            type: dict
+            meaning: config (yaml)
+    Outputs:
+        cfg (params added)
+    """
+    # Add 'timesteps_stop' config
+    if 'timesteps_stop' not in cfg:
+        cfg['timesteps_stop'] = {}
+    # Add 'learning' to 'timesteps_stop'
+    if 'learning' not in cfg['timesteps_stop']:
+        cfg['timesteps_stop']['learning'] = 1000000
+    # Add 'timestep' & 'learn' to 'models_state'
+    if 'timestep' not in cfg['models_state']:
+        cfg['models_state']['timestep'] = 0
+        cfg['models_state']['learn'] = False
+    # Ensure cfg['timesteps_stop']['sampling'] provided if 'features_minmax' ism't
+    if 'features_minmax' not in cfg:
+        assert 'timesteps_stop' in cfg, "'timesteps_stop' dict expected in config when 'features_minmax' not found"
+        assert 'sampling' in cfg['timesteps_stop'], "'sampling' int expected in cfg['timesteps_stop']"
+
+    return cfg
+
+
 def validate_config(cfg, data, models_dir, outputs_dir):
     """
     Purpose:
@@ -296,11 +325,8 @@ def validate_config(cfg, data, models_dir, outputs_dir):
             type: dict
             meaning: config (yaml) -- validated & extended w/defaults
     """
-
     # Add params -- IF not found (first timestep)
-    if 'timestep' not in cfg['models_state']:
-        cfg['models_state']['timestep'] = 0
-        cfg['models_state']['learn'] = False
+    cfg = validate_params_timestep0(cfg)
 
     # Get mode
     cfg['models_state']['mode'] = get_mode(cfg)
@@ -356,9 +382,9 @@ def validate_params_required(cfg, data, models_dir, outputs_dir):
 
     # Assert timesteps_stop valid
     timesteps_stop_params_types = {
-        'sampling': int,
-        'learning': int,
-        'running': int
+        k:int for k,v in cfg['timesteps_stop'].items()
+        # 'sampling': int,
+        # 'learning': int,
     }
     for param, type in timesteps_stop_params_types.items():
         param_v = cfg['timesteps_stop'][param]
@@ -383,12 +409,11 @@ def validate_params_required(cfg, data, models_dir, outputs_dir):
         assert f in data, f"features missing from data --> {f}\n  Found --> {data.keys()}"
 
     # Assert timesteps_stop values valid
-    running, learning, sampling = cfg['timesteps_stop']['running'], cfg['timesteps_stop']['learning'], \
-                                  cfg['timesteps_stop']['sampling']
-    assert running > learning > sampling, f"In 'timesteps_stop' config, expected 'running' > 'learning' > 'sampling'" \
-                                          f"but Found\n  'running' = {running}\n  " \
-                                          f"'learning' = {learning}\n  " \
-                                          f"'sampling' = {sampling}"
+    if 'sampling' in cfg['timesteps_stop']:
+        learning, sampling = cfg['timesteps_stop']['learning'], cfg['timesteps_stop']['sampling']
+        assert learning > sampling, f"In 'timesteps_stop' config, expected 'learning' > 'sampling'" \
+                                              f"but Found\n learning' = {learning}\n  " \
+                                              f"'sampling' = {sampling}"
 
 
 def validate_params_init(cfg):
