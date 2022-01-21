@@ -7,5 +7,6 @@ models_state:
   model_for_each_feature: true
   save_outputs_accumulated: true
 timesteps_stop:
-  running: 100
+  running: 110
+  learning: 100
   sampling: 50
