@@ -58,8 +58,14 @@ def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir)
     # b. Store —> ML Inputs to ML Inputs Path (from: data_stream_dir)
     # c. Run —> stream_to_htm(ML Input Path, Config Path)
     # d. Delete —> ML Inputs
+    try:
+        timestep_limit = cfg['timesteps_stop']['running']
+    except:
+        timestep_limit = 1000000
+
     print('\nRunning main loop...')
-    for _, row in data[:cfg['timesteps_stop']['running']].iterrows():
+    print(f'  timestep limit = {timestep_limit}')
+    for _, row in data[:timestep_limit].iterrows():
         # skip rows where any cfg['features'] aren't numeric
         features_missing = checkfor_missing_features(row=row,
                                                      features_expected=cfg['features'])
