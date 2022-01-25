@@ -51,6 +51,7 @@ models_params:
   tm:
     activationThreshold: 17
     cellsPerColumn: 13
+    connectedPermanence: 0.5
     initialPerm: 0.21
     maxSegmentsPerCell: 128
     maxSynapsesPerSegment: 64
@@ -67,6 +68,8 @@ models_predictor:
 models_state:
   model_for_each_feature: true
   save_outputs_accumulated: true
+  track_iter: 10
+  track_tm: true
 timesteps_stop:
   learning: 100
   running: 110

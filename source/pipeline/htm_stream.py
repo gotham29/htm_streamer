@@ -6,7 +6,7 @@ sys.path.append(_SOURCE_DIR)
 
 from source.utils.utils import get_args, load_json, save_models, load_models, save_outputs
 from source.config.config import load_config, save_config, build_enc_params, extend_features_samples, validate_config
-from source.model.model import init_models, run_models, run_models_parallel
+from source.model.model import init_models, run_models, run_models_parallel, track_tm
 
 
 def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
@@ -83,8 +83,9 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
     #     a. Load —> Models (from: cfg['dirs']['models'])
     #     b. Check —> if learn still true
     #     c. Run —> ML Inputs thru Models
-    #     d. Store —> Models outputs (to: cfg['dirs']['results'])
-    #     e. Store —> Models (to: cfg['dirs']['models'])
+    #     d. Store —> Models TM state
+    #     e. Store —> Models outputs (to: cfg['dirs']['results'])
+    #     f. Store —> Models (to: cfg['dirs']['models'])
     else:
         features_models = load_models(models_dir)
         learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
@@ -94,6 +95,11 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
                                                        timestep=cfg['models_state']['timestep'],
                                                        predictor_config=cfg['models_predictor'],
                                                        timestamp_config=cfg['models_encoders']['timestamp'])
+        if cfg['models_state']['track_tm']:
+            is_track_timestep = cfg['models_state']['timestep'] % cfg['models_state']['track_iter'] == 0
+            if is_track_timestep:
+                print(f"  tracking TM, timestep --> {cfg['models_state']['timestep']}")
+                cfg = track_tm(cfg, features_models)
         save_outputs(dir_out=outputs_dir,
                      timestep_init=cfg['models_state']['timestep_initialized'],
                      features_outputs=features_outputs,
