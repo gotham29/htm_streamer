@@ -113,7 +113,7 @@ class HTMmodel:
             cellsPerColumn=tm_params["cellsPerColumn"],
             activationThreshold=tm_params["activationThreshold"],
             initialPermanence=tm_params["initialPerm"],
-            connectedPermanence=sp_params["synPermConnected"],
+            connectedPermanence=tm_params["permanenceConnected"],
             minThreshold=tm_params["minThreshold"],
             maxNewSynapseCount=tm_params["newSynapseCount"],
             permanenceIncrement=tm_params["permanenceInc"],
@@ -560,13 +560,14 @@ def track_tm(cfg, features_models):
 
         # split synapses into 'potential' & 'formed'
         cells_potential, cells_formed = {}, {}
-
+        total_synapses_potential, total_synapses_formed = 0, 0
         for cell, presynaptics in cells_presynaptics.items():
             if len(presynaptics) == 0:
                 continue
             presyns_perms = {p: TemporalMemory.connections.permanenceForSynapse(p) for p in presynaptics}
             for presyn, perm in presyns_perms.items():
                 # perm --> potential
+                total_synapses_potential += 1
                 if perm < perm_connected:
                     try:
                         cells_potential[cell].append(presyn)
@@ -574,6 +575,7 @@ def track_tm(cfg, features_models):
                         cells_potential[cell] = [presyn]
                 # perm --> formed
                 else:
+                    total_synapses_formed += 1
                     try:
                         cells_formed[cell].append(presyn)
                     except:
@@ -581,6 +583,8 @@ def track_tm(cfg, features_models):
 
         features_tmstates[feature]['potential'] = cells_potential
         features_tmstates[feature]['formed'] = cells_formed
+        features_tmstates[feature]['total_synapses_potential'] = total_synapses_potential
+        features_tmstates[feature]['total_synapses_formed'] = total_synapses_formed
 
     cfg['features_tmstates'] = features_tmstates
 
