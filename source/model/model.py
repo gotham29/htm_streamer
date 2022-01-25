@@ -544,3 +544,44 @@ def run_models_parallel(timestep, features_data, learn, features_models, timesta
             features_outputs[result['feature']][time_feat] = str(features_data[time_feat])
 
     return features_outputs, features_models
+
+
+def track_tm(cfg, features_models):
+
+    # get TM state for each model
+    features_tmstates = {f: {} for f in features_models}
+    for feature, model in features_models.items():
+        TemporalMemory = model.tm
+        perm_connected = TemporalMemory.getConnectedPermanence()
+
+        # get presynaptics (cells that are linked to) for each each
+        cells = [_ for _ in range(TemporalMemory.connections.numCells())]
+        cells_presynaptics = {c: TemporalMemory.connections.synapsesForPresynapticCell(c) for c in cells}
+
+        # split synapses into 'potential' & 'formed'
+        cells_potential, cells_formed = {}, {}
+
+        for cell, presynaptics in cells_presynaptics.items():
+            if len(presynaptics) == 0:
+                continue
+            presyns_perms = {p: TemporalMemory.connections.permanenceForSynapse(p) for p in presynaptics}
+            for presyn, perm in presyns_perms.items():
+                # perm --> potential
+                if perm < perm_connected:
+                    try:
+                        cells_potential[cell].append(presyn)
+                    except:
+                        cells_potential[cell] = [presyn]
+                # perm --> formed
+                else:
+                    try:
+                        cells_formed[cell].append(presyn)
+                    except:
+                        cells_formed[cell] = [presyn]
+
+        features_tmstates[feature]['potential'] = cells_potential
+        features_tmstates[feature]['formed'] = cells_formed
+
+    cfg['features_tmstates'] = features_tmstates
+
+    return cfg

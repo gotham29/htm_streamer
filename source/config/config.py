@@ -161,6 +161,7 @@ def get_default_params_htm():
                'synPermInactiveDec': 0.006},
         'tm': {'activationThreshold': 17,
                'cellsPerColumn': 13,
+               'connectedPermanence': 0.5,
                'initialPerm': 0.21,
                'maxSegmentsPerCell': 128,
                'maxSynapsesPerSegment': 64,
@@ -292,6 +293,10 @@ def validate_params_timestep0(cfg):
     if 'timestep' not in cfg['models_state']:
         cfg['models_state']['timestep'] = 0
         cfg['models_state']['learn'] = False
+    # Add 'track_tm' & 'track_iter' to 'models_state'
+    if 'track_tm' not in cfg['models_state']:
+        cfg['models_state']['track_tm'] = False
+        cfg['models_state']['track_iter'] = 10
     # Ensure cfg['timesteps_stop']['sampling'] provided if 'features_minmax' ism't
     if 'features_minmax' not in cfg:
         assert 'timesteps_stop' in cfg, "'timesteps_stop' dict expected in config when 'features_minmax' not found"
@@ -392,6 +397,8 @@ def validate_params_required(cfg, data, models_dir, outputs_dir):
     modelsstate_params_types = {
         'learn': bool,
         'timestep': int,
+        'track_tm': bool,
+        'track_iter': int,
         'model_for_each_feature': bool,
     }
     for param, type in modelsstate_params_types.items():
