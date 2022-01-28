@@ -161,14 +161,14 @@ def get_default_params_htm():
                'synPermInactiveDec': 0.006},
         'tm': {'activationThreshold': 17,
                'cellsPerColumn': 13,
-               'connectedPermanence': 0.5,
                'initialPerm': 0.21,
                'maxSegmentsPerCell': 128,
                'maxSynapsesPerSegment': 64,
                'minThreshold': 10,
                'newSynapseCount': 32,
                'permanenceDec': 0.1,
-               'permanenceInc': 0.1},
+               'permanenceInc': 0.1,
+               'permanenceConnected': 0.3},
     }
     return default_parameters
 
