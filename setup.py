@@ -12,49 +12,38 @@ def locate(*names):
     return os.path.relpath(os.path.join(os.path.dirname(__file__), *names))
 
 
-SOURCE = locate('src')
+SOURCE = locate('source')
 PACKAGES_REQUIRED = find_packages(SOURCE)
 PACKAGES_REQUIRED = [os.path.join(SOURCE, x) for x in PACKAGES_REQUIRED]
 
 INSTALL_REQUIRES = [
-    'joblib==0.17.0',
-    'nltk==3.5',
-    'numpy==1.19.4',
-    'scikit-plot==0.3.7',
-    'scikit-learn==0.24.2',
     'pandas==1.2.4',
-    'pytest==6.1.2',
-    'python-dotenv==0.15.0',
-    'requests==2.25.0',
-    'matplotlib==3.3.3',
-    'schedule==0.6.0',
-    'xgboost==1.3.1',
-    'category_encoders==2.2.2',
-    'pep8==1.7.1',
-    'Flask==1.1.0',
-    'Flask-API==2.0',
-    'flask-cors==3.0.9',
-    'Jinja2==2.11.1',
-    'pyotp>=2.3.0',
-    'imbalanced-learn==0.8.0',
-    'openpyxl==3.0.7',
-    'scikit-optimize==0.8.1',
-    'python-dateutil==2.8.1'
+    'pip>=19.3.1',
+    'PyYAML==6.0',
+    'wheel>=0.33.6',
+    'cmake>=3.14',  #>=3.7, >=3.14 needed for MSVC 2019
+    ## for python bindings (in /bindings/py/)
+    'numpy>=1.15',
+    'pytest>=4.6.5', #4.6.x series is last to support python2, once py2 dropped, we can switch to 5.x
+    ## for python code (in /py/)
+    'hexy>=1.4.3', # for grid cell encoder
+    'mock>=1.0.1', # for anomaly likelihood test
+    'prettytable>=0.7.2', # for monitor-mixin in htm.advanced (+its tests)
 ]
 
-authors = "Bruce Li, Chunling Zhang, Hongya Lu, Ruslan Lapin, Sam Heiserman, Steven Lee, Vedant Dhandhania"
-author_email = "bruce_li2@apple.com, chunling_zhang@apple.com, hongya_lu@apple.com, rlapin@apple.com, heiserman@apple.com, lsteven@apple.com, vdhandhania@apple.com"
+authors = "Sam Heiserman"
+author_email = "sheiser1@binghamton.edu"
 
 setup(
-    name='bootstrap',
-    version='0.1.26',
-    description='DS Bootstrap - ML prototyping tool for OpsML team',
+    name='htm_stream',
+    version='0.0.1',
+    description='HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series',
     long_description=readme,
-    license='Apple Internal',
+    license='MIT',
     author=authors,
     author_email=author_email,
-    url='https://github.pie.apple.com/opsml/ds-bootstrap',
+    url='https://github.com/gotham29/htm_streamer',
     packages=PACKAGES_REQUIRED,
     install_requires=INSTALL_REQUIRES,
-    keywords="bootstrap opsml",
+    keywords="htm streaming data",
 )
