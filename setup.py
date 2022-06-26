@@ -35,7 +35,7 @@ authors = "Sam Heiserman"
 author_email = "sheiser1@binghamton.edu"
 
 setup(
-    name='htm_stream',
+    name='htm_streamer',
     version='0.0.1',
     description='HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series',
     long_description=readme,
@@ -43,6 +43,9 @@ setup(
     author=authors,
     author_email=author_email,
     url='https://github.com/gotham29/htm_streamer',
+    project_urls = {
+        "Bug Tracker": "https://github.com/gotham29/htm_streamer"
+    },
     packages=PACKAGES_REQUIRED,
     install_requires=INSTALL_REQUIRES,
     keywords="htm streaming data",
