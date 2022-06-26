@@ -35,7 +35,7 @@ authors = "Sam Heiserman"
 author_email = "sheiser1@binghamton.edu"
 
 setup(
-    name='htmstreamer',
+    name='htm_streamer',
     version='0.0.1',
     description='HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series',
     long_description=readme,
