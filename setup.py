@@ -12,9 +12,14 @@ def locate(*names):
     return os.path.relpath(os.path.join(os.path.dirname(__file__), *names))
 
 
-SOURCE = locate('source')
+SOURCE = locate('htm_source')
 PACKAGES_REQUIRED = find_packages(SOURCE)
 PACKAGES_REQUIRED = [os.path.join(SOURCE, x) for x in PACKAGES_REQUIRED]
+
+print(f"SOURCE = {SOURCE}")
+print(f"PACKAGES_REQUIRED...")
+for pr in sorted(PACKAGES_REQUIRED):
+    print(f"  --> {pr}\n")
 
 INSTALL_REQUIRES = [
     'pandas==1.2.4',
@@ -44,7 +49,7 @@ setup(
     author_email=author_email,
     url='https://github.com/gotham29/htm_streamer',
     project_urls = {
-        "Bug Tracker": "https://github.com/gotham29/htm_streamer"
+        "Bug Tracker": "https://github.com/gotham29/htm_streamer/issues"
     },
     packages=PACKAGES_REQUIRED,
     install_requires=INSTALL_REQUIRES,
