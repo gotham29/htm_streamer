@@ -15,6 +15,8 @@ def locate(*names):
 SOURCE = locate('htm_source')
 PACKAGES_REQUIRED = find_packages(SOURCE)
 PACKAGES_REQUIRED = [os.path.join(SOURCE, x) for x in PACKAGES_REQUIRED]
+if 'htm_source' not in PACKAGES_REQUIRED:
+    PACKAGES_REQUIRED.insert(0,'htm_source')
 
 print(f"SOURCE = {SOURCE}")
 print(f"PACKAGES_REQUIRED...")
@@ -40,7 +42,7 @@ authors = "Sam Heiserman"
 author_email = "sheiser1@binghamton.edu"
 
 setup(
-    name='htm_streamer',
+    name='htm_source',
     version='0.0.1',
     description='HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series',
     long_description=readme,
