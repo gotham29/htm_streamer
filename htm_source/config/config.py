@@ -565,6 +565,6 @@ def validate_params_init(cfg):
     for param, type in tm_params.items():
         param_v = cfg['models_params']['tm'][param]
         assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
-    print(f'\n  Config validated!')
+    print(f'  Config validated!')
 
     return cfg

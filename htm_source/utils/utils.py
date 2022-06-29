@@ -208,7 +208,7 @@ def save_outputs(features_outputs, timestep_init, timestep_current, save_outputs
                 result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
             result_total.to_csv(path_result_total, index=False)
     if first_output:
-        print(f"\n  Save Outputs Accumulated = {save_outputs_accumulated}\n")
+        print(f"  Save Outputs Accumulated = {save_outputs_accumulated}\n")
 
 
 def checkfor_missing_features(row, features_expected):
