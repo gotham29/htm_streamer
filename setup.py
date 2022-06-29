@@ -43,7 +43,7 @@ author_email = "sheiser1@binghamton.edu"
 
 setup(
     name='htm_source',
-    version='0.0.1',
+    version='0.0.2',
     description='HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series',
     long_description=readme,
     license='MIT',
@@ -55,5 +55,5 @@ setup(
     },
     packages=PACKAGES_REQUIRED,
     install_requires=INSTALL_REQUIRES,
-    keywords=["pypi", "htm_source", "tutorial"],
+    keywords=["pypi", "htm_source"],
 )
