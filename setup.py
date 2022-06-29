@@ -55,5 +55,5 @@ setup(
     },
     packages=PACKAGES_REQUIRED,
     install_requires=INSTALL_REQUIRES,
-    keywords="htm streaming data",
+    keywords=["pypi", "htm_source", "tutorial"],
 )
