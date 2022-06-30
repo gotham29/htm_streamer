@@ -10,6 +10,8 @@ sys.path.append(_SOURCE_DIR)
 from htm_source.utils.utils import get_args, save_json, checkfor_missing_features
 from htm_source.config.config import load_config, save_config, validate_config
 from htm_source.pipeline.htm_stream import stream_to_htm
+from htm_source.config.config import build_enc_params
+from htm_source.model.model import init_models
 
 
 def run_batch(config_path, learn, data, iter_print, features_models):
