@@ -9,6 +9,7 @@ __pycache__/
 dist/
 results/
 models/
+app/
 tests/data/
 tests/results/
 tests/models/
