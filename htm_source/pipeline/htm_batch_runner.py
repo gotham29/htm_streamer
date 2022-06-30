@@ -55,6 +55,7 @@ def run_batch(config_path, learn, data, iter_print, features_models):
     # 3. Init Models --> IF 'features_models' is empty
     do_init_models = True if len(features_models) == 0 else False
     if do_init_models:
+        cfg['features_samples'] = {f: data[f].values for f in cfg['features']}
         cfg = validate_params_init(cfg)
         cfg, features_enc_params = build_enc_params(cfg=cfg,
                                                     models_encoders=cfg['models_encoders'],
