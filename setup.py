@@ -36,8 +36,6 @@ INSTALL_REQUIRES = [
     'hexy>=1.4.3',  # for grid cell encoder
     'mock>=1.0.1',  # for anomaly likelihood test
     'prettytable>=0.7.2',  # for monitor-mixin in htm.advanced (+its tests)
-    ## HTM.CORE
-    "htm.core@git+https://github.com/htm-community/htm.core.git",
 ]
 
 authors = "Sam Heiserman"

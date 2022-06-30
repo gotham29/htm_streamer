@@ -387,9 +387,6 @@ def init_models(features_enc_params, predictor_config,
     return features_models
 
 
-
-
-
 def run_models(timestep, features_data, learn, features_models, timestamp_config, predictor_config):
     """
     Purpose:
