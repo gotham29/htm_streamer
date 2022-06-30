@@ -75,7 +75,7 @@ def run_batch(config_path, learn, data, iter_print, features_models):
         features_outputs = {f: outputs_dict for f in cfg['features']}
     else:  # single-models case
         multi_feat = f"megamodel_features={len(cfg['features'])}.pkl"
-        features_outputs[multi_feat] = outputs_dict
+        features_outputs = {multi_feat: outputs_dict}
 
     # 5. Run --> 'data' through 'features_models'
     print('\nRunning main loop...')
