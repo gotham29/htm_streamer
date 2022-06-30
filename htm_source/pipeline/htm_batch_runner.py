@@ -65,9 +65,6 @@ def run_batch(config_path, learn, data, iter_print, features_models):
                                       predictor_config=cfg['models_predictor'],
                                       timestamp_config=cfg['models_encoders']['timestamp'],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
-        print("\n HTM models initiated")
-        for feat, mod in features_models.items():
-            print(f"   {feat} = {mod}")
         # save_models(dir_models=models_dir,
         #             features_models=features_models)
     try:
@@ -81,7 +78,7 @@ def run_batch(config_path, learn, data, iter_print, features_models):
     if cfg['models_state']['model_for_each_feature']:
         features_outputs = {f: outputs_dict for f in cfg['features']}
     else:  # single-models case
-        multi_feat = f"megamodel_features={len(cfg['features'])}.pkl"
+        multi_feat = f"megamodel_features={len(cfg['features'])}"
         features_outputs = {multi_feat: outputs_dict}
 
     # 5. Run --> 'data' through 'features_models'
