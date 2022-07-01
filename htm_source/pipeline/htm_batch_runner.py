@@ -16,7 +16,7 @@ from htm_source.config.config import build_enc_params
 from htm_source.model.model import init_models
 
 
-def run_batch(config_path, learn, data, iter_print, features_models):
+def run_batch(cfg, config_path, learn, data, iter_print, features_models):
     """
     Purpose:
         Loop over all rows in batch csv
@@ -44,9 +44,10 @@ def run_batch(config_path, learn, data, iter_print, features_models):
         'config.yaml' --> reset after last stream data
     """
 
-    # 1. Load —> Config from Config Path
-    cfg = load_config(config_path)
-    print(f'\nLoaded —> Config from: {config_path}')
+    # 1. Load —> Config from Config Path IF not passed in as arg
+    if cfg is None:
+        cfg = load_config(config_path)
+        print(f'\nLoaded —> Config from: {config_path}')
 
     # 2. Ensure --> Expected features present
     missing_feats = [f for f in cfg['features'] if f not in data]
@@ -82,7 +83,7 @@ def run_batch(config_path, learn, data, iter_print, features_models):
         features_outputs = {multi_feat: outputs_dict}
 
     # 5. Run --> 'data' through 'features_models'
-    print('\nRunning main loop...')
+    print('Running main loop...')
     for timestep, row in data[:timestep_limit].iterrows():
         features_data = dict(row)
         # multi-models case

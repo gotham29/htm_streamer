@@ -63,7 +63,7 @@ def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir)
     except:
         timestep_limit = 1000000
 
-    print('\nRunning main loop...')
+    print('Running main loop...')
     for _, row in data[:timestep_limit].iterrows():
         # skip rows where any cfg['features'] aren't numeric
         features_missing = checkfor_missing_features(row=row,
