@@ -316,6 +316,9 @@ class HTMmodel:
             # Create an SDR to represent active columns
             active_columns = SDR(self.sp.getColumnDimensions())
             self.sp.compute(encoding, learn, active_columns)
+            print('    active_columns')
+            print(f"      type --> {type(active_columns)}")
+            print(f"      vals --> {active_columns}")
         else:
             active_columns = encoding.sparse  #np.where(encoding.sparse == 1)[0]
 
