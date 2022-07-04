@@ -66,7 +66,7 @@ def run_batch(cfg, config_path, learn, data, iter_print, features_models):
                                       predictor_config=cfg['models_predictor'],
                                       timestamp_config=cfg['models_encoders']['timestamp'],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'],
-                                      sp_active=cfg['models_state']['use_sp'])
+                                      use_sp=cfg['models_state']['use_sp'])
         # save_models(dir_models=models_dir,
         #             features_models=features_models)
     try:
