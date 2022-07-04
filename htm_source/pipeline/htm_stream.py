@@ -91,6 +91,7 @@ def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
         features_models = load_models(models_dir)
         learn = True if cfg['models_state']['timestep'] < cfg['timesteps_stop']['learning'] else False
         features_outputs, features_models = run_models(learn=learn,
+                                                       use_sp=cfg['models_state']['use_sp'],
                                                        features_data=data,
                                                        features_models=features_models,
                                                        timestep=cfg['models_state']['timestep'],

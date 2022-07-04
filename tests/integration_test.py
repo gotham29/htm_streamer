@@ -35,12 +35,13 @@ class IntegrationTests(unittest.TestCase):
     def test_01_run_batch(self):
         config_path = os.path.join(_DATA_DIR, 'config.yaml')
         data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
-        subjects_models[subj], subj_outputs = run_batch(cfg=None,
-                                                        config_path=config_path,
-                                                        learn=True,
-                                                        data=pd.read_csv(data_path),
-                                                        iter_print=1000,
-                                                        features_models={})
+        features_models, features_outputs = run_batch(cfg=None,
+                                                      config_path=config_path,
+                                                      learn=True,
+                                                      data=pd.read_csv(data_path),
+                                                      iter_print=1000,
+                                                      features_models={})
+        self.assertIsNone(None)
 
     def test_02_run_stream(self):
         config_path = os.path.join(_DATA_DIR, 'config.yaml')
