@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import sys
 
 _TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +12,7 @@ _DATA_STREAM_DIR = os.path.join(_TESTS_DIR, 'data')
 sys.path.append(_REPO_DIR)
 
 from htm_source.pipeline.htm_stream_runner import run_stream
+from htm_source.pipeline.htm_batch_runner import run_batch
 from htm_source.utils.utils import make_dir
 import unittest
 
@@ -27,7 +29,20 @@ make_dir(_DATA_STREAM_DIR)
 
 class IntegrationTests(unittest.TestCase):
 
-    def test_01_run_test(self):
+    # config_path = os.path.join(_DATA_DIR, 'config.yaml')
+    # data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
+
+    def test_01_run_batch(self):
+        config_path = os.path.join(_DATA_DIR, 'config.yaml')
+        data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
+        subjects_models[subj], subj_outputs = run_batch(cfg=None,
+                                                        config_path=config_path,
+                                                        learn=True,
+                                                        data=pd.read_csv(data_path),
+                                                        iter_print=1000,
+                                                        features_models={})
+
+    def test_02_run_stream(self):
         config_path = os.path.join(_DATA_DIR, 'config.yaml')
         data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
         result = run_stream(config_path, data_path, _DATA_STREAM_DIR, _OUTPUTS_DIR, _MODELS_DIR)

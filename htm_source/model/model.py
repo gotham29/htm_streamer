@@ -317,8 +317,7 @@ class HTMmodel:
             active_columns = SDR(self.sp.getColumnDimensions())
             self.sp.compute(encoding, learn, active_columns)
         else:
-            # active_columns = [i for i in range(len(encoding)) if encoding[i] == 1]
-            active_columns = np.where(encoding == 1)[0]
+            active_columns = encoding.sparse  #np.where(encoding.sparse == 1)[0]
 
         # TEMPORAL MEMORY
         # Get prediction density
@@ -434,7 +433,7 @@ def run_models(timestep, features_data, learn, use_sp, features_models, timestam
     features_outputs = {f: {} for f in features_models}
     # Get outputs & update models
     for f, model in features_models.items():
-        args = (f, model, features_data, timestep, learn, use_sp ,predictor_config)
+        args = (f, model, features_data, timestep, learn, use_sp, predictor_config)
         result = run_model(args)
         features_models[f] = result['model']
         features_outputs[f] = {k: v for k, v in result.items() if k not in ['model', 'feature']}
