@@ -13,13 +13,14 @@ from htm.encoders.rdse import RDSE, RDSE_Parameters
 
 class HTMmodel:
     def __init__(self, features_model, features_enc_params, models_params,
-                 timestamp_config, predictor_config):
+                 timestamp_config, predictor_config, use_sp):
         self.features_model = features_model
         self.features_enc_params = features_enc_params
         self.models_params = models_params
         self.timestamp_config = timestamp_config
         self.predictor_resolution = predictor_config['resolution']
         self.predictor_steps_ahead = predictor_config['steps_ahead']
+        self.use_sp = use_sp
         self.sp = None
         self.tm = None
         self.predictor = None
@@ -310,10 +311,14 @@ class HTMmodel:
         # Call the encoders to create bit representations for each feature
         encoding = self.get_encoding(features_data)
 
-        # SPATIAL POOLER
-        # Create an SDR to represent active columns
-        active_columns = SDR(self.sp.getColumnDimensions())
-        self.sp.compute(encoding, learn, active_columns)
+        if self.use_sp:
+            # SPATIAL POOLER
+            # Create an SDR to represent active columns
+            active_columns = SDR(self.sp.getColumnDimensions())
+            self.sp.compute(encoding, learn, active_columns)
+        else:
+            # active_columns = [i for i in range(len(encoding)) if encoding[i] == 1]
+            active_columns = np.where(encoding == 1)[0]
 
         # TEMPORAL MEMORY
         # Get prediction density
@@ -338,7 +343,7 @@ class HTMmodel:
 
 
 def init_models(features_enc_params, predictor_config,
-                models_params, model_for_each_feature, timestamp_config):
+                models_params, model_for_each_feature, timestamp_config, sp_active):
     """
     Purpose:
         Build HTMmodels for each feature (features --> user-provided in config.yaml)
@@ -358,6 +363,9 @@ def init_models(features_enc_params, predictor_config,
         timestamp_config
             type: dict
             meaning: params for timestamp encoder (user-specified in config.yaml)
+        sp_active
+            type: bool
+            meaning: whether Spatial Pooler is enabled in HTMmodel
     Outputs:
         features_models
             type: dict
@@ -368,15 +376,17 @@ def init_models(features_enc_params, predictor_config,
     if model_for_each_feature:  # multiple models, one per feature
         for f in features_enc_params:
             features_model = [f]
-            model = HTMmodel(features_model, features_enc_params, models_params,
-                             timestamp_config, predictor_config)
+            model = HTMmodel(features_model=features_model, features_enc_params=features_enc_params,
+                             models_params=models_params, timestamp_config=timestamp_config,
+                             predictor_config=predictor_config, use_sp=use_sp)
             model.init_model()
             features_models[f] = model
 
     else:  # one multi-feature model
         features_model = list(features_enc_params.keys())
-        model = HTMmodel(features_model, features_enc_params, models_params,
-                         timestamp_config, predictor_config)
+        model = HTMmodel(features_model=features_model, features_enc_params=features_enc_params,
+                         models_params=models_params, timestamp_config=timestamp_config,
+                         predictor_config=predictor_config, use_sp=use_sp)
         model.init_model()
         features_models[f'megamodel_features={len(features_model)}'] = model
 
@@ -387,7 +397,7 @@ def init_models(features_enc_params, predictor_config,
     return features_models
 
 
-def run_models(timestep, features_data, learn, features_models, timestamp_config, predictor_config):
+def run_models(timestep, features_data, learn, sp_active, features_models, timestamp_config, predictor_config):
     """
     Purpose:
         Update HTMmodel(s) & collect results for all features -- run in serial
@@ -401,6 +411,9 @@ def run_models(timestep, features_data, learn, features_models, timestamp_config
         learn
             type: bool
             meaning: whether learning is enabled in HTMmodel
+        sp_active
+            type: bool
+            meaning: whether Spatial Pooler is enabled in HTMmodel
         features_models
             type: dict
             meaning: HTMmodel for each feature
@@ -421,7 +434,7 @@ def run_models(timestep, features_data, learn, features_models, timestamp_config
     features_outputs = {f: {} for f in features_models}
     # Get outputs & update models
     for f, model in features_models.items():
-        args = (f, model, features_data, timestep, learn, predictor_config)
+        args = (f, model, features_data, timestep, learn, sp_active ,predictor_config)
         result = run_model(args)
         features_models[f] = result['model']
         features_outputs[f] = {k: v for k, v in result.items() if k not in ['model', 'feature']}
@@ -447,6 +460,9 @@ def run_model(args):
         learn
             type: bool
             meaning: whether learning is enabled in HTMmodel
+        sp_active
+            type: bool
+            meaning: whether Spatial Pooler is enabled in HTMmodel
         features_models
             type: dict
             meaning: HTMmodel for each feature
@@ -463,6 +479,7 @@ def run_model(args):
     """
     feature, HTMmodel, features_data, timestep, learn, predictor_config = args
     anomaly_score, anomaly_likelihood, pred_count, steps_predictions = HTMmodel.run(learn=learn,
+                                                                                    sp_active=sp_active,
                                                                                     timestep=timestep,
                                                                                     features_data=features_data,
                                                                                     predictor_config=predictor_config)
@@ -477,7 +494,7 @@ def run_model(args):
     return result
 
 
-def run_models_parallel(timestep, features_data, learn, features_models, timestamp_config, predictor_config):
+def run_models_parallel(timestep, features_data, learn, sp_active, features_models, timestamp_config, predictor_config):
     """
     Purpose:
         Update HTMmodel(s) & collect results for all features -- run in parallel
@@ -491,6 +508,9 @@ def run_models_parallel(timestep, features_data, learn, features_models, timesta
         learn
             type: bool
             meaning: whether learning is enabled in HTMmodel
+        sp_active
+            type: bool
+            meaning: whether Spatial Pooler is enabled in HTMmodel
         features_models
             type: dict
             meaning: HTMmodel for each feature
@@ -513,6 +533,7 @@ def run_models_parallel(timestep, features_data, learn, features_models, timesta
     features = []
     models_count = len(features_models)
     learns = [learn for _ in range(models_count)]
+    sp_actives = [sp_active for _ in range(models_count)]
     timesteps = [timestep for _ in range(models_count)]
     features_datas = [features_data for _ in range(models_count)]
     predictor_configs = [predictor_config for _ in range(models_count)]
@@ -521,7 +542,7 @@ def run_models_parallel(timestep, features_data, learn, features_models, timesta
         features.append(f)
         models.append(model)
 
-    tasks = list(zip(features, models, features_datas, timesteps, learns, predictor_configs))
+    tasks = list(zip(features, models, features_datas, timesteps, learns, sp_actives, predictor_configs))
     max_workers = multiprocessing.cpu_count() - 1
     chunksize = round(len(tasks) / max_workers / 4)
     chunksize = max(chunksize, 1)
@@ -547,7 +568,6 @@ def run_models_parallel(timestep, features_data, learn, features_models, timesta
 
 
 def track_tm(cfg, features_models):
-
     # get TM state for each model
     features_tmstates = {f: {} for f in features_models}
     for feature, model in features_models.items():
