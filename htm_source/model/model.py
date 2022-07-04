@@ -343,7 +343,7 @@ class HTMmodel:
 
 
 def init_models(features_enc_params, predictor_config,
-                models_params, model_for_each_feature, timestamp_config, sp_active):
+                models_params, model_for_each_feature, timestamp_config, use_sp):
     """
     Purpose:
         Build HTMmodels for each feature (features --> user-provided in config.yaml)
@@ -363,7 +363,7 @@ def init_models(features_enc_params, predictor_config,
         timestamp_config
             type: dict
             meaning: params for timestamp encoder (user-specified in config.yaml)
-        sp_active
+        use_sp
             type: bool
             meaning: whether Spatial Pooler is enabled in HTMmodel
     Outputs:
@@ -397,7 +397,7 @@ def init_models(features_enc_params, predictor_config,
     return features_models
 
 
-def run_models(timestep, features_data, learn, sp_active, features_models, timestamp_config, predictor_config):
+def run_models(timestep, features_data, learn, use_sp, features_models, timestamp_config, predictor_config):
     """
     Purpose:
         Update HTMmodel(s) & collect results for all features -- run in serial
@@ -411,7 +411,7 @@ def run_models(timestep, features_data, learn, sp_active, features_models, times
         learn
             type: bool
             meaning: whether learning is enabled in HTMmodel
-        sp_active
+        use_sp
             type: bool
             meaning: whether Spatial Pooler is enabled in HTMmodel
         features_models
@@ -434,7 +434,7 @@ def run_models(timestep, features_data, learn, sp_active, features_models, times
     features_outputs = {f: {} for f in features_models}
     # Get outputs & update models
     for f, model in features_models.items():
-        args = (f, model, features_data, timestep, learn, sp_active ,predictor_config)
+        args = (f, model, features_data, timestep, learn, use_sp ,predictor_config)
         result = run_model(args)
         features_models[f] = result['model']
         features_outputs[f] = {k: v for k, v in result.items() if k not in ['model', 'feature']}
@@ -460,7 +460,7 @@ def run_model(args):
         learn
             type: bool
             meaning: whether learning is enabled in HTMmodel
-        sp_active
+        use_sp
             type: bool
             meaning: whether Spatial Pooler is enabled in HTMmodel
         features_models
@@ -479,7 +479,6 @@ def run_model(args):
     """
     feature, HTMmodel, features_data, timestep, learn, predictor_config = args
     anomaly_score, anomaly_likelihood, pred_count, steps_predictions = HTMmodel.run(learn=learn,
-                                                                                    sp_active=sp_active,
                                                                                     timestep=timestep,
                                                                                     features_data=features_data,
                                                                                     predictor_config=predictor_config)
@@ -494,7 +493,7 @@ def run_model(args):
     return result
 
 
-def run_models_parallel(timestep, features_data, learn, sp_active, features_models, timestamp_config, predictor_config):
+def run_models_parallel(timestep, features_data, learn, use_sp, features_models, timestamp_config, predictor_config):
     """
     Purpose:
         Update HTMmodel(s) & collect results for all features -- run in parallel
@@ -508,7 +507,7 @@ def run_models_parallel(timestep, features_data, learn, sp_active, features_mode
         learn
             type: bool
             meaning: whether learning is enabled in HTMmodel
-        sp_active
+        use_sp
             type: bool
             meaning: whether Spatial Pooler is enabled in HTMmodel
         features_models
@@ -533,7 +532,7 @@ def run_models_parallel(timestep, features_data, learn, sp_active, features_mode
     features = []
     models_count = len(features_models)
     learns = [learn for _ in range(models_count)]
-    sp_actives = [sp_active for _ in range(models_count)]
+    use_sps = [use_sp for _ in range(models_count)]
     timesteps = [timestep for _ in range(models_count)]
     features_datas = [features_data for _ in range(models_count)]
     predictor_configs = [predictor_config for _ in range(models_count)]
@@ -542,7 +541,7 @@ def run_models_parallel(timestep, features_data, learn, sp_active, features_mode
         features.append(f)
         models.append(model)
 
-    tasks = list(zip(features, models, features_datas, timesteps, learns, sp_actives, predictor_configs))
+    tasks = list(zip(features, models, features_datas, timesteps, learns, use_sps, predictor_configs))
     max_workers = multiprocessing.cpu_count() - 1
     chunksize = round(len(tasks) / max_workers / 4)
     chunksize = max(chunksize, 1)
