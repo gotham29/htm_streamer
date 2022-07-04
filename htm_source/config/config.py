@@ -398,6 +398,7 @@ def validate_params_required(cfg, data, models_dir, outputs_dir):
         'learn': bool,
         'timestep': int,
         'track_tm': bool,
+        'use_sp': bool,
         'track_iter': int,
         'model_for_each_feature': bool,
     }
