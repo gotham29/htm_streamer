@@ -314,20 +314,13 @@ class HTMmodel:
         # Call the encoders to create bit representations for each feature
         encoding = self.get_encoding(features_data)
 
+        # SPATIAL POOLER (or just encoding)
         if self.use_sp:
-            # SPATIAL POOLER
             # Create an SDR to represent active columns
             active_columns = SDR(self.sp.getColumnDimensions())
             self.sp.compute(encoding, learn, active_columns)
-            print('    active_columns')
-            print(f"      type --> {type(active_columns)}")
-            print(f"      vals --> {active_columns}")
         else:
-            active_columns = encoding  #SDR(encoding.sparse)  #np.where(encoding.sparse == 1)[0]
-            print('    active_columns')
-            print(f"      type --> {type(active_columns)}")
-            print(f"      vals --> {active_columns}")
-
+            active_columns = encoding
 
         # TEMPORAL MEMORY
         # Get prediction density
