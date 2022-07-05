@@ -320,7 +320,11 @@ class HTMmodel:
             print(f"      type --> {type(active_columns)}")
             print(f"      vals --> {active_columns}")
         else:
-            active_columns = encoding.sparse  #np.where(encoding.sparse == 1)[0]
+            active_columns = SDR(encoding.sparse)  #np.where(encoding.sparse == 1)[0]
+            print('    active_columns')
+            print(f"      type --> {type(active_columns)}")
+            print(f"      vals --> {active_columns}")
+
 
         # TEMPORAL MEMORY
         # Get prediction density
@@ -479,7 +483,7 @@ def run_model(args):
             type: dict
             meaning: all outputs from HTMmodel.run() for given feature
     """
-    feature, HTMmodel, features_data, timestep, learn, predictor_config = args
+    feature, HTMmodel, features_data, timestep, learn, use_sp, predictor_config = args
     anomaly_score, anomaly_likelihood, pred_count, steps_predictions = HTMmodel.run(learn=learn,
                                                                                     timestep=timestep,
                                                                                     features_data=features_data,
