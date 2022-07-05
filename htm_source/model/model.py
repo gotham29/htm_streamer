@@ -109,8 +109,10 @@ class HTMmodel:
         """
         sp_params = self.models_params["sp"]
         tm_params = self.models_params["tm"]
+        columnDimensions = sp_params["columnCount"] if self.use_sp else self.encoding_width
+
         self.tm = TemporalMemory(
-            columnDimensions=(sp_params["columnCount"],),
+            columnDimensions=(columnDimensions,),
             cellsPerColumn=tm_params["cellsPerColumn"],
             activationThreshold=tm_params["activationThreshold"],
             initialPermanence=tm_params["initialPerm"],
@@ -171,7 +173,8 @@ class HTMmodel:
                 meaning: Object that runs entire HTM process (enc+sp+tm+anomlikl+predictor) given raw data
         """
         self.init_encs()
-        self.init_sp()
+        if self.use_sp:
+            self.init_sp()
         self.init_tm()
         self.init_anomalyhistory()
         self.init_predictor()
@@ -320,7 +323,7 @@ class HTMmodel:
             print(f"      type --> {type(active_columns)}")
             print(f"      vals --> {active_columns}")
         else:
-            active_columns = SDR(encoding.sparse)  #np.where(encoding.sparse == 1)[0]
+            active_columns = encoding  #SDR(encoding.sparse)  #np.where(encoding.sparse == 1)[0]
             print('    active_columns')
             print(f"      type --> {type(active_columns)}")
             print(f"      vals --> {active_columns}")
