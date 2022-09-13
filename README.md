@@ -1,9 +1,9 @@
 # Steps to run locally
 
 ## 1) Setup htm.core module
-### ### <mark>Pip method</mark>
+### <u>Pip method</u>
 N/A (as of now)
-### <mark>Git method</mark>
+### <u>Git method</u>
 From command line:
 * **Clone htm.core repo**: `git clone https://github.com/htm-community/htm.core.git`
 * **CD to htm.core dir**: `cd htm.core`
@@ -15,10 +15,10 @@ From command line:
 <br/>
 
 ## 2) Setup htm_streamer module
-### <mark>Pip method</mark>
+### <u>Pip method</u>
 From command line:
 * **Install packages**: `pip install git+https://github.com/gotham29/htm_streamer.git`
-### <mark>Git method</mark>
+### <u>Git method</u>
 From command line:
 * **Clone htm_streamer repo**: `git clone https://github.com/gotham29/htm_streamer.git`
 * **CD to htm_streamer dir**:
