@@ -14,7 +14,8 @@ From command line:
 
 ### 2) Setup htm_streamer module
 #### Pip method
-pip install git+https://github.com/gotham29/htm_streamer.git
+From command line:
+* **Install packages**: `pip install git+https://github.com/gotham29/htm_streamer.git`
 #### Git method
 From command line:
 * **Clone htm_streamer repo**: `git clone https://github.com/gotham29/htm_streamer.git`
@@ -23,7 +24,7 @@ From command line:
   * `cd htm_streamer`
 * **Install packages**: `pip install -r requirements.txt`
   
-### 4) Run Integration Test
+### 3) Run Integration Test
 From command line:
 * **Run**: `python tests/integration_test.py`
 * **Get results**: Find in: `htm_streamer/tests`
