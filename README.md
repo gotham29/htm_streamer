@@ -12,6 +12,7 @@ From command line:
 * **Install packages**: `pip install -r requirements.txt`
 * **Run setup.py**: `python setup.py install`
 
+<br/><br/>
 
 ## 2) Setup htm_streamer module
 #### Pip method
