@@ -1,6 +1,9 @@
 ## Steps to run locally
 
 ### 1) Setup htm.core module
+#### Pip method
+N/A (as of now)
+#### Git method
 From command line:
 * **Clone htm.core repo**: `git clone https://github.com/htm-community/htm.core.git`
 * **CD to htm.core dir**: `cd htm.core`
@@ -10,6 +13,9 @@ From command line:
 * **Run setup.py**: `python setup.py install`
 
 ### 2) Setup htm_streamer module
+#### Pip method
+pip install git+https://github.com/gotham29/htm_streamer.git
+#### Git method
 From command line:
 * **Clone htm_streamer repo**: `git clone https://github.com/gotham29/htm_streamer.git`
 * **CD to htm_streamer dir**:
