@@ -1,6 +1,6 @@
-## Steps to run locally
+# Steps to run locally
 
-### 1) Setup htm.core module
+## 1) Setup htm.core module
 #### Pip method
 N/A (as of now)
 #### Git method
@@ -12,7 +12,7 @@ From command line:
 * **Install packages**: `pip install -r requirements.txt`
 * **Run setup.py**: `python setup.py install`
 
-### 2) Setup htm_streamer module
+## 2) Setup htm_streamer module
 #### Pip method
 From command line:
 * **Install packages**: `pip install git+https://github.com/gotham29/htm_streamer.git`
@@ -24,7 +24,7 @@ From command line:
   * `cd htm_streamer`
 * **Install packages**: `pip install -r requirements.txt`
   
-### 3) Run Integration Test
+## 3) Run Integration Test
 From command line:
 * **Run**: `python tests/integration_test.py`
 * **Get results**: Find in: `htm_streamer/tests`
