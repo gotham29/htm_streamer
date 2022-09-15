@@ -29,7 +29,7 @@ From command line:
 ## 3) Run Integration Test
 From command line:
 * **Run**: `python tests/integration_test.py`
-* **Get results**: Find in: `htm_streamer/tests`
+* **Get results**: `htm_streamer/tests`
 
 
 ## Quickstart
