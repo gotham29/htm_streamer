@@ -33,7 +33,6 @@ From command line:
 
 ## Quickstart
 
-### 1) Set Config and Run HStreamer
 From Python:
 * **Import Functions**: 
   * `import os`
