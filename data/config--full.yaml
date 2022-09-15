@@ -27,7 +27,7 @@ models_encoders:
   - 99
   n: 700
   n_buckets: 140
-  sparsity: 0.02
+  sparsity: 0.05  #0.02
   timestamp:
     enable: false
     feature: satellite_time
