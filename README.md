@@ -12,8 +12,6 @@ From command line:
 * **Install packages**: `pip install -r requirements.txt`
 * **Run setup.py**: `python setup.py install`
 
-<br/>
-
 ## 2) htm_streamer
 ### Pip
 From command line:
@@ -31,6 +29,7 @@ From command line:
 * **Run**: `python tests/integration_test.py`
 * **Get results**: `htm_streamer/tests`
 
+<br/>
 
 ## Quickstart
 
