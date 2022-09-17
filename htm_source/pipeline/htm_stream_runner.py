@@ -7,8 +7,8 @@ import time
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
 
-from htm_source.utils.utils import get_args, save_json, checkfor_missing_features
-from htm_source.config.config import load_config, save_config
+from htm_source.utils import get_args, save_json, checkfor_missing_features
+from htm_source.config import load_config, save_config
 from htm_source.pipeline.htm_stream import stream_to_htm
 
 

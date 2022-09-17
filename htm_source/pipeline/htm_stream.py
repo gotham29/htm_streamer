@@ -4,9 +4,9 @@ import sys
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
 
-from htm_source.utils.utils import get_args, load_json, save_models, load_models, save_outputs
-from htm_source.config.config import load_config, save_config, build_enc_params, extend_features_samples, validate_config
-from htm_source.model.model import init_models, run_models, run_models_parallel, track_tm
+from htm_source.utils import get_args, load_json, save_models, load_models, save_outputs
+from htm_source.config import load_config, save_config, build_enc_params, extend_features_samples, validate_config
+from htm_source.model import init_models, run_models, run_models_parallel, track_tm
 
 
 def stream_to_htm(config_path, data_path, models_dir, outputs_dir):

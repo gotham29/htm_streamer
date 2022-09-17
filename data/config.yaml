@@ -12,4 +12,3 @@ models_state:
 timesteps_stop:
   learning: 100
   running: 110
-  sampling: 50
