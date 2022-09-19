@@ -43,7 +43,7 @@ author_email = "sheiser1@binghamton.edu"
 
 setup(
     name='htm_source',
-    version='0.0.75',
+    version='0.0.76',
     description='HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series',
     long_description=readme,
     license='MIT',

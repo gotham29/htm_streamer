@@ -18,7 +18,7 @@ from htm_source.model import init_models
 def run_batch(cfg:dict,
             config_path:str,
             learn:bool,
-            data:pd.dataframe,
+            data:pd.DataFrame,
             iter_print:int,
             features_models:dict
             ) -> (dict, dict):
