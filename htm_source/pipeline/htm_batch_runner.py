@@ -15,7 +15,13 @@ from htm_source.pipeline.htm_stream import stream_to_htm
 from htm_source.model import init_models
 
 
-def run_batch(cfg, config_path, learn, data, iter_print, features_models):
+def run_batch(cfg:dict,
+            config_path:str,
+            learn:bool,
+            data:pd.dataframe,
+            iter_print:int,
+            features_models:dict
+            ) -> (dict, dict):
     """
     Purpose:
         Loop over all rows in batch csv

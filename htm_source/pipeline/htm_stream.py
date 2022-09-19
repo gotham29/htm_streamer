@@ -9,7 +9,10 @@ from htm_source.config import load_config, save_config, build_enc_params, extend
 from htm_source.model import init_models, run_models, run_models_parallel, track_tm
 
 
-def stream_to_htm(config_path, data_path, models_dir, outputs_dir):
+def stream_to_htm(config_path:str,
+                data_path:str,
+                models_dir:str,
+                outputs_dir:str):
     """
     Purpose:
         Run HTM module -- in mode either: Sampling/Initializing/Running (depending on timestep)

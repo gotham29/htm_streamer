@@ -12,7 +12,11 @@ from htm_source.config import load_config, save_config
 from htm_source.pipeline.htm_stream import stream_to_htm
 
 
-def run_stream(config_path, data_path, data_stream_dir, outputs_dir, models_dir):
+def run_stream(config_path:str,
+                data_path:str,
+                data_stream_dir:str,
+                outputs_dir:str,
+                models_dir:str):
     """
     Purpose:
         Loop over all rows in batch csv

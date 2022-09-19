@@ -12,8 +12,14 @@ from htm.encoders.rdse import RDSE, RDSE_Parameters
 
 
 class HTMmodel:
-    def __init__(self, features_model, features_enc_params, models_params,
-                 timestamp_config, predictor_config, use_sp):
+    def __init__(self,
+                features_model:list,
+                features_enc_params:dict,
+                models_params:dict,
+                timestamp_config:dict,
+                predictor_config:dict,
+                use_sp:bool
+                ):
         self.features_model = features_model
         self.features_enc_params = features_enc_params
         self.models_params = models_params
@@ -179,7 +185,7 @@ class HTMmodel:
         self.init_anomalyhistory()
         self.init_predictor()
 
-    def get_encoding(self, features_data):
+    def get_encoding(self, features_data:dict) -> SDR:
         """
         Purpose:
             Build total conccated encoding from all features' encoders -- for input to SP
@@ -213,7 +219,7 @@ class HTMmodel:
         encoding = SDR(self.encoding_width).concatenate(encs_bits)
         return encoding
 
-    def get_predcount(self):
+    def get_predcount(self) -> float:
         """
         Purpose:
             Get number of predictions made by TM at current timestep
@@ -238,7 +244,7 @@ class HTMmodel:
         pred_count = n_pred_cells / n_cols_per_pred
         return pred_count
 
-    def get_preds(self, timestep, f_data):
+    def get_preds(self, timestep:int, f_data:float) -> dict:
         """
         Purpose:
             Get predicted values for given feature -- for each of 'n_steps_ahead'
@@ -279,7 +285,12 @@ class HTMmodel:
                              int(f_data / self.predictor_resolution))
         return steps_predictions
 
-    def run(self, features_data, timestep, learn, predictor_config):
+    def run(self,
+            features_data:dict,
+            timestep:int,
+            learn:bool,
+            predictor_config:dict
+            ) -> (float, float, float, dict):
         """
         Purpose:
             Run HTMmodel -- yielding all outputs & updating model (if 'learn'==True)
@@ -344,8 +355,13 @@ class HTMmodel:
         return anomaly_score, anomaly_likelihood, pred_count, steps_predictions
 
 
-def init_models(features_enc_params, predictor_config,
-                models_params, model_for_each_feature, timestamp_config, use_sp):
+def init_models(features_enc_params:dict,
+                predictor_config:dict,
+                models_params:dict,
+                model_for_each_feature:bool,
+                timestamp_config:dict,
+                use_sp:bool
+                ) -> dict:
     """
     Purpose:
         Build HTMmodels for each feature (features --> user-provided in config.yaml)
@@ -399,7 +415,14 @@ def init_models(features_enc_params, predictor_config,
     return features_models
 
 
-def run_models(timestep, features_data, learn, use_sp, features_models, timestamp_config, predictor_config):
+def run_models(timestep:int,
+                features_data:dict,
+                learn:bool,
+                use_sp:bool,
+                features_models:dict,
+                timestamp_config:dict,
+                predictor_config:dict
+                ) -> (dict, dict):
     """
     Purpose:
         Update HTMmodel(s) & collect results for all features -- run in serial
@@ -448,7 +471,7 @@ def run_models(timestep, features_data, learn, use_sp, features_models, timestam
     return features_outputs, features_models
 
 
-def run_model(args):
+def run_model(args) -> dict:
     """
     Purpose:
         Update HTMmodel & collect result for 1 feature
@@ -495,7 +518,14 @@ def run_model(args):
     return result
 
 
-def run_models_parallel(timestep, features_data, learn, use_sp, features_models, timestamp_config, predictor_config):
+def run_models_parallel(timestep:int,
+                        features_data:dict,
+                        learn:bool,
+                        use_sp:bool,
+                        features_models:dict,
+                        timestamp_config:dict,
+                        predictor_config:dict
+                        ) -> (dict, dict):
     """
     Purpose:
         Update HTMmodel(s) & collect results for all features -- run in parallel
@@ -568,7 +598,7 @@ def run_models_parallel(timestep, features_data, learn, use_sp, features_models,
     return features_outputs, features_models
 
 
-def track_tm(cfg, features_models):
+def track_tm(cfg:dict, features_models:dict) -> dict:
     # get TM state for each model
     features_tmstates = {f: {} for f in features_models}
     for feature, model in features_models.items():

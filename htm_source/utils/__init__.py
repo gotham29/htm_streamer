@@ -35,7 +35,7 @@ def get_args():
     return parser.parse_args()
 
 
-def make_dir(mydir):
+def make_dir(mydir:str):
     """
     Purpose:
         Make directory
@@ -50,7 +50,7 @@ def make_dir(mydir):
         os.mkdir(mydir)
 
 
-def load_json(path_json):
+def load_json(path_json:str) -> dict:
     """
     Purpose:
         Load json file
@@ -69,7 +69,7 @@ def load_json(path_json):
     return data
 
 
-def save_json(data, path_json):
+def save_json(data, path_json:str):
     """
     Purpose:
         Save data to json file
@@ -88,7 +88,7 @@ def save_json(data, path_json):
         outfile.write(json_object)
 
 
-def save_data_as_pickle(data_struct, f_path):
+def save_data_as_pickle(data_struct, f_path:str):
     """
     Purpose:
         Save data to pkl file
@@ -109,7 +109,7 @@ def save_data_as_pickle(data_struct, f_path):
     return True
 
 
-def load_pickle_object_as_data(file_path):
+def load_pickle_object_as_data(file_path:str):
     """
     Purpose:
         Load data from pkl file
@@ -127,7 +127,7 @@ def load_pickle_object_as_data(file_path):
     return data
 
 
-def save_models(features_models, dir_models):
+def save_models(features_models:dict, dir_models:str):
     """
     Purpose:
         Save models to pkl
@@ -146,7 +146,7 @@ def save_models(features_models, dir_models):
         save_data_as_pickle(model, path_model)
 
 
-def load_models(dir_models):
+def load_models(dir_models:str):
     """
     Purpose:
         Load pkl models for each feature from dir
@@ -168,7 +168,7 @@ def load_models(dir_models):
     return features_models
 
 
-def save_outputs(features_outputs, timestep_init, timestep_current, save_outputs_accumulated, dir_out):
+def save_outputs(features_outputs:dict, timestep_init:int, timestep_current:int, save_outputs_accumulated:bool, dir_out:str):
     """
     Purpose:
         Save model outputs for all features (json)
@@ -211,7 +211,7 @@ def save_outputs(features_outputs, timestep_init, timestep_current, save_outputs
         print(f"  Save Outputs Accumulated = {save_outputs_accumulated}\n")
 
 
-def checkfor_missing_features(row, features_expected):
+def checkfor_missing_features(row, features_expected:list):
     # check which features are numeric
     features_numeric = {}
     for f, v in dict(row).items():

@@ -3,7 +3,7 @@ import os
 import yaml
 
 
-def load_config(yaml_path):
+def load_config(yaml_path:str) -> dict:
     """
     Purpose:
         Load config from path
@@ -21,7 +21,7 @@ def load_config(yaml_path):
     return cfg
 
 
-def save_config(cfg, yaml_path):
+def save_config(cfg:dict, yaml_path:str) -> dict:
     """
     Purpose:
         Save config to path
@@ -42,7 +42,10 @@ def save_config(cfg, yaml_path):
     return cfg
 
 
-def build_enc_params(cfg, models_encoders, features_weights):
+def build_enc_params(cfg:dict,
+                    models_encoders:dict,
+                    features_weights:dict
+                    ) -> (dict, dict):
     """
     Purpose:
         Set encoder params fpr each feature using sampled data
@@ -91,7 +94,10 @@ def build_enc_params(cfg, models_encoders, features_weights):
     return cfg, features_enc_params
 
 
-def get_rdse_resolution(feature, minmax, n_buckets):
+def get_rdse_resolution(feature:str,
+                        minmax:list,
+                        n_buckets:int
+                        ) -> float:
     """
     Purpose:
         Calculate 'resolution' pararm to RDSE for given feature
@@ -117,7 +123,7 @@ def get_rdse_resolution(feature, minmax, n_buckets):
     return resolution
 
 
-def extend_features_samples(data, features_samples):
+def extend_features_samples(data:dict, features_samples:dict) -> dict:
     """
     Purpose:
         Add given data to feature's sample list
@@ -138,7 +144,7 @@ def extend_features_samples(data, features_samples):
     return features_samples
 
 
-def get_default_params_htm():
+def get_default_params_htm() -> dict:
     """
     Purpose:
         Provide default HTM model config -- as set in nupic.core/py/htm/example/hotgym.py
@@ -173,7 +179,7 @@ def get_default_params_htm():
     return default_parameters
 
 
-def get_default_params_predictor():
+def get_default_params_predictor() -> dict:
     """
     Purpose:
         Provide default config for htm.core Predictor
@@ -192,12 +198,14 @@ def get_default_params_predictor():
     return default_parameters
 
 
-def get_default_params_weights(features):
+def get_default_params_weights(features:list) -> dict:
     """
     Purpose:
         Provide weight of 1.0 for each feature
     Inputs:
-        none
+        features
+            type: list
+            meaning: features to assign equal weight to
     Outputs:
         default_parameters
             type: dict
@@ -207,7 +215,7 @@ def get_default_params_weights(features):
     return default_parameters
 
 
-def get_default_params_encoder():
+def get_default_params_encoder() -> dict:
     """
     Purpose:
         Provide default config for htm.core RDSE
@@ -233,7 +241,7 @@ def get_default_params_encoder():
     return default_parameters
 
 
-def get_mode(cfg):
+def get_mode(cfg:dict) -> str:
     """
     Purpose:
         Determine which mode to run ('sampling' / 'initializing' / 'running')
@@ -272,7 +280,7 @@ def get_mode(cfg):
     return mode
 
 
-def validate_params_timestep0(cfg):
+def validate_params_timestep0(cfg:dict) -> dict:
     """
     Purpose:
         Add required params to config
@@ -305,7 +313,11 @@ def validate_params_timestep0(cfg):
     return cfg
 
 
-def validate_config(cfg, data, models_dir, outputs_dir):
+def validate_config(cfg:dict,
+                    data:dict,
+                    models_dir:str,
+                    outputs_dir:str
+                    ) -> dict:
     """
     Purpose:
         Ensure validity of all config values
@@ -355,7 +367,10 @@ def validate_config(cfg, data, models_dir, outputs_dir):
     return cfg
 
 
-def validate_params_required(cfg, data, models_dir, outputs_dir):
+def validate_params_required(cfg:dict,
+                            data:dict,
+                            models_dir:str,
+                            outputs_dir:str):
     """
     Purpose:
         Ensure valid entries for required config params
@@ -422,7 +437,7 @@ def validate_params_required(cfg, data, models_dir, outputs_dir):
                                               f"'sampling' = {sampling}"
 
 
-def validate_params_init(cfg):
+def validate_params_init(cfg: dict) -> dict:
     """
     Purpose:
         Ensure valid entries for config params -- used only in 'initializing' mode
