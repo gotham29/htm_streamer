@@ -37,7 +37,7 @@ From Python:
 * **Import Functions**: 
   * `import os`
   * `import pandas as pd`
-  * `from htm_source.config.config import load_config`
+  * `from htm_source.config import load_config`
   * `from htm_source.pipeline.htm_batch_runner import run_batch`
 * **Load Config & Data**:
   * `config_path = os.path.join(os.getcwd(), 'data', 'config.yaml')`
