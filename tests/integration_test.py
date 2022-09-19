@@ -13,7 +13,7 @@ sys.path.append(_REPO_DIR)
 
 from htm_source.pipeline.htm_stream_runner import run_stream
 from htm_source.pipeline.htm_batch_runner import run_batch
-from htm_source.utils.utils import make_dir
+from htm_source.utils import make_dir
 import unittest
 
 unittest.TestLoader.sortTestMethodsUsing = None
