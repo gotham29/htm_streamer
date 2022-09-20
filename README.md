@@ -45,7 +45,7 @@ From Python:
   * `config = load_config(config_path)`
   * `data = pd.read_csv(data_path)`
 * **Set Config**:
-  * `my_features = ['x..', 'y..', 'z..']`
+  * `my_features = data.columns[1:4]`
   * `timestep_tostop_sampling = 40`
   * `timestep_tostop_learning = 4000`
   * `timestep_tostop_running = 5000`
