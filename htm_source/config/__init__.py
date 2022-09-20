@@ -42,6 +42,27 @@ def save_config(cfg:dict, yaml_path:str) -> dict:
     return cfg
 
 
+def reset_config(cfg:dict) -> dict:
+    """
+    Purpose:
+        Reset config to minimal state
+    Inputs:
+        cfg:
+            type: dict
+            meaning: config to be reset
+    Outputs:
+        cfg:
+            type: dict
+            meaning: reset config
+    """
+    keys_keep = ['features', 'models_state', 'timesteps_stop']
+    keys_keep_models_state = ['model_for_each_feature', 'use_sp']
+    cfg = {k:v for k,v in cfg.items() if k in keys_keep}
+    cfg['models_state'] = {k:v for k,v in cfg['models_state'].items()
+                            if k in keys_keep_models_state}
+    return cfg
+
+
 def build_enc_params(cfg:dict,
                     models_encoders:dict,
                     features_weights:dict
