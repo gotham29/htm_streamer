@@ -348,6 +348,10 @@ def validate_config(cfg:dict,
     # Get mode
     cfg['models_state']['mode'] = get_mode(cfg)
 
+    # Set save_outputs_accumulated -- If not found
+    if 'save_outputs_accumulated' not in cfg['models_state']:
+        cfg['models_state']['save_outputs_accumulated'] = True
+
     # Validate required params
     validate_params_required(cfg, data, models_dir, outputs_dir)
 

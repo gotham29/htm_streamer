@@ -5,7 +5,6 @@ features:
 - Total_Photo_Current
 models_state:
   model_for_each_feature: false
-  save_outputs_accumulated: true
   use_sp: true
 timesteps_stop:
   learning: 100
