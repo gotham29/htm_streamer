@@ -1,22 +1,22 @@
-import numpy as np
 import os
-import pandas as pd
 import sys
-import time
+
+import pandas as pd
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
 
-from htm_source.utils import get_args, save_json, checkfor_missing_features
-from htm_source.config import load_config, save_config, reset_config
+from htm_source.utils import get_args, check_for_missing_features
+from htm_source.utils.fs import save_json, load_config, save_config
+from htm_source.config import reset_config
 from htm_source.pipeline.htm_stream import stream_to_htm
 
 
-def run_stream(config_path:str,
-                data_path:str,
-                data_stream_dir:str,
-                outputs_dir:str,
-                models_dir:str):
+def run_stream(config_path: str,
+               data_path: str,
+               data_stream_dir: str,
+               outputs_dir: str,
+               models_dir: str):
     """
     Purpose:
         Loop over all rows in batch csv
@@ -70,8 +70,8 @@ def run_stream(config_path:str,
     print('Running main loop...')
     for _, row in data[:timestep_limit].iterrows():
         # skip rows where any cfg['features'] aren't numeric
-        features_missing = checkfor_missing_features(row=row,
-                                                     features_expected=cfg['features'])
+        features_missing = check_for_missing_features(row=row,
+                                                      features_expected=cfg['features'])
         if len(features_missing) > 0:
             print(f'\n  skipping row: {_}')
             print(f'    features_missing = {features_missing}')

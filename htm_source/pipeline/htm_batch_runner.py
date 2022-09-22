@@ -1,27 +1,26 @@
-import numpy as np
 import os
-import pandas as pd
 import sys
-import time
+from typing import Union
+
+import pandas as pd
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
 
-from htm_source.utils import get_args, save_json, checkfor_missing_features
-from htm_source.config import validate_config, validate_params_init, \
-    get_default_params_htm, get_default_params_predictor, get_default_params_encoder, \
-    get_default_params_weights, load_config, save_config, build_enc_params
-from htm_source.pipeline.htm_stream import stream_to_htm
-from htm_source.model import init_models
+from htm_source.utils import get_args
+from htm_source.utils.fs import load_config
+from htm_source.config import build_enc_params
+from htm_source.config.validation import validate_params_init
+from htm_source.model.runners import init_models
 
 
-def run_batch(cfg:dict,
-            config_path:str,
-            learn:bool,
-            data:pd.DataFrame,
-            iter_print:int,
-            features_models:dict
-            ) -> (dict, dict):
+def run_batch(cfg: Union[dict, None],
+              config_path: Union[str, None],
+              learn: bool,
+              data: pd.DataFrame,
+              iter_print: int,
+              features_models: dict
+              ) -> (dict, dict):
     """
     Purpose:
         Loop over all rows in batch csv
@@ -116,4 +115,5 @@ def run_batch(cfg:dict,
 
 if __name__ == '__main__':
     args = get_args()
+    # TODO: why is this run_stream? shouldn't it be run_batch?
     run_stream(args.config_path, args.data_path, args.models_dir, args.outputs_dir)

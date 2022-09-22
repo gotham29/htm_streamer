@@ -1,1 +1,2 @@
-
+from htm_batch_runner import run_batch
+from htm_stream_runner import run_stream

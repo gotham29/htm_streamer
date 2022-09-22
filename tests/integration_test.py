@@ -1,6 +1,7 @@
 import os
-import pandas as pd
 import sys
+
+import pandas as pd
 
 _TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 _REPO_DIR = os.path.join(_TESTS_DIR, '..')
@@ -11,16 +12,15 @@ _DATA_STREAM_DIR = os.path.join(_TESTS_DIR, 'data')
 
 sys.path.append(_REPO_DIR)
 
-from htm_source.pipeline.htm_stream_runner import run_stream
-from htm_source.pipeline.htm_batch_runner import run_batch
-from htm_source.utils import make_dir
+from htm_source.pipeline import run_batch, run_stream
 import unittest
 
 unittest.TestLoader.sortTestMethodsUsing = None
 
-make_dir(_OUTPUTS_DIR)
-make_dir(_MODELS_DIR)
-make_dir(_DATA_STREAM_DIR)
+os.makedirs(_OUTPUTS_DIR, exist_ok=True)
+os.makedirs(_MODELS_DIR, exist_ok=True)
+os.makedirs(_DATA_STREAM_DIR, exist_ok=True)
+
 
 # print(f'\n_MODELS_DIR = {_MODELS_DIR}')
 # print(f'_DATA_STREAM_DIR = {_DATA_STREAM_DIR}')
