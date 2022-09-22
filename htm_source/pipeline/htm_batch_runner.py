@@ -115,5 +115,9 @@ def run_batch(cfg: Union[dict, None],
 
 if __name__ == '__main__':
     args = get_args()
-    # TODO: why is this run_stream? shouldn't it be run_batch?
-    run_stream(args.config_path, args.data_path, args.models_dir, args.outputs_dir)
+    features_models, features_outputs = run_batch(cfg=None,
+                                                  data=pd.read_csv(args.data_path),
+                                                  learn=True,
+                                                  iter_print=100,
+                                                  config_path=args.config_path,
+                                                  features_models={})
