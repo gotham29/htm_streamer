@@ -1,6 +1,6 @@
 run_stream
   load_config
-  checkfor_missing_features
+  check_for_missing_features
   save_json
   stream_to_htm
     load_config
