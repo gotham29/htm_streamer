@@ -1,7 +1,7 @@
 import os
 
-from config import get_mode
-from defaults import get_default_params_htm, get_default_params_predictor, \
+from htm_source.config import get_mode
+from htm_source.config.defaults import get_default_params_htm, get_default_params_predictor, \
     get_default_params_encoder, get_default_params_weights
 
 
