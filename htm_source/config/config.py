@@ -22,13 +22,67 @@ def reset_config(cfg: dict) -> dict:
     return cfg
 
 
+def isnumeric(val):
+    isnum = True if (type(val) == int or type(val) == float) else False
+    return isnum
+
+
+def get_params_numeric(f: str,
+                       f_dict: dict,
+                       models_encoders: dict,
+                       f_weight: float,
+                       f_sample: list) -> dict:
+    """
+    Purpose:
+        Get enc params for 'f'
+    Inputs:
+        f:
+            type: str
+            meaning: name of feature
+        f_dict:
+            type: dict
+            meaning: holds type, min & max for 'f'
+        models_encoders:
+            type: dict
+            meaning: encoding params from config
+        f_weight:
+            type: float
+            meaning: weight for 'f'
+        f_sample:
+            type: list
+            meaning: values for 'f'
+    Outputs:
+        params_rdse
+            type: dict
+            meaning: enc params for 'f'
+    """
+    # use min/max if specified
+    print(f"\n{f}")
+    if isnumeric(f_dict['min']) and isnumeric(f_dict['max']):
+        f_minmax = [f_dict['min'], f_dict['max']]
+        print("  found")
+    # else find min/max from f_samples
+    else:
+        min_perc, max_perc = models_encoders['minmax_percentiles']
+        f_minmax = [np.percentile(f_sample, min_perc), np.percentile(f_sample, max_perc)]
+        print("  sampled")
+    params_rdse = {
+        'size': int(models_encoders['n'] * f_weight),
+        'sparsity': models_encoders['sparsity'],
+        'resolution': get_rdse_resolution(f,
+                                          f_minmax,
+                                          models_encoders['n_buckets'])
+    }
+    return params_rdse
+
+
 def build_enc_params(cfg: dict,
                      models_encoders: dict,
                      features_weights: dict
                      ) -> (dict, dict):
     """
     Purpose:
-        Set encoder params fpr each feature using sampled data
+        Set encoder params fpr each feature (using ether found or sampled min/max)
     Inputs:
         cfg
             type: dict
@@ -48,30 +102,21 @@ def build_enc_params(cfg: dict,
             meaning: set of encoder params for each feature ('size, sparsity', 'resolution')
     """
 
-    features_minmax = cfg.get('features_minmax', None)
-    features_samples = cfg.get('features_samples', None)
-
-    # if 'features_minmax' not user-provided, get from 'features_samples'
-    if features_minmax is not None:
-        pass
-    else:
-        min_perc, max_perc = models_encoders['minmax_percentiles']
-        features_minmax = {feat: [np.percentile(sample, min_perc), np.percentile(sample, max_perc)] for feat, sample in
-                           features_samples.items()}
-
-    features_enc_params = {f: {} for f in features_minmax}
-    cfg['features_minmax'] = {k: [str(v[0]), str(v[1])] for k, v in features_minmax.items()}
-    cfg['features_resolutions'] = {}
-
-    for f, minmax in features_minmax.items():
-        features_enc_params[f]['size'] = int(models_encoders['n'] * features_weights[f])
-        features_enc_params[f]['sparsity'] = models_encoders['sparsity']
-        features_enc_params[f]['resolution'] = get_rdse_resolution(f,
-                                                                   minmax,
-                                                                   models_encoders['n_buckets'])
-        cfg['features_resolutions'][f] = str(round(features_enc_params[f]['resolution'], 3))
-    features_enc_params = {k: v for k, v in features_enc_params.items() if v['resolution'] != 0}
+    features_enc_params = {}
+    types_numeric = ['int', 'float']
+    for f, f_dict in cfg['features'].items():
+        # get enc - numeric
+        if f_dict['type'] in types_numeric:
+            features_enc_params[f] = get_params_numeric(f,
+                                                        f_dict,
+                                                        models_encoders,
+                                                        features_weights[f],
+                                                        cfg['features_samples'][f])
+        # get enc - categoric
+        # elif f_dict['type'] == 'category':
+        #     features_enc_params[f] = get_params_category(f_dict)
     return cfg, features_enc_params
+
 
 
 def get_rdse_resolution(feature: str,
@@ -82,7 +127,7 @@ def get_rdse_resolution(feature: str,
     Purpose:
         Calculate 'resolution' pararm to RDSE for given feature
     Inputs:
-        sample
+        feature
             type: str
             meaning: name of given feature
         minmax

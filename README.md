@@ -37,7 +37,7 @@ From Python:
 * **Import Functions**:
   * `import os`
   * `import pandas as pd`
-  * `from htm_source.config import load_config`
+  * `from htm_source.utils.fs import load_config`
   * `from htm_source.pipeline.htm_batch_runner import run_batch`
 * **Load Config & Data**:
   * `config_path = os.path.join(os.getcwd(), 'data', 'config.yaml')`
@@ -45,14 +45,12 @@ From Python:
   * `config = load_config(config_path)`
   * `data = pd.read_csv(data_path)`
 * **Set Config**:
-  * `my_features = data.columns[1:4]`
   * `timestep_tostop_sampling = 40`
   * `timestep_tostop_learning = 4000`
   * `timestep_tostop_running = 5000`
   * `model_for_each_feature = True`
-  * `features_invalid = [ f for f in my_features if f not in data]`
+  * `features_invalid = [ f for f in config['features'] if f not in data]`
   * `assert len(features_invalid) == 0, f"features not found --> {sorted(features_invalid)}"`
-  * `config['features'] = my_features`
   * `config['timesteps_stop']['sampling'] = timestep_tostop_sampling`
   * `config['timesteps_stop']['learning'] = timestep_tostop_learning`
   * `config['timesteps_stop']['running'] = timestep_tostop_running`

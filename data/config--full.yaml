@@ -1,8 +1,26 @@
 features:
-- Solar_Panel_Voltage_X
-- 3.3_Bus_Current
-- Receiver_Doppler
-- Total_Photo_Current
+  Solar_Panel_Voltage_X:
+    type: float
+    min: 4350
+    max: 4750
+  3.3_Bus_Current:
+    type: float
+    min: #125
+    max: #145
+  Receiver_Doppler:
+    type: int
+    min: 150
+    max: 164
+  Total_Photo_Current:
+    type: float
+    min: 195
+    max: 270
+  satellite_time:
+    type: timestamp
+    timeOfDay:
+      - 30
+      - 1
+    weekend: 21
 features_minmax:
   3.3_Bus_Current:
   - 125.0
