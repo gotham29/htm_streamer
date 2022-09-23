@@ -66,12 +66,11 @@ def run_batch(cfg: Union[dict, None],
         cfg, features_enc_params = build_enc_params(cfg=cfg,
                                                     models_encoders=cfg['models_encoders'],
                                                     features_weights=cfg['features_weights'])
-        features_models = init_models(features_enc_params=features_enc_params,
+        features_models = init_models(use_sp=cfg['models_state']['use_sp'],
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
-                                      # timestamp_config=cfg['models_encoders']['timestamp'],
-                                      model_for_each_feature=cfg['models_state']['model_for_each_feature'],
-                                      use_sp=cfg['models_state']['use_sp'])
+                                      features_enc_params=features_enc_params,
+                                      model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         # save_models(dir_models=models_dir,
         #             features_models=features_models)
     try:

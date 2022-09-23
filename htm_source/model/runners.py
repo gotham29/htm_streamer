@@ -4,12 +4,11 @@ import multiprocessing as mp
 from htm_source.model import HTMmodel
 
 
-def init_models(features_enc_params: dict,
-                predictor_config: dict,
+def init_models(use_sp: bool,
                 models_params: dict,
-                model_for_each_feature: bool,
-                timestamp_config: dict,
-                use_sp: bool
+                predictor_config: dict,
+                features_enc_params: dict,
+                model_for_each_feature: bool
                 ) -> dict:
     """
     Purpose:
@@ -27,9 +26,6 @@ def init_models(features_enc_params: dict,
         model_for_each_feature
             type: bool
             meaning: whether to build a separate model for each feature (user-specified in config.yaml)
-        timestamp_config
-            type: dict
-            meaning: params for timestamp encoder (user-specified in config.yaml)
         use_sp
             type: bool
             meaning: whether Spatial Pooler is enabled in HTMmodel
@@ -67,10 +63,10 @@ def init_models(features_enc_params: dict,
     return features_models
 
 
-def run_models(timestep: int,
-               features_data: dict,
-               learn: bool,
+def run_models(learn: bool,
                use_sp: bool,
+               timestep: int,
+               features_data: dict,
                features_models: dict,
                timestamp_config: dict,
                predictor_config: dict
