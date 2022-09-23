@@ -28,7 +28,7 @@ class HTMmodel:
         self.anomaly_history = None
         self.encoding_width = 0
         self.features_encs = {}
-        self.types_times = ['timestamp', 'datetime']
+        self.types_time = ['timestamp', 'datetime']
         self.types_numeric = ['int', 'float']
 
     def init_encs(self):
