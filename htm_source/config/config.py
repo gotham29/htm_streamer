@@ -188,12 +188,14 @@ def get_mode(cfg: dict) -> str:
             meaning: which mode to use in current timestep
     """
 
+    print(f"    TIMESTEP = {cfg['models_state']['timestep']}")
+
     mode_prev = cfg['models_state'].get('mode', None)
 
-    """
     # sampling --> if: 'features_minmax' not in cfg
     if 'features_minmax' not in cfg:
         sampling_done = False if cfg['models_state']['timestep'] < cfg['timesteps_stop']['sampling'] else True
+        print(f"      sampling_done = {sampling_done}")
         mode = 'initializing'
         if not sampling_done:
             mode = 'sampling'
@@ -205,16 +207,16 @@ def get_mode(cfg: dict) -> str:
         # run --> otherwise
         else:  # models built
             mode = 'running'
-    """
-    if cfg['models_state']['timestep'] < cfg['timesteps_stop']['sampling']:
-        mode = 'samppling'
-    elif cfg['models_state']['timestep'] == cfg['timesteps_stop']['sampling']:
-        mode = 'initializing'
-    else:
-        mode = 'running'
 
-    print(f"    TIMESTEP = {cfg['models_state']['timestep']}")
-    print(f"      MODE = {mode}")
+    # if cfg['models_state']['timestep'] < cfg['timesteps_stop']['sampling']:
+    #     mode = 'samppling'
+    # elif cfg['models_state']['timestep'] == cfg['timesteps_stop']['sampling']:
+    #     mode = 'initializing'
+    # else:
+    #     mode = 'running'
+
+    print(f"      mode prev = {mode_prev}")
+    print(f"      mode = {mode}")
 
     if mode_prev != mode:
         print(f'  Mode changed!')

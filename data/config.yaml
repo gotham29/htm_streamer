@@ -1,7 +1,7 @@
 features:
   3.3_Bus_Current:
-    max: null
-    min: null
+    max:
+    min:
     type: float
   Receiver_Doppler:
     max: 164

@@ -87,9 +87,12 @@ def run_stream(config_path: str,
         # print progress
         if _ > 1000 and _ % 1000 == 0:
             print(f'  completed row: {_}')
+
+    """
     # 5. Reset cfg
     cfg = reset_config(cfg)
     cfg = save_config(cfg, config_path)
+    """
 
 
 if __name__ == '__main__':
