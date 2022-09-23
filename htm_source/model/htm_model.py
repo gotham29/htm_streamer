@@ -377,7 +377,7 @@ class HTMmodel:
         # Predict raw feature value -- IF enabled AND model is 1 feature (excluding timestamp)
         steps_predictions = {}
         features_nontimestamp = {k: v for k, v in self.features_enc_params.items()
-                                 if k['type'] not in self.types_time}
+                                 if v['type'] not in self.types_time}
         if predictor_config['enable'] and len(features_nontimestamp) == 1:
             feature = list(features_nontimestamp.keys())[0]
             steps_predictions = self.get_preds(timestep=timestep,
