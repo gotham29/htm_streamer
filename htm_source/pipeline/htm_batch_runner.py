@@ -84,7 +84,7 @@ def run_batch(cfg: Union[dict, None],
     if cfg['models_state']['model_for_each_feature']:
         features_outputs = {f: outputs_dict for f in cfg['features']}
     else:  # single-models case
-        features_nontypes = {k: v for k, v in cfg['features'].items() if k['type'] not in types_time}
+        features_nontypes = {k: v for k, v in cfg['features'].items() if v['type'] not in types_time}
         multi_feat = f"megamodel_features={len( features_nontypes )}"
         features_outputs = {multi_feat: outputs_dict}
 
