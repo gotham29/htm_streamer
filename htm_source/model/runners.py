@@ -8,7 +8,8 @@ def init_models(use_sp: bool,
                 models_params: dict,
                 predictor_config: dict,
                 features_enc_params: dict,
-                model_for_each_feature: bool
+                model_for_each_feature: bool,
+                types_time: list = ['timestamp', 'datetime'],
                 ) -> dict:
     """
     Purpose:
@@ -38,7 +39,7 @@ def init_models(use_sp: bool,
 
     if model_for_each_feature:  # multiple models, one per feature
         for f in features_enc_params:
-            params_time = {k: v for k, v in features_enc_params.items() if v['type'] in self.types_time}
+            params_time = {k: v for k, v in features_enc_params.items() if v['type'] in types_time}
             params_f = {k: v for k, v in features_enc_params.items() if k == f}
             params_f = {**params_time, **params_f}
             model = HTMmodel(use_sp=use_sp,
