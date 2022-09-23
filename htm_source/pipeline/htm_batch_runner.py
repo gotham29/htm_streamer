@@ -19,7 +19,8 @@ def run_batch(cfg: Union[dict, None],
               learn: bool,
               data: pd.DataFrame,
               iter_print: int,
-              features_models: dict
+              features_models: dict,
+              types_time: list = ['timestamp', 'datetime']
               ) -> (dict, dict):
     """
     Purpose:
@@ -68,7 +69,7 @@ def run_batch(cfg: Union[dict, None],
         features_models = init_models(features_enc_params=features_enc_params,
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
-                                      timestamp_config=cfg['models_encoders']['timestamp'],
+                                      # timestamp_config=cfg['models_encoders']['timestamp'],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'],
                                       use_sp=cfg['models_state']['use_sp'])
         # save_models(dir_models=models_dir,
@@ -84,7 +85,8 @@ def run_batch(cfg: Union[dict, None],
     if cfg['models_state']['model_for_each_feature']:
         features_outputs = {f: outputs_dict for f in cfg['features']}
     else:  # single-models case
-        multi_feat = f"megamodel_features={len(cfg['features'])}"
+        features_nontypes = {k: v for k, v in cfg['features'].items() if k['type'] not in types_time}
+        multi_feat = f"megamodel_features={len( features_nontypes )}"
         features_outputs = {multi_feat: outputs_dict}
 
     # 5. Run --> 'data' through 'features_models'

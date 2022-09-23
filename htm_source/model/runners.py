@@ -42,20 +42,23 @@ def init_models(features_enc_params: dict,
 
     if model_for_each_feature:  # multiple models, one per feature
         for f in features_enc_params:
-            features_model = [f]
-            model = HTMmodel(features_model=features_model, features_enc_params=features_enc_params,
-                             models_params=models_params, timestamp_config=timestamp_config,
-                             predictor_config=predictor_config, use_sp=use_sp)
+            params_time = {k: v for k, v in features_enc_params.items() if k['type'] in self.types_time}
+            params_f = {k: v for k, v in features_enc_params.items() if k == f}
+            params_f = {**params_time, **params_f}
+            model = HTMmodel(use_sp=use_sp,
+                             models_params=models_params,
+                             predictor_config=predictor_config,
+                             features_enc_params=params_f)
             model.init_model()
             features_models[f] = model
 
     else:  # one multi-feature model
-        features_model = list(features_enc_params.keys())
-        model = HTMmodel(features_model=features_model, features_enc_params=features_enc_params,
-                         models_params=models_params, timestamp_config=timestamp_config,
-                         predictor_config=predictor_config, use_sp=use_sp)
+        model = HTMmodel(use_sp=use_sp,
+                         models_params=models_params,
+                         predictor_config=predictor_config,
+                         features_enc_params=features_enc_params)
         model.init_model()
-        features_models[f'megamodel_features={len(features_model)}'] = model
+        features_models[f'megamodel_features={len(features_enc_params)}'] = model
 
     print(f'  Models initialized...')
     for f, model in features_models.items():

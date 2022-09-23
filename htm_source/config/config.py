@@ -27,7 +27,7 @@ def isnumeric(val):
     return isnum
 
 
-def get_params_numeric(f: str,
+def get_params_rdse(f: str,
                        f_dict: dict,
                        models_encoders: dict,
                        f_weight: float,
@@ -57,15 +57,12 @@ def get_params_numeric(f: str,
             meaning: enc params for 'f'
     """
     # use min/max if specified
-    print(f"\n{f}")
     if isnumeric(f_dict['min']) and isnumeric(f_dict['max']):
         f_minmax = [f_dict['min'], f_dict['max']]
-        print("  found")
     # else find min/max from f_samples
     else:
         min_perc, max_perc = models_encoders['minmax_percentiles']
         f_minmax = [np.percentile(f_sample, min_perc), np.percentile(f_sample, max_perc)]
-        print("  sampled")
     params_rdse = {
         'size': int(models_encoders['n'] * f_weight),
         'sparsity': models_encoders['sparsity'],
@@ -78,7 +75,9 @@ def get_params_numeric(f: str,
 
 def build_enc_params(cfg: dict,
                      models_encoders: dict,
-                     features_weights: dict
+                     features_weights: dict,
+                     types_numeric: list = ['int', 'float'],
+                     types_time: list = ['timestamp', 'datetime']
                      ) -> (dict, dict):
     """
     Purpose:
@@ -103,18 +102,24 @@ def build_enc_params(cfg: dict,
     """
 
     features_enc_params = {}
-    types_numeric = ['int', 'float']
     for f, f_dict in cfg['features'].items():
         # get enc - numeric
         if f_dict['type'] in types_numeric:
-            features_enc_params[f] = get_params_numeric(f,
-                                                        f_dict,
-                                                        models_encoders,
-                                                        features_weights[f],
-                                                        cfg['features_samples'][f])
+            features_enc_params[f] = get_params_rdse(f,
+                                                     f_dict,
+                                                     models_encoders,
+                                                     features_weights[f],
+                                                     cfg['features_samples'][f])
+        # get enc - datetime
+        elif f_dict['type'] in types_time:
+            features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
+        # TODO: add category encoding
         # get enc - categoric
         # elif f_dict['type'] == 'category':
         #     features_enc_params[f] = get_params_category(f_dict)
+        else:
+            pass
+        features_enc_params[f]['type'] = f_dict['type']
     return cfg, features_enc_params
 
 

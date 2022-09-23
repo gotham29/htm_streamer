@@ -9,16 +9,16 @@ from htm.encoders.rdse import RDSE_Parameters, RDSE
 
 class HTMmodel:
     def __init__(self,
-                 features_model: list,
+                 # features_model: list,
                  features_enc_params: dict,
                  models_params: dict,
-                 timestamp_config: dict,
+                 # timestamp_config: dict,
                  predictor_config: dict,
                  use_sp: bool):
-        self.features_model = features_model
+        # self.features_model = features_model
         self.features_enc_params = features_enc_params
         self.models_params = models_params
-        self.timestamp_config = timestamp_config
+        # self.timestamp_config = timestamp_config
         self.predictor_resolution = predictor_config['resolution']
         self.predictor_steps_ahead = predictor_config['steps_ahead']
         self.use_sp = use_sp
@@ -28,6 +28,8 @@ class HTMmodel:
         self.anomaly_history = None
         self.encoding_width = 0
         self.features_encs = {}
+        self.types_times = ['timestamp', 'datetime']
+        self.types_numeric = ['int', 'float']
 
     def init_encs(self):
         """
@@ -48,20 +50,52 @@ class HTMmodel:
                 type: int
                 meaning: size in bits of total concatenated encoder (input to SP)
         """
-        for f in self.features_model:
-            scalar_encoder_params = RDSE_Parameters()
-            scalar_encoder_params.size = self.features_enc_params[f]['size']
-            scalar_encoder_params.sparsity = self.features_enc_params[f]["sparsity"]
-            scalar_encoder_params.resolution = self.features_enc_params[f]['resolution']
-            scalar_encoder = RDSE(scalar_encoder_params)
-            self.encoding_width += scalar_encoder.size
-            self.features_encs[f] = scalar_encoder
-        # Add timestamp encoder -- if enabled
-        if self.timestamp_config['enable']:
-            date_encoder = DateEncoder(timeOfDay=self.timestamp_config["timeOfDay"],
-                                       weekend=self.timestamp_config["weekend"])
-            self.features_encs[self.timestamp_config['feature']] = date_encoder
-            self.encoding_width += date_encoder.size
+        for f, enc_params in self.features_enc_params.items():
+            enc = self.get_encoder(enc_params)
+            self.encoding_width += enc.size
+            self.features_encs[f] = enc
+        # for f in self.features_model:
+        #     scalar_encoder_params = RDSE_Parameters()
+        #     scalar_encoder_params.size = self.features_enc_params[f]['size']
+        #     scalar_encoder_params.sparsity = self.features_enc_params[f]["sparsity"]
+        #     scalar_encoder_params.resolution = self.features_enc_params[f]['resolution']
+        #     scalar_encoder = RDSE(scalar_encoder_params)
+        #     self.encoding_width += scalar_encoder.size
+        #     self.features_encs[f] = scalar_encoder
+        # # Add timestamp encoder -- if enabled
+        # if self.timestamp_config['enable']:
+        #     date_encoder = DateEncoder(timeOfDay=self.timestamp_config["timeOfDay"],
+        #                                weekend=self.timestamp_config["weekend"])
+        #     self.features_encs[self.timestamp_config['feature']] = date_encoder
+        #     self.encoding_width += date_encoder.size
+
+
+    def get_encoder(self, enc_params):
+        """
+        Purpose:
+            Get initialized encoder object from params
+        Inputs:
+            enc_params
+                type: dict
+                meaning: params to init enc
+        Outputs:
+            enc:
+                type: enc object (RDSE or DateEncoder)
+        """
+        if enc_params['type'] in self.types_numeric:
+            rdse_params = RDSE_Parameters()
+            rdse_params.size = enc_params['size']
+            rdse_params.sparsity = enc_params["sparsity"]
+            rdse_params.resolution = enc_params['resolution']
+            enc = RDSE(rdse_params)
+        elif enc_params['type'] in self.types_time:
+            enc = DateEncoder(timeOfDay=enc_params["timeOfDay"],
+                              weekend=enc_params["weekend"])
+        # TODO: add category encoder
+        else:
+            pass
+        return enc
+
 
     def init_sp(self):
         """
@@ -206,7 +240,7 @@ class HTMmodel:
         # Get encodings for all features
         for f, enc in self.features_encs.items():
             ## Convert timestamp feature to datetime
-            if f == self.timestamp_config['feature']:
+            if self.features_enc_params[f]['type'] in self.types_time:  #f == self.timestamp_config['feature']:
                 features_data[f] = pd.to_datetime(features_data[f])
             f_bits = enc.encode(features_data[f])
             encs_bits.append(f_bits)
@@ -342,8 +376,10 @@ class HTMmodel:
         # PREDICTOR
         # Predict raw feature value -- IF enabled AND model is 1 feature (excluding timestamp)
         steps_predictions = {}
-        if predictor_config['enable'] and len(self.features_model) == 1:
-            feature = self.features_model[0]
+        features_nontimestamp = {k: v for k, v in self.features_enc_params.items()
+                                 if k['type'] not in self.types_time}
+        if predictor_config['enable'] and len(features_nontimestamp) == 1:
+            feature = list(features_nontimestamp.keys())[0]
             steps_predictions = self.get_preds(timestep=timestep,
                                                f_data=features_data[feature])
 
