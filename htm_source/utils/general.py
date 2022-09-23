@@ -3,26 +3,9 @@ import argparse
 import numpy as np
 
 
-# TODO: I don't think its a good name, function implicitly checks if float.. we can probably rename or rewrite it
-def check_for_missing_features(row, features_expected: list):
+def check_for_missing_features(row, features_expected: list) -> list:
     features_missing = [f for f in features_expected if f not in row]
     return features_missing
-
-
-# def check_for_missing_features(row, features_expected: list):
-#     # check which features are numeric
-#     features_numeric = {}
-#     for f, v in dict(row).items():
-#         try:
-#             f_float = float(v)
-#             if not np.isnan(f_float):
-#                 features_numeric[f] = f_float
-#         except:
-#             pass
-#
-#     # check if any expected features aren't valid numeric
-#     features_missing = [f for f in features_expected if f not in features_numeric]
-#     return features_missing
 
 
 def get_args():

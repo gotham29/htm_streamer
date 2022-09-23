@@ -79,8 +79,7 @@ def stream_to_htm(config_path: str,
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
-                                      model_for_each_feature=cfg['models_state']['model_for_each_feature'],
-                                      )
+                                      model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         save_models(dir_models=models_dir,
                     features_models=features_models)
         cfg['models_state']['timestep_initialized'] = cfg['models_state']['timestep']
