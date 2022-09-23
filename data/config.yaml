@@ -15,6 +15,12 @@ features:
     max: 270
     min: 195
     type: float
+  satellite_time:
+    timeOfDay:
+    - 30
+    - 1
+    type: timestamp
+    weekend: 21
 models_state:
   model_for_each_feature: true
   use_sp: false

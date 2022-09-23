@@ -38,8 +38,9 @@ def init_models(use_sp: bool,
     features_models = {}
 
     if model_for_each_feature:  # multiple models, one per feature
-        for f in features_enc_params:
-            params_time = {k: v for k, v in features_enc_params.items() if v['type'] in types_time}
+        params_time = {k: v for k, v in features_enc_params.items() if v['type'] in types_time}
+        features_enc_params_numeric = {k: v for k, v in features_enc_params.items() if k not in params_time}
+        for f in features_enc_params_numeric:
             params_f = {k: v for k, v in features_enc_params.items() if k == f}
             params_f = {**params_time, **params_f}
             model = HTMmodel(use_sp=use_sp,
