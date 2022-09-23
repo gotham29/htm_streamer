@@ -6,12 +6,6 @@ from htm_source.pipeline.htm_batch_runner import run_batch
 from htm_source.utils.fs import load_config
 
 if __name__ == '__main__':
-    # Load config & data
-    config_path = os.path.join(os.getcwd(), 'data', 'config.yaml')
-    data_path = os.path.join(os.getcwd(), 'data', 'batch', 'sample_timeseries.csv')
-    config = load_config(config_path)
-    data = pd.read_csv(data_path)
-
     # Specify run params
     model_for_each_feature = True
     features = ['3.3_Bus_Current',
@@ -21,11 +15,16 @@ if __name__ == '__main__':
     timestep_tostop_learning = 4000
     timestep_tostop_running = 5000
 
+    # Load config & data
+    config_path = os.path.join(os.getcwd(), 'data', 'config.yaml')
+    data_path = os.path.join(os.getcwd(), 'data', 'batch', 'sample_timeseries.csv')
+    config = load_config(config_path)
+    data = pd.read_csv(data_path)
+
     # Validate & update features
     cfg_features = {k: v for k, v in config['features'].items() if k in features}
     features_invalid = [f for f in cfg_features if f not in data]
     assert len(features_invalid) == 0, f"features not found --> {sorted(features_invalid)}"
-
     config['features'] = cfg_features
     config['timesteps_stop']['sampling'] = timestep_tostop_sampling
     config['timesteps_stop']['learning'] = timestep_tostop_learning
