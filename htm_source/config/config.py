@@ -205,6 +205,9 @@ def get_mode(cfg: dict) -> str:
         else:  # models built
             mode = 'running'
 
+    print(f"  TIMESTEP = {cfg['models_state']['timestep']}")
+    print(f"  MODE = {mode}")
+
     if mode_prev != mode:
         print(f'  Mode changed!')
         print(f"      row = {cfg['models_state']['timestep']}")
