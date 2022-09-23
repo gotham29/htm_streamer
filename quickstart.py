@@ -23,6 +23,8 @@ if __name__ == '__main__':
 
     # Validate & update features
     cfg_features = {k: v for k, v in config['features'].items() if k in features}
+    assert len(cfg_features) > 0, f"features don't match, check config.yaml\n  " \
+                                  f"found: {features} \n  config.yaml: {config['features'].keys().to_list}"
     features_invalid = [f for f in cfg_features if f not in data]
     assert len(features_invalid) == 0, f"features not found --> {sorted(features_invalid)}"
     config['features'] = cfg_features
