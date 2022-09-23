@@ -12,17 +12,14 @@ if __name__ == '__main__':
     config = load_config(config_path)
     data = pd.read_csv(data_path)
 
-    my_features = data.columns[1:4].to_list()
     timestep_tostop_sampling = 40
     timestep_tostop_learning = 4000
     timestep_tostop_running = 5000
-
     model_for_each_feature = True
-    features_invalid = [f for f in my_features if f not in data]
+    features_invalid = [f for f in config['features'] if f not in data]
 
     assert len(features_invalid) == 0, f"features not found --> {sorted(features_invalid)}"
 
-    config['features'] = my_features
     config['timesteps_stop']['sampling'] = timestep_tostop_sampling
     config['timesteps_stop']['learning'] = timestep_tostop_learning
     config['timesteps_stop']['running'] = timestep_tostop_running

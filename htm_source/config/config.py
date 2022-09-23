@@ -216,6 +216,7 @@ def get_mode(cfg: dict) -> str:
     #     mode = 'running'
 
     print(f"      mode prev = {mode_prev}")
+    print(f"      features_minmax in config? = {features_minmax in cfg}")
     print(f"      mode = {mode}")
 
     if mode_prev != mode:
