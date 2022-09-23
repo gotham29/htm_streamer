@@ -121,7 +121,7 @@ def validate_params_required(cfg: dict,
     """
     # Assert all expected params are present & correct type
     params_types = {
-        'features': list,
+        'features': dict,
         'models_state': dict,
         'timesteps_stop': dict,
     }
