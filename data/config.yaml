@@ -16,7 +16,7 @@ features:
     min: 195
     type: float
 models_state:
-  model_for_each_feature: false
+  model_for_each_feature: true
   use_sp: false
 timesteps_stop:
   learning: 100
