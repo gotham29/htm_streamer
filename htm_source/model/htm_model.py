@@ -9,16 +9,12 @@ from htm.encoders.rdse import RDSE_Parameters, RDSE
 
 class HTMmodel:
     def __init__(self,
-                 # features_model: list,
                  features_enc_params: dict,
                  models_params: dict,
-                 # timestamp_config: dict,
                  predictor_config: dict,
                  use_sp: bool):
-        # self.features_model = features_model
         self.features_enc_params = features_enc_params
         self.models_params = models_params
-        # self.timestamp_config = timestamp_config
         self.predictor_resolution = predictor_config['resolution']
         self.predictor_steps_ahead = predictor_config['steps_ahead']
         self.use_sp = use_sp
