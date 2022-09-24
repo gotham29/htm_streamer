@@ -91,7 +91,8 @@ def validate_config(cfg: dict,
 
     else:  # Mode == 'running'
         timestep_current, timestep_init = cfg['models_state']['timestep'], cfg['models_state']['timestep_initialized']
-        assert timestep_current > timestep_init, f"current timestep ({timestep_current}) <= timestep_initialized ({timestep_init})\n This shouldn't be when in 'running' mode"
+        assert timestep_current > timestep_init, f"current timestep ({timestep_current}) <= timestep_initialized " \
+                                                 f"({timestep_init})\n This shouldn't be when in 'running' mode"
 
     return cfg
 
@@ -125,17 +126,17 @@ def validate_params_required(cfg: dict,
         'models_state': dict,
         'timesteps_stop': dict,
     }
-    for param, type in params_types.items():
+    for param, p_type in params_types.items():
         param_v = cfg[param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert timesteps_stop valid
     timesteps_stop_params_types = {
         k: int for k, v in cfg['timesteps_stop'].items()
     }
-    for param, type in timesteps_stop_params_types.items():
+    for param, p_type in timesteps_stop_params_types.items():
         param_v = cfg['timesteps_stop'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert models_state valid
     modelsstate_params_types = {
@@ -146,9 +147,9 @@ def validate_params_required(cfg: dict,
         'track_iter': int,
         'model_for_each_feature': bool,
     }
-    for param, type in modelsstate_params_types.items():
+    for param, p_type in modelsstate_params_types.items():
         param_v = cfg['models_state'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert dirs exist
     for d in [models_dir, outputs_dir]:
@@ -200,9 +201,9 @@ def validate_params_init(cfg: dict) -> dict:
         'sparsity': float,
         'timestamp': dict,
     }
-    for param, type in enc_params_types.items():
+    for param, p_type in enc_params_types.items():
         param_v = cfg['models_encoders'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert minmax_percentiles valid
     min_perc = cfg['models_encoders']['minmax_percentiles'][0]
@@ -229,13 +230,14 @@ def validate_params_init(cfg: dict) -> dict:
         'timeOfDay': list,
         'weekend': int,
     }
-    for param, type in timestamp_params_types.items():
+    for param, p_type in timestamp_params_types.items():
         param_v = cfg['models_encoders']['timestamp'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid timestamp feature -- IF enabled
     if cfg['models_encoders']['timestamp']['enable']:
         time_feat = cfg['models_encoders']['timestamp']['feature']
+        # what is `data`? its never defined!
         assert time_feat in data, f"time feature missing from data --> {time_feat}\n  Found --> {data.keys()}"
 
     # Assert valid timeOfDay
@@ -250,9 +252,9 @@ def validate_params_init(cfg: dict) -> dict:
         'resolution': int,
         'steps_ahead': list,
     }
-    for param, type in predictor_params_types.items():
+    for param, p_type in predictor_params_types.items():
         param_v = cfg['models_predictor'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid models_params
     model_params_types = {
@@ -261,25 +263,25 @@ def validate_params_init(cfg: dict) -> dict:
         'sp': dict,
         'tm': dict,
     }
-    for param, type in model_params_types.items():
+    for param, p_type in model_params_types.items():
         param_v = cfg['models_params'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid anomaly_params_types
     anomaly_params_types = {
         'period': int,
     }
-    for param, type in anomaly_params_types.items():
+    for param, p_type in anomaly_params_types.items():
         param_v = cfg['models_params']['anomaly'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid predictor_params_types
     predictor_params_types = {
         'sdrc_alpha': float,
     }
-    for param, type in predictor_params_types.items():
+    for param, p_type in predictor_params_types.items():
         param_v = cfg['models_params']['predictor'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid sp_params
     sp_params = {
@@ -291,9 +293,9 @@ def validate_params_init(cfg: dict) -> dict:
         'synPermConnected': float,
         'synPermInactiveDec': float,
     }
-    for param, type in sp_params.items():
+    for param, p_type in sp_params.items():
         param_v = cfg['models_params']['sp'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid tm_params
     tm_params = {
@@ -307,9 +309,9 @@ def validate_params_init(cfg: dict) -> dict:
         'permanenceDec': float,
         'permanenceInc': float,
     }
-    for param, type in tm_params.items():
+    for param, p_type in tm_params.items():
         param_v = cfg['models_params']['tm'][param]
-        assert isinstance(param_v, type), f"Param: {param} should be type {type}\n  Found --> {type(param_v)}"
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
     print(f'  Config validated!')
 
     return cfg

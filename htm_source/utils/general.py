@@ -35,3 +35,7 @@ def get_args():
                         help='dir to store outputs')
 
     return parser.parse_args()
+
+
+def isnumeric(val):
+    return isinstance(val, (int, float))

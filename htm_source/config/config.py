@@ -1,5 +1,7 @@
 import numpy as np
 
+from htm_source.utils.general import isnumeric
+
 
 def reset_config(cfg: dict) -> dict:
     """
@@ -22,16 +24,11 @@ def reset_config(cfg: dict) -> dict:
     return cfg
 
 
-def isnumeric(val):
-    isnum = True if (type(val) == int or type(val) == float) else False
-    return isnum
-
-
 def get_params_rdse(f: str,
-                       f_dict: dict,
-                       models_encoders: dict,
-                       f_weight: float,
-                       f_sample: list) -> dict:
+                    f_dict: dict,
+                    models_encoders: dict,
+                    f_weight: float,
+                    f_sample: list) -> dict:
     """
     Purpose:
         Get enc params for 'f'
@@ -76,8 +73,8 @@ def get_params_rdse(f: str,
 def build_enc_params(cfg: dict,
                      models_encoders: dict,
                      features_weights: dict,
-                     types_numeric: list = ['int', 'float'],
-                     types_time: list = ['timestamp', 'datetime']
+                     types_numeric: list = ('int', 'float'),
+                     types_time: list = ('timestamp', 'datetime')
                      ) -> (dict, dict):
     """
     Purpose:
@@ -113,15 +110,15 @@ def build_enc_params(cfg: dict,
         # get enc - datetime
         elif f_dict['type'] in types_time:
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
-        # TODO: add category encoding
         # get enc - categoric
-        # elif f_dict['type'] == 'category':
-        #     features_enc_params[f] = get_params_category(f_dict)
+        elif f_dict['type'] == 'category':
+            raise NotImplementedError("Category encoder not implemented yet")
+            # features_enc_params[f] = get_params_category(f_dict)
         else:
-            pass
+            raise TypeError(f"Unsupported type: {f_dict['type']}")
+
         features_enc_params[f]['type'] = f_dict['type']
     return cfg, features_enc_params
-
 
 
 def get_rdse_resolution(feature: str,
@@ -149,7 +146,7 @@ def get_rdse_resolution(feature: str,
     minmax_range = float(minmax[1]) - float(minmax[0])
     resolution = minmax_range / float(n_buckets)
     if resolution == 0:
-        print(f"Dropping feature, due to no variation in sample\n  --> {feature}")
+        print(f"Dropping feature, due to no variation in sample\n  --> {feature}")  # does this happen actually?
     return resolution
 
 
