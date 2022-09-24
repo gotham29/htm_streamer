@@ -68,25 +68,25 @@ def run_stream(config_path: str,
         timestep_limit = 1000000
 
     print('Running main loop...')
-    for _, row in data[:timestep_limit].iterrows():
+    for idx, row in data[:timestep_limit].iterrows():
         # skip rows where any cfg['features'] aren't numeric
         features_missing = check_for_missing_features(row=row,
                                                       features_expected=cfg['features'])
         if len(features_missing) > 0:
-            print(f'\n  skipping row: {_}')
+            print(f'\n  skipping row: {idx}')
             print(f'    features_missing = {features_missing}')
             print(f'    data = {dict(row)}\n')
             continue
         # write data
-        data_stream_path = os.path.join(data_stream_dir, f'inputrow={_}.json')
+        data_stream_path = os.path.join(data_stream_dir, f'inputrow={idx}.json')
         save_json(dict(row), data_stream_path)
         # call htm module
         stream_to_htm(config_path, data_stream_path, models_dir, outputs_dir)
         # delete data
         os.remove(data_stream_path)
         # print progress
-        if _ > 1000 and _ % 1000 == 0:
-            print(f'  completed row: {_}')
+        if idx > 1 and idx % 1000 == 0:
+            print(f'  completed row: {idx}')
     # 5. Reset cfg
     cfg = reset_config(cfg)
     cfg = save_config(cfg, config_path)
@@ -94,4 +94,4 @@ def run_stream(config_path: str,
 
 if __name__ == '__main__':
     args = get_args()
-    run_stream(args.config_path, args.data_path, args.models_dir, args.outputs_dir)
+    run_stream(args.config_path, args.data_path, args.models_dir, args.outputs_dir)  # this is missing a param

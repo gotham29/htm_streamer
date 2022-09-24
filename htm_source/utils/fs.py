@@ -19,9 +19,8 @@ def load_json(path_json: str) -> dict:
             type: dict
             meaning: json data loaded
     """
-    f = open(path_json, "r")
-    data = json.loads(f.read())
-    f.close()
+    with open(path_json, "r") as f:
+        data = json.loads(f.read())
     return data
 
 

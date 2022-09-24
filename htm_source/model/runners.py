@@ -9,7 +9,7 @@ def init_models(use_sp: bool,
                 predictor_config: dict,
                 features_enc_params: dict,
                 model_for_each_feature: bool,
-                types_time: list = ['timestamp', 'datetime'],
+                types_time: list = ('timestamp', 'datetime'),
                 ) -> dict:
     """
     Purpose:
@@ -270,6 +270,7 @@ def track_tm(cfg: dict, features_models: dict) -> dict:
                 # perm --> potential
                 total_synapses_potential += 1
                 if perm < perm_connected:
+                    # TODO: try\except blocks are expensive - is it really necessary?
                     try:
                         cells_potential[cell].append(presyn)
                     except:

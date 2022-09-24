@@ -9,16 +9,12 @@ from htm.encoders.rdse import RDSE_Parameters, RDSE
 
 class HTMmodel:
     def __init__(self,
-                 # features_model: list,
                  features_enc_params: dict,
                  models_params: dict,
-                 # timestamp_config: dict,
                  predictor_config: dict,
                  use_sp: bool):
-        # self.features_model = features_model
         self.features_enc_params = features_enc_params
         self.models_params = models_params
-        # self.timestamp_config = timestamp_config
         self.predictor_resolution = predictor_config['resolution']
         self.predictor_steps_ahead = predictor_config['steps_ahead']
         self.use_sp = use_sp
@@ -69,7 +65,6 @@ class HTMmodel:
         #     self.features_encs[self.timestamp_config['feature']] = date_encoder
         #     self.encoding_width += date_encoder.size
 
-
     def get_encoder(self, enc_params):
         """
         Purpose:
@@ -91,11 +86,10 @@ class HTMmodel:
         elif enc_params['type'] in self.types_time:
             enc = DateEncoder(timeOfDay=enc_params["timeOfDay"],
                               weekend=enc_params["weekend"])
-        # TODO: add category encoder
         else:
-            pass
-        return enc
+            raise NotImplementedError("Category encoder not implemented yet")
 
+        return enc
 
     def init_sp(self):
         """
@@ -239,8 +233,8 @@ class HTMmodel:
         encs_bits = [SDR(0)]
         # Get encodings for all features
         for f, enc in self.features_encs.items():
-            ## Convert timestamp feature to datetime
-            if self.features_enc_params[f]['type'] in self.types_time:  #f == self.timestamp_config['feature']:
+            # Convert timestamp feature to datetime
+            if self.features_enc_params[f]['type'] in self.types_time:  # f == self.timestamp_config['feature']:
                 features_data[f] = pd.to_datetime(features_data[f])
             f_bits = enc.encode(features_data[f])
             encs_bits.append(f_bits)
@@ -370,8 +364,8 @@ class HTMmodel:
         anomaly_score = self.tm.anomaly
         anomaly_likelihood = self.anomaly_history.compute(anomaly_score)
         # Ensure pred_count > 0 when anomaly_score < 1.0
-        if anomaly_score < 1.0:
-            assert pred_count > 0, f"0 preds with anomaly={anomaly_score}"
+        if anomaly_score < 1.0 and pred_count == 0:
+            raise RuntimeError(f"0 preds with anomaly={anomaly_score}")
 
         # PREDICTOR
         # Predict raw feature value -- IF enabled AND model is 1 feature (excluding timestamp)
