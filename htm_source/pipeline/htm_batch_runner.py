@@ -95,7 +95,7 @@ def run_batch(cfg: Union[dict, None],
             for f, f_dict in cfg['features'].items():
                 if f_dict['type'] == 'timestamp':
                     continue
-                aScore, aLikl, pCount, sPreds = features_models[feat].run(features_data, timestep, learn,
+                aScore, aLikl, pCount, sPreds = features_models[f].run(features_data, timestep, learn,
                                                                           cfg['models_predictor'])
                 features_outputs[f]['anomaly_score'].append(aScore)
                 features_outputs[f]['anomaly_likelihood'].append(aLikl)
