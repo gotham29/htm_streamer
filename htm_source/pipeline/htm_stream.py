@@ -1,5 +1,6 @@
 import os
 import sys
+import pandas as pd
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
