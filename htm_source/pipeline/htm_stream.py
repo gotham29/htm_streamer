@@ -90,7 +90,7 @@ def stream_to_htm(config_path: str,
                                                       iter_print=100,
                                                       config_path=None,
                                                       features_models=features_models)
-        path_output = os.path.join(outputs_dir, f'sample_data({features_outputs.keys().to_list}).csv')
+        path_output = os.path.join(outputs_dir, f'sample_data({sorted(features_outputs.keys())}.csv')
         df_out = pd.DataFrame(features_outputs)
         df_out.to_csv(path_output)
         save_models(dir_models=models_dir,
