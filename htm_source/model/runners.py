@@ -9,7 +9,6 @@ def init_models(use_sp: bool,
                 predictor_config: dict,
                 features_enc_params: dict,
                 model_for_each_feature: bool,
-                types_time: list = ('timestamp', 'datetime'),
                 ) -> dict:
     """
     Purpose:
@@ -38,7 +37,7 @@ def init_models(use_sp: bool,
     features_models = {}
 
     if model_for_each_feature:  # multiple models, one per feature
-        params_time = {k: v for k, v in features_enc_params.items() if v['type'] in types_time}
+        params_time = {k: v for k, v in features_enc_params.items() if v['type'] == 'timestamp'}
         features_enc_params_numeric = {k: v for k, v in features_enc_params.items() if k not in params_time}
         for f in features_enc_params_numeric:
             params_f = {k: v for k, v in features_enc_params.items() if k == f}

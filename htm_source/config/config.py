@@ -73,8 +73,6 @@ def get_params_rdse(f: str,
 def build_enc_params(cfg: dict,
                      models_encoders: dict,
                      features_weights: dict,
-                     types_numeric: list = ('int', 'float'),
-                     types_time: list = ('timestamp', 'datetime')
                      ) -> (dict, dict):
     """
     Purpose:
@@ -101,14 +99,14 @@ def build_enc_params(cfg: dict,
     features_enc_params = {}
     for f, f_dict in cfg['features'].items():
         # get enc - numeric
-        if f_dict['type'] in types_numeric:
+        if f_dict['type'] == 'numeric':
             features_enc_params[f] = get_params_rdse(f,
                                                      f_dict,
                                                      models_encoders,
                                                      features_weights[f],
                                                      cfg['features_samples'][f])
         # get enc - datetime
-        elif f_dict['type'] in types_time:
+        elif f_dict['type'] == 'timestamp':
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
         # get enc - categoric
         elif f_dict['type'] == 'category':
@@ -116,7 +114,6 @@ def build_enc_params(cfg: dict,
             # features_enc_params[f] = get_params_category(f_dict)
         else:
             raise TypeError(f"Unsupported type: {f_dict['type']}")
-
         features_enc_params[f]['type'] = f_dict['type']
     return cfg, features_enc_params
 

@@ -9,6 +9,7 @@ from htm_source.utils.fs import load_json, save_models, load_models, save_output
 from htm_source.config import build_enc_params, extend_features_samples
 from htm_source.config.validation import validate_config
 from htm_source.model.runners import init_models, run_models, track_tm
+from htm_source.pipeline.htm_batch_runner import run_batch
 
 
 def stream_to_htm(config_path: str,
@@ -70,7 +71,8 @@ def stream_to_htm(config_path: str,
     # 5. Mode == 'initializing':
     #     a. Build —> Params
     #     b. Init —> Models
-    #     c. Store —> Models
+    #     c. Train —> Models (on sample data)
+    #     d. Store —> Models
     elif cfg['models_state']['mode'] == 'initializing':
         cfg, features_enc_params = build_enc_params(cfg=cfg,
                                                     models_encoders=cfg['models_encoders'],
@@ -80,7 +82,16 @@ def stream_to_htm(config_path: str,
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
-
+        df_sample = pd.DataFrame(cfg['features_samples'])
+        features_models, features_outputs = run_batch(cfg=cfg,
+                                                      data=df_sample,
+                                                      learn=True,
+                                                      iter_print=100,
+                                                      config_path=None,
+                                                      features_models=features_models)
+        path_output = os.path.join(outputs_dir, f'sample_data(n={df_sample.shape[0]}).csv')
+        df_out = pd.DataFrame(features_outputs)
+        df_out.to_csv(path_output)
         save_models(dir_models=models_dir,
                     features_models=features_models)
         cfg['models_state']['timestep_initialized'] = cfg['models_state']['timestep']

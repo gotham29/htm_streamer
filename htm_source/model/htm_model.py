@@ -24,8 +24,6 @@ class HTMmodel:
         self.anomaly_history = None
         self.encoding_width = 0
         self.features_encs = {}
-        self.types_time = ['timestamp', 'datetime']
-        self.types_numeric = ['int', 'float']
 
     def init_encs(self):
         """
@@ -50,20 +48,6 @@ class HTMmodel:
             enc = self.get_encoder(enc_params)
             self.encoding_width += enc.size
             self.features_encs[f] = enc
-        # for f in self.features_model:
-        #     scalar_encoder_params = RDSE_Parameters()
-        #     scalar_encoder_params.size = self.features_enc_params[f]['size']
-        #     scalar_encoder_params.sparsity = self.features_enc_params[f]["sparsity"]
-        #     scalar_encoder_params.resolution = self.features_enc_params[f]['resolution']
-        #     scalar_encoder = RDSE(scalar_encoder_params)
-        #     self.encoding_width += scalar_encoder.size
-        #     self.features_encs[f] = scalar_encoder
-        # # Add timestamp encoder -- if enabled
-        # if self.timestamp_config['enable']:
-        #     date_encoder = DateEncoder(timeOfDay=self.timestamp_config["timeOfDay"],
-        #                                weekend=self.timestamp_config["weekend"])
-        #     self.features_encs[self.timestamp_config['feature']] = date_encoder
-        #     self.encoding_width += date_encoder.size
 
     def get_encoder(self, enc_params):
         """
@@ -77,13 +61,13 @@ class HTMmodel:
             enc:
                 type: enc object (RDSE or DateEncoder)
         """
-        if enc_params['type'] in self.types_numeric:
+        if enc_params['type'] == 'numeric':
             rdse_params = RDSE_Parameters()
             rdse_params.size = enc_params['size']
             rdse_params.sparsity = enc_params["sparsity"]
             rdse_params.resolution = enc_params['resolution']
             enc = RDSE(rdse_params)
-        elif enc_params['type'] in self.types_time:
+        elif enc_params['type'] in 'timestamp':
             enc = DateEncoder(timeOfDay=enc_params["timeOfDay"],
                               weekend=enc_params["weekend"])
         else:
@@ -234,7 +218,7 @@ class HTMmodel:
         # Get encodings for all features
         for f, enc in self.features_encs.items():
             # Convert timestamp feature to datetime
-            if self.features_enc_params[f]['type'] in self.types_time:  # f == self.timestamp_config['feature']:
+            if self.features_enc_params[f]['type'] == 'timestamp':
                 features_data[f] = pd.to_datetime(features_data[f])
             f_bits = enc.encode(features_data[f])
             encs_bits.append(f_bits)
@@ -371,7 +355,7 @@ class HTMmodel:
         # Predict raw feature value -- IF enabled AND model is 1 feature (excluding timestamp)
         steps_predictions = {}
         features_nontimestamp = {k: v for k, v in self.features_enc_params.items()
-                                 if v['type'] not in self.types_time}
+                                 if v['type'] != 'timestamp'}
         if predictor_config['enable'] and len(features_nontimestamp) == 1:
             feature = list(features_nontimestamp.keys())[0]
             steps_predictions = self.get_preds(timestep=timestep,
