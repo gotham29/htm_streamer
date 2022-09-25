@@ -90,9 +90,9 @@ def stream_to_htm(config_path: str,
                                                       iter_print=100,
                                                       config_path=None,
                                                       features_models=features_models)
-        path_output = os.path.join(outputs_dir, f'sample_data({sorted(features_outputs.keys())}.csv')
-        df_out = pd.DataFrame(features_outputs)
-        df_out.to_csv(path_output)
+        for f, outs in features_outputs.items():
+            path_out = os.path.join(outputs_dir, f"sample--{f}.csv")
+            pd.DataFrame(outs).to_csv(path_out)
         save_models(dir_models=models_dir,
                     features_models=features_models)
         cfg['models_state']['timestep_initialized'] = cfg['models_state']['timestep']
