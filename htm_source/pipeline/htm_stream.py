@@ -83,9 +83,8 @@ def stream_to_htm(config_path: str,
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
-        df_sample = pd.DataFrame(cfg['features_samples'])
         features_models, features_outputs = run_batch(cfg=cfg,
-                                                      data=df_sample,
+                                                      data=pd.DataFrame(cfg['features_samples']),
                                                       learn=True,
                                                       iter_print=100,
                                                       config_path=None,
