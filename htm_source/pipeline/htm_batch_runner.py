@@ -90,17 +90,19 @@ def run_batch(cfg: Union[dict, None],
     # 5. Run --> 'data' through 'features_models'
     print('Running main loop...')
     for timestep, row in data[:timestep_limit].iterrows():
-        features_data = dict(row)
+        features_data = row
+
         # multi-models case
         if cfg['models_state']['model_for_each_feature']:
             for f, f_dict in cfg['features'].items():
                 if f_dict['type'] == 'timestamp':
                     continue  # the rest of the code will never run!
-                    aScore, aLikl, pCount, sPreds = features_models[feat].run(features_data, timestep, learn,
-                                                                              cfg['models_predictor'])
-                    features_outputs[f]['anomaly_score'].append(aScore)
-                    features_outputs[f]['anomaly_likelihood'].append(aLikl)
-                    features_outputs[f]['pred_count'].append(pCount)
+
+                aScore, aLikl, pCount, sPreds = features_models[f].run(features_data, timestep, learn,
+                                                                       cfg['models_predictor'])
+                features_outputs[f]['anomaly_score'].append(aScore)
+                features_outputs[f]['anomaly_likelihood'].append(aLikl)
+                features_outputs[f]['pred_count'].append(pCount)
         else:  # single-models case
             aScore, aLikl, pCount, sPreds = features_models[multi_feat].run(features_data, timestep, learn,
                                                                             cfg['models_predictor'])

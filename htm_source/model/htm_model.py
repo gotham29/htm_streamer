@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from datetime import datetime as dt
 from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
 from htm.bindings.algorithms import SpatialPooler, TemporalMemory, Predictor
 from htm.bindings.sdr import SDR
@@ -12,7 +13,9 @@ class HTMmodel:
                  features_enc_params: dict,
                  models_params: dict,
                  predictor_config: dict,
-                 use_sp: bool):
+                 use_sp: bool,
+                 return_pred_count: bool = False):
+
         self.features_enc_params = features_enc_params
         self.models_params = models_params
         self.predictor_resolution = predictor_config['resolution']
@@ -20,12 +23,21 @@ class HTMmodel:
         self.use_sp = use_sp
         self.sp = None
         self.tm = None
-        self.predictor = None
-        self.anomaly_history = None
+        self.predictor = Predictor(steps=self.predictor_steps_ahead,
+                                   alpha=self.models_params["predictor"]['sdrc_alpha'])
+        self.anomaly_history = AnomalyLikelihood(self.models_params["anomaly"]["period"])
+
         self.encoding_width = 0
         self.features_encs = {}
-        self.types_time = ['timestamp', 'datetime']
-        self.types_numeric = ['int', 'float']
+
+        # TODO: move to consts
+        self.types_time = ('timestamp', 'datetime')
+        self.types_numeric = ('int', 'float')
+
+        self.return_pred_count = return_pred_count
+        self.init_encs()
+        self.init_sp()
+        self.init_tm()
 
     def init_encs(self):
         """
@@ -50,20 +62,6 @@ class HTMmodel:
             enc = self.get_encoder(enc_params)
             self.encoding_width += enc.size
             self.features_encs[f] = enc
-        # for f in self.features_model:
-        #     scalar_encoder_params = RDSE_Parameters()
-        #     scalar_encoder_params.size = self.features_enc_params[f]['size']
-        #     scalar_encoder_params.sparsity = self.features_enc_params[f]["sparsity"]
-        #     scalar_encoder_params.resolution = self.features_enc_params[f]['resolution']
-        #     scalar_encoder = RDSE(scalar_encoder_params)
-        #     self.encoding_width += scalar_encoder.size
-        #     self.features_encs[f] = scalar_encoder
-        # # Add timestamp encoder -- if enabled
-        # if self.timestamp_config['enable']:
-        #     date_encoder = DateEncoder(timeOfDay=self.timestamp_config["timeOfDay"],
-        #                                weekend=self.timestamp_config["weekend"])
-        #     self.features_encs[self.timestamp_config['feature']] = date_encoder
-        #     self.encoding_width += date_encoder.size
 
     def get_encoder(self, enc_params):
         """
@@ -87,7 +85,7 @@ class HTMmodel:
             enc = DateEncoder(timeOfDay=enc_params["timeOfDay"],
                               weekend=enc_params["weekend"])
         else:
-            raise NotImplementedError("Category encoder not implemented yet")
+            raise NotImplementedError(f"Encoder not implemented for '{enc_params['type']}'")
 
         return enc
 
@@ -107,21 +105,20 @@ class HTMmodel:
                 type: htm.core.SpatialPooler
                 meaning: HTM native alg that selects activeColumns for input to TM
         """
-        sp_params = self.models_params["sp"]
-        self.sp = SpatialPooler(
-            inputDimensions=(self.encoding_width,),
-            columnDimensions=(sp_params["columnCount"],),
-            potentialPct=sp_params["potentialPct"],
-            potentialRadius=self.encoding_width,
-            globalInhibition=True,
-            localAreaDensity=sp_params["localAreaDensity"],
-            synPermInactiveDec=sp_params["synPermInactiveDec"],
-            synPermActiveInc=sp_params["synPermActiveInc"],
-            synPermConnected=sp_params["synPermConnected"],
-            boostStrength=sp_params["boostStrength"],
-            wrapAround=True
-        )
-        # sp_info = Metrics( sp.getColumnDimensions(), 999999999 )
+        if self.use_sp:
+            sp_params = self.models_params["sp"]
+            self.sp = SpatialPooler(
+                inputDimensions=(self.encoding_width,),
+                columnDimensions=(sp_params["columnCount"],),
+                potentialPct=sp_params["potentialPct"],
+                potentialRadius=self.encoding_width,
+                globalInhibition=True,
+                localAreaDensity=sp_params["localAreaDensity"],
+                synPermInactiveDec=sp_params["synPermInactiveDec"],
+                synPermActiveInc=sp_params["synPermActiveInc"],
+                synPermConnected=sp_params["synPermConnected"],
+                boostStrength=sp_params["boostStrength"],
+                wrapAround=True)
 
     def init_tm(self):
         """
@@ -138,10 +135,10 @@ class HTMmodel:
         """
         sp_params = self.models_params["sp"]
         tm_params = self.models_params["tm"]
-        columnDimensions = sp_params["columnCount"] if self.use_sp else self.encoding_width
+        column_dimensions = sp_params["columnCount"] if self.use_sp else self.encoding_width
 
         self.tm = TemporalMemory(
-            columnDimensions=(columnDimensions,),
+            columnDimensions=(column_dimensions,),
             cellsPerColumn=tm_params["cellsPerColumn"],
             activationThreshold=tm_params["activationThreshold"],
             initialPermanence=tm_params["initialPerm"],
@@ -152,66 +149,12 @@ class HTMmodel:
             permanenceDecrement=tm_params["permanenceDec"],
             predictedSegmentDecrement=0.0,
             maxSegmentsPerCell=tm_params["maxSegmentsPerCell"],
-            maxSynapsesPerSegment=tm_params["maxSynapsesPerSegment"]
-        )
-        # tm_info = Metrics( [tm.numberOfCells()], 999999999 )
-
-    def init_anomalyhistory(self):
-        """
-        Purpose:
-            Init HTMmodel.anomaly_history
-        Inputs:
-            HTMmodel.models_params
-                type: dict
-                meaning: HTM hyperparams (user-provided in config.yaml)
-        Outputs:
-            HTMmodel.anomaly_history
-                type: htm.core.AnomalyLikelihood
-                meaning: HTM native alg that yields normalized anomaly metric (likelihood) from window of anomaly scores
-        """
-        self.anomaly_history = AnomalyLikelihood(self.models_params["anomaly"]["period"])
-
-    def init_predictor(self):
-        """
-        Purpose:
-            Init HTMmodel.predictor
-        Inputs:
-            HTMmodel.models_params
-                type: dict
-                meaning: HTM hyperparams (user-provided in config.yaml)
-            HTMmodel.predictor_steps_ahead
-                type: list
-                meaning: values for how many timestep(s) ahead to predict
-        Outputs:
-            HTMmodel.predictor
-                type: htm.core.Predictor
-                meaning: HTM native alg that yields predicted values for each step ahead -- in raw feature values
-        """
-        self.predictor = Predictor(steps=self.predictor_steps_ahead,
-                                   alpha=self.models_params["predictor"]['sdrc_alpha'])
-
-    def init_model(self):
-        """
-        Purpose:
-            Init entire HTMmodel -- element by element
-        Inputs:
-            all data specified as input to consituent 'init_xx()' functions
-        Outputs:
-            HTMmodel
-                type: HTMmodel
-                meaning: Object that runs entire HTM process (enc+sp+tm+anomlikl+predictor) given raw data
-        """
-        self.init_encs()
-        if self.use_sp:
-            self.init_sp()
-        self.init_tm()
-        self.init_anomalyhistory()
-        self.init_predictor()
+            maxSynapsesPerSegment=tm_params["maxSynapsesPerSegment"])
 
     def get_encoding(self, features_data: dict) -> SDR:
         """
         Purpose:
-            Build total conccated encoding from all features' encoders -- for input to SP
+            Build total concatenated encoding from all features' encoders -- for input to SP
         Inputs:
             features_data
                 type: dict
@@ -230,12 +173,22 @@ class HTMmodel:
                 type: nup.core.SDR
                 meaning: total concatenated encoding -- input to SP
         """
+        # TODO: rework all these dictionary lookups
         encs_bits = [SDR(0)]
         # Get encodings for all features
         for f, enc in self.features_encs.items():
             # Convert timestamp feature to datetime
-            if self.features_enc_params[f]['type'] in self.types_time:  # f == self.timestamp_config['feature']:
-                features_data[f] = pd.to_datetime(features_data[f])
+            if self.features_enc_params[f]['type'] in self.types_time:
+                dt_format = self.features_enc_params[f].get('format', None)
+                date_time = features_data[f]
+                if not isinstance(date_time, dt):
+                    if dt_format is not None:  # faster conversion if format is given
+                        date_time = dt.strptime(date_time, dt_format)
+                    else:
+                        date_time = pd.to_datetime(date_time)
+
+                    features_data[f] = date_time
+
             f_bits = enc.encode(features_data[f])
             encs_bits.append(f_bits)
         # Combine all features encodings into one for Spatial Pooling
@@ -295,17 +248,19 @@ class HTMmodel:
                 type: dict
                 meaning: predicted feature values for each of 'n_steps_ahead'
         """
-        pdf = self.predictor.infer(self.tm.getActiveCells())
+        active_cells = self.tm.getActiveCells()
+        pdf = self.predictor.infer(active_cells)
         steps_predictions = {}
         # Get pred for each #/of steps ahead - IF available
         for step_ahead in self.predictor_steps_ahead:
             if pdf[step_ahead]:
+                # TODO: why str?
                 steps_predictions[step_ahead] = str(np.argmax(pdf[step_ahead]) * self.predictor_resolution)
             else:
                 steps_predictions[step_ahead] = np.nan
+
         # Train the predictor based on what just happened.
-        self.predictor.learn(timestep, self.tm.getActiveCells(),
-                             int(f_data / self.predictor_resolution))
+        self.predictor.learn(timestep, active_cells, f_data // self.predictor_resolution)
         return steps_predictions
 
     def run(self,
@@ -358,11 +313,13 @@ class HTMmodel:
 
         # TEMPORAL MEMORY
         # Get prediction density
-        pred_count = self.get_predcount()
+        pred_count = self.get_predcount() if self.return_pred_count else None
         self.tm.compute(active_columns, learn=learn)
+
         # Get anomaly metrics
         anomaly_score = self.tm.anomaly
         anomaly_likelihood = self.anomaly_history.compute(anomaly_score)
+
         # Ensure pred_count > 0 when anomaly_score < 1.0
         if anomaly_score < 1.0 and pred_count == 0:
             raise RuntimeError(f"0 preds with anomaly={anomaly_score}")
@@ -370,6 +327,8 @@ class HTMmodel:
         # PREDICTOR
         # Predict raw feature value -- IF enabled AND model is 1 feature (excluding timestamp)
         steps_predictions = {}
+
+        # TODO: refactor
         features_nontimestamp = {k: v for k, v in self.features_enc_params.items()
                                  if v['type'] not in self.types_time}
         if predictor_config['enable'] and len(features_nontimestamp) == 1:
