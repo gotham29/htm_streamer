@@ -2,15 +2,15 @@ import concurrent.futures
 import multiprocessing as mp
 from collections import defaultdict
 from htm_source.model import HTMmodel
+from htm_source.data import Feature, separate_time_and_rest
+from htm_source.utils import frozendict
 
 
 def init_models(use_sp: bool,
                 models_params: dict,
                 predictor_config: dict,
                 features_enc_params: dict,
-                model_for_each_feature: bool,
-                types_time: list = ('timestamp', 'datetime'),
-                ) -> dict:
+                model_for_each_feature: bool) -> dict:
     """
     Purpose:
         Build HTMmodels for each feature (features --> user-provided in config.yaml)
@@ -35,25 +35,23 @@ def init_models(use_sp: bool,
             type: dict
             meaning: HTMmodel for each feature
     """
-    features_models = {}
-
+    features_models = dict()
+    features = {name: Feature(name, params) for name, params in features_enc_params.items()}
     if model_for_each_feature:  # multiple models, one per feature
-        params_time = {k: v for k, v in features_enc_params.items() if v['type'] in types_time}
-        features_enc_params_numeric = {k: v for k, v in features_enc_params.items() if k not in params_time}
-        for f in features_enc_params_numeric:
-            params_f = {k: v for k, v in features_enc_params.items() if k == f}
-            params_f = {**params_time, **params_f}
-            model = HTMmodel(use_sp=use_sp,
+        time_feature, non_time_features = separate_time_and_rest(features.values())
+        for feat in non_time_features:
+            single_feat = {time_feature: features[time_feature], feat: features[feat]}
+            model = HTMmodel(features=frozendict(single_feat),
+                             use_sp=use_sp,
                              models_params=models_params,
-                             predictor_config=predictor_config,
-                             features_enc_params=params_f)
-            features_models[f] = model
+                             predictor_config=predictor_config)
+            features_models[feat] = model
 
     else:  # one multi-feature model
-        model = HTMmodel(use_sp=use_sp,
+        model = HTMmodel(features=frozendict(features),
+                         use_sp=use_sp,
                          models_params=models_params,
-                         predictor_config=predictor_config,
-                         features_enc_params=features_enc_params)
+                         predictor_config=predictor_config)
         features_models[f'megamodel_features={len(features_enc_params)}'] = model
 
     print(f'  Models initialized...')

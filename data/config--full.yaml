@@ -60,20 +60,20 @@ models_params:
     sdrc_alpha: 0.1
   sp:
     boostStrength: 3.0
-    columnCount: 1638
+    columnCount: 2048
     localAreaDensity: 0.04395604395604396
     potentialPct: 0.85
-    synPermActiveInc: 0.04
+    synPermActiveInc: 0.003
     synPermConnected: 0.13999999999999999
-    synPermInactiveDec: 0.006
+    synPermInactiveDec: 0.0005
   tm:
     activationThreshold: 17
     cellsPerColumn: 13
     initialPerm: 0.21
     maxSegmentsPerCell: 128
-    maxSynapsesPerSegment: 64
+    maxSynapsesPerSegment: 32
     minThreshold: 10
-    newSynapseCount: 32
+    newSynapseCount: 20
     permanenceConnected: 0.3
     permanenceDec: 0.1
     permanenceInc: 0.1

@@ -21,9 +21,11 @@ features:
     - 1
     type: timestamp
     weekend: 21
+    format: '%m/%d/%y %H:%M'
 models_state:
   model_for_each_feature: true
   use_sp: false
+  return_pred_count: no
 timesteps_stop:
   learning: 100
   running: 110
