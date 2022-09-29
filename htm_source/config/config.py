@@ -17,7 +17,7 @@ def reset_config(cfg: dict) -> dict:
             meaning: reset config
     """
     keys_keep = ['features', 'models_state', 'timesteps_stop']
-    keys_keep_models_state = ['model_for_each_feature', 'use_sp']
+    keys_keep_models_state = ['model_for_each_feature', 'use_sp', 'return_pred_count']
     cfg = {k: v for k, v in cfg.items() if k in keys_keep}
     cfg['models_state'] = {k: v for k, v in cfg['models_state'].items()
                            if k in keys_keep_models_state}
@@ -75,7 +75,7 @@ def build_enc_params(cfg: dict,
                      features_weights: dict,
                      types_numeric: list = ('int', 'float'),
                      types_time: list = ('timestamp', 'datetime')
-                     ) -> (dict, dict):
+                     ) -> dict:
     """
     Purpose:
         Set encoder params fpr each feature (using ether found or sampled min/max)
@@ -117,7 +117,7 @@ def build_enc_params(cfg: dict,
         else:
             raise TypeError(f"Unsupported type: {f_dict['type']}\n  types_numeric={types_numeric}\n  types_time={types_time}")
         features_enc_params[f]['type'] = f_dict['type']
-    return cfg, features_enc_params
+    return features_enc_params
 
 
 def get_rdse_resolution(feature: str,
