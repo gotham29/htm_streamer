@@ -73,8 +73,8 @@ def get_params_rdse(f: str,
 def build_enc_params(cfg: dict,
                      models_encoders: dict,
                      features_weights: dict,
-                     # types_numeric: list = ('int', 'float'),
-                     # types_time: list = ('timestamp', 'datetime')
+                     types_numeric: list = ('int', 'float'),
+                     types_time: list = ('timestamp', 'datetime')
                      ) -> (dict, dict):
     """
     Purpose:
@@ -97,9 +97,6 @@ def build_enc_params(cfg: dict,
             type: dict
             meaning: set of encoder params for each feature ('size, sparsity', 'resolution')
     """
-
-    types_numeric = ['int', 'float']
-    types_time = ['timestamp', 'datetime']
 
     features_enc_params = {}
     for f, f_dict in cfg['features'].items():
