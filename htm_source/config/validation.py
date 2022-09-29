@@ -234,12 +234,6 @@ def validate_params_init(cfg: dict) -> dict:
         param_v = cfg['models_encoders']['timestamp'][param]
         assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
-    # Assert valid timestamp feature -- IF enabled
-    if cfg['models_encoders']['timestamp']['enable']:
-        time_feat = cfg['models_encoders']['timestamp']['feature']
-        # what is `data`? its never defined!
-        assert time_feat in data, f"time feature missing from data --> {time_feat}\n  Found --> {data.keys()}"
-
     # Assert valid timeOfDay
     ###
 

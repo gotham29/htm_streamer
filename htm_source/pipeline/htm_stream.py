@@ -71,6 +71,7 @@ def stream_to_htm(config_path: str,
     #     a. Build —> Params
     #     b. Init —> Models
     #     c. Store —> Models
+    #     d. Store —> Models
     elif cfg['models_state']['mode'] == 'initializing':
         cfg, features_enc_params = build_enc_params(cfg=cfg,
                                                     models_encoders=cfg['models_encoders'],
@@ -80,7 +81,15 @@ def stream_to_htm(config_path: str,
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
-
+        features_models, features_outputs = run_batch(cfg=cfg,
+                                                      data=pd.DataFrame(cfg['features_samples']),
+                                                      learn=True,
+                                                      iter_print=100,
+                                                      config_path=None,
+                                                      features_models=features_models)
+        for f, outs in features_outputs.items():
+            path_out = os.path.join(outputs_dir, f"sample--{f}.csv")
+            pd.DataFrame(outs).to_csv(path_out)
         save_models(dir_models=models_dir,
                     features_models=features_models)
         cfg['models_state']['timestep_initialized'] = cfg['models_state']['timestep']

@@ -76,6 +76,9 @@ def get_args():
     parser.add_argument('-d', '--data_path', required=True,
                         help='path to json data file')
 
+    parser.add_argument('-ds', '--data_stream_dir', required=False,
+                        help='dir to save stream data to')
+
     parser.add_argument('-m', '--models_dir', required=True,
                         help='dir to store models')
 
