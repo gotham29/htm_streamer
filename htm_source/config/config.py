@@ -73,8 +73,8 @@ def get_params_rdse(f: str,
 def build_enc_params(cfg: dict,
                      models_encoders: dict,
                      features_weights: dict,
-                     types_numeric: list = ('int', 'float'),
-                     types_time: list = ('timestamp', 'datetime')
+                     # types_numeric: list = ('int', 'float'),
+                     # types_time: list = ('timestamp', 'datetime')
                      ) -> (dict, dict):
     """
     Purpose:
@@ -98,6 +98,9 @@ def build_enc_params(cfg: dict,
             meaning: set of encoder params for each feature ('size, sparsity', 'resolution')
     """
 
+    types_numeric = ['int', 'float']
+    types_time = ['timestamp', 'datetime']
+
     features_enc_params = {}
     for f, f_dict in cfg['features'].items():
         # get enc - numeric
@@ -115,8 +118,7 @@ def build_enc_params(cfg: dict,
             raise NotImplementedError("Category encoder not implemented yet")
             # features_enc_params[f] = get_params_category(f_dict)
         else:
-            raise TypeError(f"Unsupported type: {f_dict['type']}")
-
+            raise TypeError(f"Unsupported type: {f_dict['type']}\n  types_numeric={}\n  types_time={types_time}")
         features_enc_params[f]['type'] = f_dict['type']
     return cfg, features_enc_params
 
