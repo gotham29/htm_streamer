@@ -89,8 +89,6 @@ def run_stream(config_path: str,
             print(f'  completed row: {idx}')
     # 5. Reset cfg
     cfg = reset_config(cfg)
-    print("\nCONFIG['models_state']")
-    print(f"  --> {config['models_state']}")
     cfg = save_config(cfg, config_path)
 
 
