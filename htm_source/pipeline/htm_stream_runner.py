@@ -94,4 +94,8 @@ def run_stream(config_path: str,
 
 if __name__ == '__main__':
     args = get_args()
-    run_stream(args.config_path, args.data_path, args.models_dir, args.outputs_dir)  # this is missing a param
+    run_stream(config_path=args.config_path,
+               data_path=args.data_path,
+               data_stream_dir=args.data_stream_dir,
+               models_dir=args.models_dir,
+               outputs_dir=args.outputs_dir)
