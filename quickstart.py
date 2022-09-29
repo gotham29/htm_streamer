@@ -8,6 +8,7 @@ from htm_source.utils.fs import load_config
 if __name__ == '__main__':
     # Specify run params
     model_for_each_feature = True
+    return_pred_count = True
     features = ['3.3_Bus_Current',
                 'Receiver_Doppler',
                 'satellite_time']
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     config['timesteps_stop']['learning'] = timestep_tostop_learning
     config['timesteps_stop']['running'] = timestep_tostop_running
     config['models_state']['model_for_each_feature'] = model_for_each_feature
+    config['models_state']['return_pred_count'] = return_pred_count
 
     # Train
     features_models, features_outputs = run_batch(cfg=config,

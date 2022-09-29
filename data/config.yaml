@@ -16,6 +16,7 @@ features:
     min: 195
     type: numeric
   satellite_time:
+    format: '%m/%d/%y %H:%M'
     timeOfDay:
     - 30
     - 1
@@ -23,6 +24,7 @@ features:
     weekend: 21
 models_state:
   model_for_each_feature: true
+  return_pred_count: true
   use_sp: false
 timesteps_stop:
   learning: 100

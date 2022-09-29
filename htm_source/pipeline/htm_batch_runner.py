@@ -12,6 +12,7 @@ from htm_source.utils.fs import load_config
 from htm_source.config import build_enc_params
 from htm_source.config.validation import validate_params_init
 from htm_source.model.runners import init_models
+from htm_source.data.types import HTMType, to_htm_type
 
 
 def run_batch(cfg: Union[dict, None],
@@ -19,8 +20,7 @@ def run_batch(cfg: Union[dict, None],
               learn: bool,
               data: pd.DataFrame,
               iter_print: int,
-              features_models: dict,
-              ) -> (dict, dict):
+              features_models: dict) -> (dict, dict):
     """
     Purpose:
         Loop over all rows in batch csv
@@ -62,9 +62,9 @@ def run_batch(cfg: Union[dict, None],
     if do_init_models:
         cfg['features_samples'] = {f: data[f].values for f in cfg['features']}
         cfg = validate_params_init(cfg)
-        cfg, features_enc_params = build_enc_params(cfg=cfg,
-                                                    models_encoders=cfg['models_encoders'],
-                                                    features_weights=cfg['features_weights'])
+        features_enc_params = build_enc_params(cfg=cfg,
+                                               models_encoders=cfg['models_encoders'],
+                                               features_weights=cfg['features_weights'])
         features_models = init_models(use_sp=cfg['models_state']['use_sp'],
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
@@ -75,7 +75,7 @@ def run_batch(cfg: Union[dict, None],
     try:
         timestep_limit = cfg['timesteps_stop']['running']
     except:
-        timestep_limit = 1000000
+        timestep_limit = None
 
     # 4. Build --> 'features_outputs' data structure
     outputs_dict = {'anomaly_score': [], 'anomaly_likelihood': [], 'pred_count': []}
@@ -90,13 +90,15 @@ def run_batch(cfg: Union[dict, None],
     print('Running main loop...')
     for timestep, row in data[:timestep_limit].iterrows():
         features_data = dict(row)
+
         # multi-models case
         if cfg['models_state']['model_for_each_feature']:
             for f, f_dict in cfg['features'].items():
-                if f_dict['type'] == 'timestamp':
-                    continue
+                if to_htm_type(f_dict['type']) is HTMType.Datetime:
+                    continue  # the rest of the code will never run!
+
                 aScore, aLikl, pCount, sPreds = features_models[f].run(features_data, timestep, learn,
-                                                                          cfg['models_predictor'])
+                                                                       cfg['models_predictor'])
                 features_outputs[f]['anomaly_score'].append(aScore)
                 features_outputs[f]['anomaly_likelihood'].append(aLikl)
                 features_outputs[f]['pred_count'].append(pCount)
@@ -110,6 +112,9 @@ def run_batch(cfg: Union[dict, None],
         # report status
         if timestep > iter_print and timestep % iter_print == 0:
             print(f'  completed row: {timestep}')
+
+    print(f"\nCONFIG['models_state']")
+    print(f"  --> {cfg['models_state']}")
 
     return features_models, features_outputs
 

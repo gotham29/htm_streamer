@@ -89,6 +89,8 @@ def run_stream(config_path: str,
             print(f'  completed row: {idx}')
     # 5. Reset cfg
     cfg = reset_config(cfg)
+    print("\nCONFIG['models_state']")
+    print(f"  --> {config['models_state']}")
     cfg = save_config(cfg, config_path)
 
 
@@ -98,4 +100,4 @@ if __name__ == '__main__':
                data_path=args.data_path,
                data_stream_dir=args.data_stream_dir,
                models_dir=args.models_dir,
-               outputs_dir=args.outputs_dir)  # this is missing a param
+               outputs_dir=args.outputs_dir)

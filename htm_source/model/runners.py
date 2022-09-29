@@ -1,15 +1,16 @@
 import concurrent.futures
 import multiprocessing as mp
-
+from collections import defaultdict
 from htm_source.model import HTMmodel
+from htm_source.data import Feature, separate_time_and_rest
+from htm_source.utils import frozendict
 
 
 def init_models(use_sp: bool,
                 models_params: dict,
                 predictor_config: dict,
                 features_enc_params: dict,
-                model_for_each_feature: bool,
-                ) -> dict:
+                model_for_each_feature: bool) -> dict:
     """
     Purpose:
         Build HTMmodels for each feature (features --> user-provided in config.yaml)
@@ -34,27 +35,23 @@ def init_models(use_sp: bool,
             type: dict
             meaning: HTMmodel for each feature
     """
-    features_models = {}
-
+    features_models = dict()
+    features = {name: Feature(name, params) for name, params in features_enc_params.items()}
     if model_for_each_feature:  # multiple models, one per feature
-        params_time = {k: v for k, v in features_enc_params.items() if v['type'] == 'timestamp'}
-        features_enc_params_numeric = {k: v for k, v in features_enc_params.items() if k not in params_time}
-        for f in features_enc_params_numeric:
-            params_f = {k: v for k, v in features_enc_params.items() if k == f}
-            params_f = {**params_time, **params_f}
-            model = HTMmodel(use_sp=use_sp,
+        time_feature, non_time_features = separate_time_and_rest(features.values())
+        for feat in non_time_features:
+            single_feat = {time_feature: features[time_feature], feat: features[feat]}
+            model = HTMmodel(features=frozendict(single_feat),
+                             use_sp=use_sp,
                              models_params=models_params,
-                             predictor_config=predictor_config,
-                             features_enc_params=params_f)
-            model.init_model()
-            features_models[f] = model
+                             predictor_config=predictor_config)
+            features_models[feat] = model
 
     else:  # one multi-feature model
-        model = HTMmodel(use_sp=use_sp,
+        model = HTMmodel(features=frozendict(features),
+                         use_sp=use_sp,
                          models_params=models_params,
-                         predictor_config=predictor_config,
-                         features_enc_params=features_enc_params)
-        model.init_model()
+                         predictor_config=predictor_config)
         features_models[f'megamodel_features={len(features_enc_params)}'] = model
 
     print(f'  Models initialized...')
@@ -151,12 +148,12 @@ def run_model(args) -> dict:
             type: dict
             meaning: all outputs from HTMmodel.run() for given feature
     """
-    feature, HTMmodel, features_data, timestep, learn, use_sp, predictor_config = args
-    anomaly_score, anomaly_likelihood, pred_count, steps_predictions = HTMmodel.run(learn=learn,
-                                                                                    timestep=timestep,
-                                                                                    features_data=features_data,
-                                                                                    predictor_config=predictor_config)
-    result = {'model': HTMmodel,
+    feature, htm_model, features_data, timestep, learn, use_sp, predictor_config = args
+    anomaly_score, anomaly_likelihood, pred_count, steps_predictions = htm_model.run(learn=learn,
+                                                                                     timestep=timestep,
+                                                                                     features_data=features_data,
+                                                                                     predictor_config=predictor_config)
+    result = {'model': htm_model,
               'feature': feature,
               'timestep': timestep,
               'pred_count': pred_count,
@@ -249,44 +246,36 @@ def run_models_parallel(timestep: int,
 
 def track_tm(cfg: dict, features_models: dict) -> dict:
     # get TM state for each model
-    features_tmstates = {f: {} for f in features_models}
+    features_tm_states = dict()
     for feature, model in features_models.items():
         TemporalMemory = model.tm
         perm_connected = TemporalMemory.getConnectedPermanence()
 
-        # get presynaptics (cells that are linked to) for each each
-        cells = [_ for _ in range(TemporalMemory.connections.numCells())]
-        cells_presynaptics = {c: TemporalMemory.connections.synapsesForPresynapticCell(c) for c in cells}
-
         # split synapses into 'potential' & 'formed'
-        cells_potential, cells_formed = {}, {}
+        cells_formed = defaultdict(list)
+        cells_potential = defaultdict(list)
         total_synapses_potential, total_synapses_formed = 0, 0
-        for cell, presynaptics in cells_presynaptics.items():
-            if len(presynaptics) == 0:
+        for cell_idx in range(TemporalMemory.connections.numCells()):
+            presynaptics = TemporalMemory.connections.synapsesForPresynapticCell(cell_idx)
+            if not presynaptics:
                 continue
-            presyns_perms = {p: TemporalMemory.connections.permanenceForSynapse(p) for p in presynaptics}
-            for presyn, perm in presyns_perms.items():
+
+            for presyn in presynaptics:
+                perm = TemporalMemory.connections.permanenceForSynapse(presyn)
                 # perm --> potential
                 total_synapses_potential += 1
                 if perm < perm_connected:
-                    # TODO: try\except blocks are expensive - is it really necessary?
-                    try:
-                        cells_potential[cell].append(presyn)
-                    except:
-                        cells_potential[cell] = [presyn]
+                    cells_potential[cell_idx].append(presyn)
                 # perm --> formed
                 else:
                     total_synapses_formed += 1
-                    try:
-                        cells_formed[cell].append(presyn)
-                    except:
-                        cells_formed[cell] = [presyn]
+                    cells_formed[cell_idx].append(presyn)
 
-        features_tmstates[feature]['potential'] = cells_potential
-        features_tmstates[feature]['formed'] = cells_formed
-        features_tmstates[feature]['total_synapses_potential'] = total_synapses_potential
-        features_tmstates[feature]['total_synapses_formed'] = total_synapses_formed
+        features_tm_states[feature] = {'potential': cells_potential,
+                                       'formed': cells_formed,
+                                       'total_synapses_potential': total_synapses_potential,
+                                       'total_synapses_formed': total_synapses_formed}
 
-    cfg['features_tmstates'] = features_tmstates
+    cfg['features_tmstates'] = features_tm_states
 
     return cfg
