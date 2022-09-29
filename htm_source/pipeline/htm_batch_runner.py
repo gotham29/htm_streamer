@@ -113,9 +113,6 @@ def run_batch(cfg: Union[dict, None],
         if timestep > iter_print and timestep % iter_print == 0:
             print(f'  completed row: {timestep}')
 
-    print(f"\nCONFIG['models_state']")
-    print(f"  --> {cfg['models_state']}")
-
     return features_models, features_outputs
 
 
