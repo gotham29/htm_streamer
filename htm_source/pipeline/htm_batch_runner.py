@@ -106,8 +106,8 @@ def run_batch(cfg: Union[dict, None],
             aScore, aLikl, pCount, sPreds = features_models[multi_feat].run(features_data, timestep, learn,
                                                                             cfg['models_predictor'])
             features_outputs[multi_feat]['anomaly_score'].append(aScore)
-            features_outputs[multi_feat]['anomaly_likelihood'].append(aScore)
-            features_outputs[multi_feat]['pred_count'].append(aScore)
+            features_outputs[multi_feat]['anomaly_likelihood'].append(aLikl)
+            features_outputs[multi_feat]['pred_count'].append(pCount)
 
         # report status
         if timestep > iter_print and timestep % iter_print == 0:

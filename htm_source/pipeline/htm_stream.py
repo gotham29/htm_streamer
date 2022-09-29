@@ -1,5 +1,6 @@
 import os
 import sys
+import pandas as pd
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
@@ -9,6 +10,7 @@ from htm_source.utils.fs import load_json, save_models, load_models, save_output
 from htm_source.config import build_enc_params, extend_features_samples
 from htm_source.config.validation import validate_config
 from htm_source.model.runners import init_models, run_models, track_tm
+from htm_source.pipeline.htm_batch_runner import run_batch
 
 
 def stream_to_htm(config_path: str,
@@ -70,7 +72,7 @@ def stream_to_htm(config_path: str,
     # 5. Mode == 'initializing':
     #     a. Build —> Params
     #     b. Init —> Models
-    #     c. Store —> Models
+    #     c. Train —> Models (on sample data)
     #     d. Store —> Models
     elif cfg['models_state']['mode'] == 'initializing':
         cfg, features_enc_params = build_enc_params(cfg=cfg,

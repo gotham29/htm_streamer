@@ -2,19 +2,19 @@ features:
   3.3_Bus_Current:
     max: null
     min: null
-    type: float
+    type: numeric
   Receiver_Doppler:
     max: 164
     min: 150
-    type: int
+    type: numeric
   Solar_Panel_Voltage_X:
     max: 4750
     min: 4350
-    type: float
+    type: numeric
   Total_Photo_Current:
     max: 270
     min: 195
-    type: float
+    type: numeric
   satellite_time:
     format: '%m/%d/%y %H:%M'
     timeOfDay:
