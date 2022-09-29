@@ -61,13 +61,15 @@ class HTMmodel:
             enc:
                 type: enc object (RDSE or DateEncoder)
         """
-        if enc_params['type'] == 'numeric':
+        types_numeric = ['int', 'float']
+        types_time = ['timestamp', 'datetime']
+        if enc_params['type'] in types_numeric:
             rdse_params = RDSE_Parameters()
             rdse_params.size = enc_params['size']
             rdse_params.sparsity = enc_params["sparsity"]
             rdse_params.resolution = enc_params['resolution']
             enc = RDSE(rdse_params)
-        elif enc_params['type'] in 'timestamp':
+        elif enc_params['type'] in types_time:
             enc = DateEncoder(timeOfDay=enc_params["timeOfDay"],
                               weekend=enc_params["weekend"])
         else:
