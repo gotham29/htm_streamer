@@ -115,7 +115,7 @@ def build_enc_params(cfg: dict,
             raise NotImplementedError("Category encoder not implemented yet")
             # features_enc_params[f] = get_params_category(f_dict)
         else:
-            raise TypeError(f"Unsupported type: {f_dict['type']}\n  types_numeric={}\n  types_time={types_time}")
+            raise TypeError(f"Unsupported type: {f_dict['type']}\n  types_numeric={types_numeric}\n  types_time={types_time}")
         features_enc_params[f]['type'] = f_dict['type']
     return cfg, features_enc_params
 
