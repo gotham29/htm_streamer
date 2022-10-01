@@ -132,7 +132,8 @@ class HTMmodel:
         """
 
         # Get encodings for all features
-        all_encodings = [feature.encode(data) for _, data, feature in dict_zip(features_data, self.features)]
+        all_encodings = [SDR(0)]
+        all_encodings = +[feature.encode(data) for _, data, feature in dict_zip(features_data, self.features)]
 
         # Combine all features encodings into one for Spatial Pooling
         encoding = SDR(self.encoding_width).concatenate(all_encodings)
