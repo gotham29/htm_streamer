@@ -55,6 +55,7 @@ def init_models(use_sp: bool,
     else:  # one multi-feature model
         model = HTMmodel(features=frozendict(features),
                          use_sp=use_sp,
+                         return_pred_count=return_pred_count,
                          models_params=models_params,
                          predictor_config=predictor_config)
         features_models[f'megamodel_features={len(features_enc_params)}'] = model
