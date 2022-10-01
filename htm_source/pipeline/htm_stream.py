@@ -79,6 +79,7 @@ def stream_to_htm(config_path: str,
                                                models_encoders=cfg['models_encoders'],
                                                features_weights=cfg['features_weights'])
         features_models = init_models(use_sp=cfg['models_state']['use_sp'],
+                                      return_pred_count=cfg['models_state']['return_pred_count'],
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,

@@ -7,6 +7,7 @@ from htm_source.utils import frozendict
 
 
 def init_models(use_sp: bool,
+                return_pred_count: bool,
                 models_params: dict,
                 predictor_config: dict,
                 features_enc_params: dict,
@@ -27,6 +28,9 @@ def init_models(use_sp: bool,
         model_for_each_feature
             type: bool
             meaning: whether to build a separate model for each feature (user-specified in config.yaml)
+        return_pred_count
+            type: bool
+            meaning: whether to get the number of prediction along w/anomalies (causes slow-down)
         use_sp
             type: bool
             meaning: whether Spatial Pooler is enabled in HTMmodel
@@ -43,6 +47,7 @@ def init_models(use_sp: bool,
             single_feat = {time_feature: features[time_feature], feat: features[feat]}
             model = HTMmodel(features=frozendict(single_feat),
                              use_sp=use_sp,
+                             return_pred_count=return_pred_count,
                              models_params=models_params,
                              predictor_config=predictor_config)
             features_models[feat] = model
