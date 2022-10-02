@@ -51,13 +51,6 @@ models_encoders:
   n: 700
   n_buckets: 140
   sparsity: 0.05  #0.02
-#  timestamp:
-#    enable: false
-#    feature: satellite_time
-#    timeOfDay:
-#    - 30
-#    - 1
-#    weekend: 21
 models_params:
   anomaly:
     period: 1000
