@@ -75,7 +75,6 @@ def stream_to_htm(config_path: str,
     #     c. Train —> Models (on sample data)
     #     d. Store —> Models
     elif cfg['models_state']['mode'] == 'initializing':
-        print('      ** NEW --> build_enc_params')
         features_enc_params = build_enc_params(features=cfg['features'],
                                                features_samples=cfg['features_samples'],
                                                models_encoders=cfg['models_encoders'])

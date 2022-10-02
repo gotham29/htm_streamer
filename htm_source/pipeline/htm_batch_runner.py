@@ -62,7 +62,6 @@ def run_batch(cfg: Union[dict, None],
     if do_init_models:
         cfg['features_samples'] = {f: data[f].values for f in cfg['features']}
         cfg = validate_params_init(cfg)
-        print('      ** NEW --> build_enc_params')
         features_enc_params = build_enc_params(features=cfg['features'],
                                                features_samples=cfg['features_samples'],
                                                models_encoders=cfg['models_encoders'])
