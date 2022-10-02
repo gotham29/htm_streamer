@@ -62,9 +62,9 @@ def run_batch(cfg: Union[dict, None],
     if do_init_models:
         cfg['features_samples'] = {f: data[f].values for f in cfg['features']}
         cfg = validate_params_init(cfg)
-        features_enc_params = build_enc_params(cfg=cfg,
-                                               models_encoders=cfg['models_encoders'],
-                                               features_weights=cfg['features_weights'])
+        features_enc_params = build_enc_params(features=cfg['features'],
+                                               features_samples=cfg['features_samples'],
+                                               models_encoders=cfg['models_encoders'])
         features_models = init_models(use_sp=cfg['models_state']['use_sp'],
                                       return_pred_count=cfg['models_state']['return_pred_count'],
                                       models_params=cfg['models_params'],
