@@ -26,9 +26,9 @@ def reset_config(cfg: dict) -> dict:
 
 def get_params_rdse(f: str,
                     f_dict: dict,
-                    models_encoders: dict,
+                    f_sample: list,
                     f_weight: float,
-                    f_sample: list) -> dict:
+                    models_encoders: dict) -> dict:
     """
     Purpose:
         Get enc params for 'f'
@@ -55,17 +55,19 @@ def get_params_rdse(f: str,
     """
     # use min/max if specified
     if isnumeric(f_dict['min']) and isnumeric(f_dict['max']):
-        f_minmax = [f_dict['min'], f_dict['max']]
+        f_min = f_dict['min']
+        f_max = f_dict['max']
     # else find min/max from f_samples
     else:
-        min_perc, max_perc = models_encoders['minmax_percentiles']
-        f_minmax = [np.percentile(f_sample, min_perc), np.percentile(f_sample, max_perc)]
+        f_min = min(f_sample) - (models_encoders['p_padding']/100)*min(f_sample)
+        f_max = max(f_sample) + (models_encoders['p_padding']/100)*max(f_sample)
     params_rdse = {
         'size': int(models_encoders['n'] * f_weight),
-        'sparsity': models_encoders['sparsity'],
-        'resolution': get_rdse_resolution(f,
-                                          f_minmax,
-                                          models_encoders['n_buckets'])
+        'sparsity': float(models_encoders['w']/models_encoders['n']),
+        'resolution': get_rdse_resolution(feature=f,
+                                          f_min=f_min,
+                                          f_max=f_max,
+                                          n_buckets=models_encoders['n_buckets'])
     }
     return params_rdse
 
@@ -102,11 +104,11 @@ def build_enc_params(features: dict,
     for f, f_dict in features.items():
         # get enc - numeric
         if f_dict['type'] in types_numeric:
-            features_enc_params[f] = get_params_rdse(f,
-                                                     f_dict,
-                                                     models_encoders,
-                                                     features_weights[f],
-                                                     features_samples[f])
+            features_enc_params[f] = get_params_rdse(f=f,
+                                                     f_dict=f_dict,
+                                                     f_weight=features_weights[f],
+                                                     f_sample=features_samples[f],
+                                                     models_encoders=models_encoders,)
         # get enc - datetime
         elif f_dict['type'] in types_time:
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
@@ -121,7 +123,8 @@ def build_enc_params(features: dict,
 
 
 def get_rdse_resolution(feature: str,
-                        minmax: list,
+                        f_min: float,
+                        f_max: float,
                         n_buckets: int
                         ) -> float:
     """
@@ -131,9 +134,6 @@ def get_rdse_resolution(feature: str,
         feature
             type: str
             meaning: name of given feature
-        minmax
-            type: list
-            meaning: min & max feature values
         n_buckets
             type: int
             meaning: number of categories to divide (max-min) range over
@@ -142,8 +142,7 @@ def get_rdse_resolution(feature: str,
             type: float
             meaning: param calculated for feature's RDSE encoder
     """
-    minmax_range = float(minmax[1]) - float(minmax[0])
-    resolution = minmax_range / float(n_buckets)
+    resolution = (f_max-f_min) / float(n_buckets)
     if resolution == 0:
         resolution = 1.0
         print(f"Dropping feature, due to no variation in sample\n  --> {feature}")  # does this happen actually?

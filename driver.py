@@ -9,9 +9,11 @@ import tqdm
 from htm_source.pipeline.htm_batch_runner import run_batch
 from htm_source.utils.fs import load_config
 
-CONFIG_PATH = f'NAB/config/config-nab.yaml'
-DATA_PATH = os.path.abspath('/home/vlad/Theses/NAB-community/data/')
-LABELS_PATH = os.path.abspath('/home/vlad/Theses/NAB-community/labels/combined_windows.json')
+REPOS_DIR = "/Users/samheiserman/Desktop/repos"
+CONFIG_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config--full.yaml")
+RESULTS_DIR = os.path.join(REPOS_DIR, "NAB', 'results", 'htmStreamer')
+DATA_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/data'))
+LABELS_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/labels/combined_windows.json'))
 
 
 def get_labels(ds_name):
@@ -60,19 +62,31 @@ def merge_labels_into_data(ds_name):
 if __name__ == '__main__':
     # Load config & data
     config = load_config(CONFIG_PATH)
+    print('CONFIG')
+    for k, v in config.items():
+        print(f"\n{k}")
+        for k_, v_ in v.items():
+            print(f"  {k_}")
+            if isinstance(v_, dict):
+                for k__, v__ in v_.items():
+                    print(f"    {k__} = {v__}")
+            else:
+                print(f"    = {v_}")
+    print()
+
     predictive_features = ['timestamp', 'value']
 
     with tqdm.tqdm(total=58, desc="Running NAB") as p_bar:
         for root, dirs, files in os.walk(DATA_PATH):
             for f in files:
                 if f.endswith('.csv'):
-                    if p_bar.n >= 10:
+                    if p_bar.n >= 50:
                         exit(0)
                     exp_name = os.path.splitext(f)[0]
                     _, exp_folder = os.path.split(root)
-                    result_dir = os.path.join("NAB/results", exp_folder)
-                    results_path = os.path.join(result_dir, f"htmStreamer_{f}")
-                    os.makedirs(result_dir, exist_ok=True)
+
+                    results_path = os.path.join(RESULTS_DIR, f"htmStreamer_{f}")
+                    os.makedirs(RESULTS_DIR, exist_ok=True)
 
                     data = merge_labels_into_data(exp_name)
                     pred_data = data[predictive_features]
@@ -86,6 +100,7 @@ if __name__ == '__main__':
                                                                   features_models={})
 
                     # Collect results
-                    data['anomaly_score'] = np.array(features_outputs['megamodel_features=2']['anomaly_score'])
+                    data['anomaly_score'] = np.array(
+                        features_outputs[f'megamodel_features={len(predictive_features)}']['anomaly_score'])
                     data.to_csv(results_path)
                     p_bar.update(1)

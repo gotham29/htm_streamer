@@ -12,23 +12,27 @@ def get_default_params_htm() -> dict:
     default_parameters = {
         'anomaly': {'period': 1000},
         'predictor': {'sdrc_alpha': 0.1},
-        'sp': {'boostStrength': 3.0,
-               'columnCount': 1638,
-               'localAreaDensity': 0.04395604395604396,
+        'sp': {'potentialPct': 0.8,
+               'globalInhibition': True,
+               'boostStrength': 0.0,
+               'columnCount': 2048,
+               'localAreaDensity': 0.0,
                'potentialPct': 0.85,
-               'synPermActiveInc': 0.04,
-               'synPermConnected': 0.13999999999999999,
-               'synPermInactiveDec': 0.006},
-        'tm': {'activationThreshold': 17,
-               'cellsPerColumn': 13,
+               'synPermActiveInc': 0.003,
+               'synPermConnected': 0.2,
+               'synPermInactiveDec': 0.0005,
+               'numActiveColumnsPerInhArea': 40},
+        'tm': {'activationThreshold': 20,
+               'cellsPerColumn': 32,
+               'columnDimensions': 2048,
                'initialPerm': 0.21,
                'maxSegmentsPerCell': 128,
-               'maxSynapsesPerSegment': 64,
-               'minThreshold': 10,
+               'maxSynapsesPerSegment': 128,
+               'minThreshold': 13,
                'newSynapseCount': 32,
-               'permanenceDec': 0.1,
-               'permanenceInc': 0.1,
-               'permanenceConnected': 0.3},
+               'permanenceDec': 0.08,
+               'permanenceInc': 0.04,
+               'permanenceConnected': 0.5},
     }
     return default_parameters
 
@@ -81,15 +85,9 @@ def get_default_params_encoder() -> dict:
             meaning: 'models_encoders' (in config.yaml)
     """
     default_parameters = {
-        'minmax_percentiles': [1, 99],
-        'n': 700,
-        'n_buckets': 140,
-        'sparsity': 0.02,
-        'timestamp': {
-            'enable': False,
-            'feature': 'timestamp',
-            'timeOfDay': [30, 1],
-            'weekend': 21
-        },
+        'n': 400,
+        'w': 21,
+        'n_buckets': 130,
+        'p_padding': 20,
     }
     return default_parameters

@@ -58,12 +58,13 @@ class HTMmodel:
                 columnDimensions=(self.models_params["sp"]["columnCount"],),
                 potentialPct=self.models_params["sp"]["potentialPct"],
                 potentialRadius=self.encoding_width,
-                globalInhibition=True,
-                localAreaDensity=self.models_params["sp"]["localAreaDensity"],
+                globalInhibition=self.models_params["sp"]["globalInhibition"],
+                numActiveColumnsPerInhArea=self.models_params['sp']['numActiveColumnsPerInhArea'],
                 synPermInactiveDec=self.models_params["sp"]["synPermInactiveDec"],
                 synPermActiveInc=self.models_params["sp"]["synPermActiveInc"],
                 synPermConnected=self.models_params["sp"]["synPermConnected"],
                 boostStrength=self.models_params["sp"]["boostStrength"],
+                localAreaDensity=0,
                 wrapAround=True)
         else:
             return None
@@ -159,7 +160,7 @@ class HTMmodel:
 
         # Count number of predicted cells
         n_pred_cells = pred_cells.getSum()
-        n_cols_per_pred = round(self.models_params["sp"]["columnCount"] * self.models_params["sp"]["localAreaDensity"])
+        n_cols_per_pred = self.models_params["sp"]["numActiveColumnsPerInhArea"]
 
         # Normalize to number of predictions
         pred_count = n_pred_cells / n_cols_per_pred

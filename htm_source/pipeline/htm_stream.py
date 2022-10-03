@@ -112,8 +112,7 @@ def stream_to_htm(config_path: str,
                                                        features_data=data,
                                                        features_models=features_models,
                                                        timestep=cfg['models_state']['timestep'],
-                                                       predictor_config=cfg['models_predictor'],
-                                                       timestamp_config=cfg['models_encoders']['timestamp'])
+                                                       predictor_config=cfg['models_predictor'])
         if cfg['models_state']['track_tm']:
             is_track_timestep = cfg['models_state']['timestep'] % cfg['models_state']['track_iter'] == 0
             if is_track_timestep:

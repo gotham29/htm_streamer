@@ -72,7 +72,6 @@ def run_models(learn: bool,
                timestep: int,
                features_data: dict,
                features_models: dict,
-               timestamp_config: dict,
                predictor_config: dict
                ) -> (dict, dict):
     """
@@ -115,11 +114,6 @@ def run_models(learn: bool,
         result = run_model(args)
         features_models[f] = result['model']
         features_outputs[f] = {k: v for k, v in result.items() if k not in ['model', 'feature']}
-        # add timestamp data -- IF feature present
-        if timestamp_config['feature'] in features_data:
-            time_feat = timestamp_config['feature']
-            features_outputs[f][time_feat] = str(features_data[time_feat])
-
     return features_outputs, features_models
 
 

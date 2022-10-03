@@ -1,6 +1,7 @@
 #See http://www.pip-installer.org/en/latest/requirements.html for details
 
 setuptools>=34.4.0 # needed for Windows with MSVC
+tdqm
 pip>=19.3.1
 pandas>=1.2.4
 PyYAML==6.0
