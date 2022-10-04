@@ -56,23 +56,6 @@ def get_default_params_predictor() -> dict:
     return default_parameters
 
 
-def get_default_params_weights(features: list) -> dict:
-    """
-    Purpose:
-        Provide weight of 1.0 for each feature
-    Inputs:
-        features
-            type: list
-            meaning: features to assign equal weight to
-    Outputs:
-        default_parameters
-            type: dict
-            meaning: 'features_weights' (in config.yaml)
-    """
-    default_parameters = {f: 1.0 for f in features}
-    return default_parameters
-
-
 def get_default_params_encoder() -> dict:
     """
     Purpose:

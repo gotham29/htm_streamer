@@ -2,7 +2,7 @@ import os
 
 from htm_source.config import get_mode
 from htm_source.config.defaults import get_default_params_htm, get_default_params_predictor, \
-    get_default_params_encoder, get_default_params_weights
+    get_default_params_encoder
 
 
 def validate_params_timestep0(cfg: dict) -> dict:
@@ -21,7 +21,7 @@ def validate_params_timestep0(cfg: dict) -> dict:
         cfg['timesteps_stop'] = {}
     # Add 'learning' to 'timesteps_stop'
     if 'learning' not in cfg['timesteps_stop']:
-        cfg['timesteps_stop']['learning'] = 1000000
+        cfg['timesteps_stop']['learning'] = None 
     # Add 'timestep' & 'learn' to 'models_state'
     if 'timestep' not in cfg['models_state']:
         cfg['models_state']['timestep'] = 0
@@ -190,18 +190,12 @@ def validate_params_init(cfg: dict) -> dict:
     if 'models_encoders' not in cfg:
         cfg['models_encoders'] = get_default_params_encoder()
 
-    if 'features_weights' not in cfg:
-        cfg['features_weights'] = get_default_params_weights(cfg['features'])
-
     # Assert valid models_encoders dict
     enc_params_types = {
         'n': int,
         'w': int,
         'n_buckets': int,
         'p_padding': int,
-        # 'sparsity': float,
-        # 'timestamp': dict,
-        # 'minmax_percentiles': list,
     }
     for param, p_type in enc_params_types.items():
         param_v = cfg['models_encoders'][param]
@@ -224,27 +218,6 @@ def validate_params_init(cfg: dict) -> dict:
     p_padding = cfg['models_encoders']['p_padding']
     assert p_padding >= -30, f"'p_padding' should be >= -30 \n  Found --> {padding}"
     assert p_padding <= 30, f"'p_padding' should be <= 30 \n  Found --> {padding}"
-
-    # # Assert minmax_percentiles valid
-    # min_perc = cfg['models_encoders']['minmax_percentiles'][0]
-    # max_perc = cfg['models_encoders']['minmax_percentiles'][1]
-    # assert min_perc < 10, f"Min percentile expected < 10\n  Found --> {min_perc}"
-    # assert max_perc > 90, f"Min percentile expected > 90\n  Found --> {max_perc}"
-
-    # # Assert sparsity valid
-    # sparsity = cfg['models_encoders']['sparsity']
-    # assert 0.01 < sparsity < 0.10, f"'sparsity' should be in range 0.01 - 0.10 \n  Found --> {sparsity}"
-
-    # # Assert valid timestamp dict
-    # timestamp_params_types = {
-    #     'enable': bool,
-    #     'feature': str,
-    #     'timeOfDay': list,
-    #     'weekend': int,
-    # }
-    # for param, p_type in timestamp_params_types.items():
-    #     param_v = cfg['models_encoders']['timestamp'][param]
-    #     assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid timeOfDay
     ###

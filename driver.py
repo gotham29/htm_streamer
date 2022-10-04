@@ -9,9 +9,11 @@ import tqdm
 from htm_source.pipeline.htm_batch_runner import run_batch
 from htm_source.utils.fs import load_config
 
+DETECTOR = "htmStreamer"
+DATASET_COUNT = 60
 REPOS_DIR = "/Users/samheiserman/Desktop/repos"
 CONFIG_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config--full.yaml")
-RESULTS_DIR = os.path.join(REPOS_DIR, "NAB', 'results", 'htmStreamer')
+RESULTS_DIR = os.path.join(REPOS_DIR, f"NAB/results/{DETECTOR}")
 DATA_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/data'))
 LABELS_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/labels/combined_windows.json'))
 
@@ -74,23 +76,23 @@ if __name__ == '__main__':
                 print(f"    = {v_}")
     print()
 
+    ## Make output dirs
+
     predictive_features = ['timestamp', 'value']
 
     with tqdm.tqdm(total=58, desc="Running NAB") as p_bar:
         for root, dirs, files in os.walk(DATA_PATH):
             for f in files:
                 if f.endswith('.csv'):
-                    if p_bar.n >= 50:
+                    if p_bar.n >= DATASET_COUNT:
                         exit(0)
                     exp_name = os.path.splitext(f)[0]
                     _, exp_folder = os.path.split(root)
-
-                    results_path = os.path.join(RESULTS_DIR, f"htmStreamer_{f}")
-                    os.makedirs(RESULTS_DIR, exist_ok=True)
-
+                    exp_folder_dir = os.path.join(RESULTS_DIR, exp_folder)
+                    os.makedirs( os.path.join(exp_folder_dir), exist_ok=True)
+                    results_path = os.path.join(exp_folder_dir, f"htmStreamer_{f}")
                     data = merge_labels_into_data(exp_name)
                     pred_data = data[predictive_features]
-
                     # Train
                     features_models, features_outputs = run_batch(cfg=config,
                                                                   config_path=None,
@@ -98,7 +100,6 @@ if __name__ == '__main__':
                                                                   data=pred_data,
                                                                   iter_print=999999,
                                                                   features_models={})
-
                     # Collect results
                     data['anomaly_score'] = np.array(
                         features_outputs[f'megamodel_features={len(predictive_features)}']['anomaly_score'])

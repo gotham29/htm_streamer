@@ -59,8 +59,9 @@ def get_params_rdse(f: str,
         f_max = f_dict['max']
     # else find min/max from f_samples
     else:
-        f_min = min(f_sample) - (models_encoders['p_padding']/100)*min(f_sample)
-        f_max = max(f_sample) + (models_encoders['p_padding']/100)*max(f_sample)
+        rangePadding = (max(f_sample) - min(f_sample)) * (models_encoders['p_padding']/100)
+        f_min = min(f_sample) - rangePadding
+        f_max = max(f_sample) + rangePadding
     params_rdse = {
         'size': int(models_encoders['n'] * f_weight),
         'sparsity': float(models_encoders['w']/models_encoders['n']),
@@ -99,7 +100,7 @@ def build_enc_params(features: dict,
             type: dict
             meaning: set of encoder params for each feature ('size, sparsity', 'resolution')
     """
-    features_weights = {k: v['weight'] for k, v in features.items()}
+    features_weights = {k: v.get('weight', 1.0) for k, v in features.items()}
     features_enc_params = {}
     for f, f_dict in features.items():
         # get enc - numeric

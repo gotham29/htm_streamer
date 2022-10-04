@@ -13,8 +13,8 @@ features:
       - 1
     weekend: 21
 models_encoders:
-  n: 400
-  w: 21
+  n: 800  #400
+  w: 42  #21
   n_buckets: 130
   p_padding: 20
 #  minmax_percentiles:
