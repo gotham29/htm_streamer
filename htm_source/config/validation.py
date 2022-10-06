@@ -216,8 +216,8 @@ def validate_params_init(cfg: dict) -> dict:
 
     # Assert padding valid
     p_padding = cfg['models_encoders']['p_padding']
-    assert p_padding >= -30, f"'p_padding' should be >= -30 \n  Found --> {padding}"
-    assert p_padding <= 30, f"'p_padding' should be <= 30 \n  Found --> {padding}"
+    assert p_padding >= -100, f"'p_padding' should be >= -100 \n  Found --> {p_padding}"
+    assert p_padding <= 100, f"'p_padding' should be <= 100 \n  Found --> {p_padding}"
 
     # Assert valid timeOfDay
     ###
