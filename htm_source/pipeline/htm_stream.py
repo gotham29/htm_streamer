@@ -93,6 +93,7 @@ def stream_to_htm(config_path: str,
                                                       learn=True,
                                                       iter_print=100,
                                                       config_path=None,
+                                                      config_default_path=None,
                                                       features_models=features_models)
         for f, outs in features_outputs.items():
             path_out = os.path.join(outputs_dir, f"sample--{f}.csv")
