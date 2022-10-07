@@ -9,18 +9,18 @@ features:
     weight: 1.0
     format: '%Y-%m-%d %X'
     timeOfDay:
-      - 30
-      - 1
-    weekend: 21
+      - 21  #30
+      - 9.49  #1
+    weekend: 0  #21
+    season: 0
+    dayOfWeek: 0
+    custom: 0
+    holiday: 0
 models_encoders:
   n: 800  #400
   w: 42  #21
   n_buckets: 130
   p_padding: 20
-#  minmax_percentiles:
-#  - 1
-#  - 99
-#  sparsity: 0.0525  #0.02
 models_params:
   anomaly:
     period: 1000
