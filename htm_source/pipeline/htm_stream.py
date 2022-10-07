@@ -146,4 +146,4 @@ def stream_to_htm(config_path: str,
 
 if __name__ == '__main__':
     args = get_args()
-    stream_to_htm(args.config_path, args.config_default_path,, args.data_path, args.models_dir, args.outputs_dir)
+    stream_to_htm(args.config_path, args.config_default_path, args.data_path, args.models_dir, args.outputs_dir)
