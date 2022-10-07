@@ -73,6 +73,9 @@ def get_args():
     parser.add_argument('-c', '--config_path', required=True,
                         help='path to yaml config')
 
+    parser.add_argument('-cd', '--config_default_path', required=True,
+                        help='path to yaml default config')
+
     parser.add_argument('-d', '--data_path', required=True,
                         help='path to json data file')
 

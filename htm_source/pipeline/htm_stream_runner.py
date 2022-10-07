@@ -13,6 +13,7 @@ from htm_source.pipeline.htm_stream import stream_to_htm
 
 
 def run_stream(config_path: str,
+               config_default_path: str,
                data_path: str,
                data_stream_dir: str,
                outputs_dir: str,
@@ -46,6 +47,7 @@ def run_stream(config_path: str,
 
     # 1. Load —> Config from Config Path
     cfg = load_config(config_path)
+
     print(f'\nLoaded —> Config from: {config_path}')
 
     # 2. Load —> ML Inputs from ML Inputs Path
@@ -81,7 +83,7 @@ def run_stream(config_path: str,
         data_stream_path = os.path.join(data_stream_dir, f'inputrow={idx}.json')
         save_json(dict(row), data_stream_path)
         # call htm module
-        stream_to_htm(config_path, data_stream_path, models_dir, outputs_dir)
+        stream_to_htm(config_path, config_default_path, data_stream_path, models_dir, outputs_dir)
         # delete data
         os.remove(data_stream_path)
         # print progress
@@ -95,6 +97,7 @@ def run_stream(config_path: str,
 if __name__ == '__main__':
     args = get_args()
     run_stream(config_path=args.config_path,
+               config_default_path=args.config_default_path,
                data_path=args.data_path,
                data_stream_dir=args.data_stream_dir,
                models_dir=args.models_dir,

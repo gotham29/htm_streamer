@@ -39,6 +39,7 @@ def validate_params_timestep0(cfg: dict) -> dict:
 
 
 def validate_config(cfg: dict,
+                    cfg_default: dict,
                     data: dict,
                     models_dir: str,
                     outputs_dir: str
@@ -87,7 +88,7 @@ def validate_config(cfg: dict,
     # Assert valid params -- ONLY for INIT step
     elif cfg['models_state']['mode'] == 'initializing':
         cfg['models_state']['learn'] = True
-        cfg = validate_params_init(cfg)
+        cfg = validate_params_init(cfg, cfg_default)
 
     else:  # Mode == 'running'
         timestep_current, timestep_init = cfg['models_state']['timestep'], cfg['models_state']['timestep_initialized']
@@ -167,7 +168,7 @@ def validate_params_required(cfg: dict,
                                     f"'sampling' = {sampling}"
 
 
-def validate_params_init(cfg: dict) -> dict:
+def validate_params_init(cfg: dict, cfg_default: dict) -> dict:
     """
     Purpose:
         Ensure valid entries for config params -- used only in 'initializing' mode
@@ -178,17 +179,11 @@ def validate_params_init(cfg: dict) -> dict:
     Outputs:
         cfg -- extended with all needed default params
     """
-    # Get default model_params -- IF not provided
-    if 'models_params' not in cfg:
-        cfg['models_params'] = get_default_params_htm()
-
-    # Get default models_predictor -- IF not provided
-    if 'models_predictor' not in cfg:
-        cfg['models_predictor'] = get_default_params_predictor()
-
-    # Get default models_encoders -- IF not provided
-    if 'models_encoders' not in cfg:
-        cfg['models_encoders'] = get_default_params_encoder()
+    ## Get cfg dicts not found in cfg
+    dicts_req = ['models_encoders', 'models_params', 'models_predictor']
+    for dreq in dicts_req:
+        if dreq not in cfg:
+            cfg[dreq] = cfg_default[dreq]
 
     # Assert valid models_encoders dict
     enc_params_types = {

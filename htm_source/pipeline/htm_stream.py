@@ -14,6 +14,7 @@ from htm_source.pipeline.htm_batch_runner import run_batch
 
 
 def stream_to_htm(config_path: str,
+                  config_default_path,
                   data_path: str,
                   models_dir: str,
                   outputs_dir: str):
@@ -50,12 +51,14 @@ def stream_to_htm(config_path: str,
 
     # 1. Load —> Config from Config Path
     cfg = load_config(config_path)
+    cfg_default = load_config(config_default_path)
 
     # 2. Load —> ML Inputs from ML Inputs Path
     data = load_json(data_path)
 
     # 3. Validate --> Config
     cfg = validate_config(cfg=cfg,
+                          cfg_default=cfg_default,
                           data=data,
                           models_dir=models_dir,
                           outputs_dir=outputs_dir)
@@ -143,4 +146,4 @@ def stream_to_htm(config_path: str,
 
 if __name__ == '__main__':
     args = get_args()
-    stream_to_htm(args.config_path, args.data_path, args.models_dir, args.outputs_dir)
+    stream_to_htm(args.config_path, args.config_default_path,, args.data_path, args.models_dir, args.outputs_dir)

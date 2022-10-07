@@ -16,7 +16,9 @@ from htm_source.data.types import HTMType, to_htm_type
 
 
 def run_batch(cfg: Union[dict, None],
+              cfg_default: Union[dict, None],
               config_path: Union[str, None],
+              config_default_path: Union[str, None],
               learn: bool,
               data: pd.DataFrame,
               iter_print: int,
@@ -52,6 +54,9 @@ def run_batch(cfg: Union[dict, None],
     if cfg is None:
         cfg = load_config(config_path)
         print(f'\nLoaded —> Config from: {config_path}')
+    if cfg_default is None:
+        cfg_default = load_config(config_default_path)
+        print(f'\nLoaded —> Config default from: {config_default_path}')
 
     # 2. Ensure --> Expected features present
     missing_feats = [f for f in cfg['features'] if f not in data]
@@ -61,7 +66,7 @@ def run_batch(cfg: Union[dict, None],
     do_init_models = True if len(features_models) == 0 else False
     if do_init_models:
         cfg['features_samples'] = {f: data[f].values for f in cfg['features']}
-        cfg = validate_params_init(cfg)
+        cfg = validate_params_init(cfg, cfg_default)
         features_enc_params = build_enc_params(features=cfg['features'],
                                                features_samples=cfg['features_samples'],
                                                models_encoders=cfg['models_encoders'])
@@ -124,4 +129,5 @@ if __name__ == '__main__':
                                                   learn=True,
                                                   iter_print=100,
                                                   config_path=args.config_path,
+                                                  config_default_path=args.config_default_path,
                                                   features_models={})

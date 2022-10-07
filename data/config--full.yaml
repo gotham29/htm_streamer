@@ -48,6 +48,7 @@ models_params:
     permanenceDec: 0.008
     permanenceInc: 0.04
     permanenceConnected: 0.5
+    predictedSegmentDecrement: 0.001
 models_predictor:
   enable: false
   resolution: 1
