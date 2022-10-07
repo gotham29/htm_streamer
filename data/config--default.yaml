@@ -1,0 +1,39 @@
+models_encoders:
+  n: 800  #400
+  w: 42  #21
+  n_buckets: 130
+  p_padding: 20
+models_params:
+  anomaly:
+    period: 1000
+  predictor:
+    sdrc_alpha: 0.1
+  sp:
+    potentialPct: 0.8
+    columnCount: 2048
+    globalInhibition: true  #nupic: 1
+    boostStrength: 0.0
+    localAreaDensity: 0.0
+    numActiveColumnsPerInhArea: 40
+    synPermActiveInc: 0.003
+    synPermConnected: 0.2
+    synPermInactiveDec: 0.0005
+  tm:
+    activationThreshold: 20
+    cellsPerColumn: 32
+    columnDimensions: 2048
+    initialPerm: 0.24
+    maxSegmentsPerCell: 128
+    maxSynapsesPerSegment: 128
+    minThreshold: 13
+    newSynapseCount: 31
+    permanenceDec: 0.008
+    permanenceInc: 0.04
+    permanenceConnected: 0.5
+    predictedSegmentDecrement: 0.001
+models_predictor:
+  enable: false
+  resolution: 1
+  steps_ahead:
+  - 1
+  - 2
