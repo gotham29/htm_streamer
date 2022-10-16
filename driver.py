@@ -13,6 +13,7 @@ DETECTOR = "htmStreamer"
 DATASET_COUNT = 60
 REPOS_DIR = "/Users/samheiserman/Desktop/repos"
 CONFIG_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config--full.yaml")
+CONFIG_DEF_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config--default.yaml")
 RESULTS_DIR = os.path.join(REPOS_DIR, f"NAB/results/{DETECTOR}")
 DATA_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/data'))
 LABELS_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/labels/combined_windows.json'))
@@ -64,6 +65,7 @@ def merge_labels_into_data(ds_name):
 if __name__ == '__main__':
     # Load config & data
     config = load_config(CONFIG_PATH)
+    config_def = load_config(CONFIG_DEF_PATH)
     print('CONFIG')
     for k, v in config.items():
         print(f"\n{k}")
@@ -95,7 +97,9 @@ if __name__ == '__main__':
                     pred_data = data[predictive_features]
                     # Train
                     features_models, features_outputs = run_batch(cfg=config,
+                                                                  cfg_default=config_def,
                                                                   config_path=None,
+                                                                  config_default_path=None,
                                                                   learn=True,
                                                                   data=pred_data,
                                                                   iter_print=999999,
