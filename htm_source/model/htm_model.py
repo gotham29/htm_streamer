@@ -94,7 +94,7 @@ class HTMmodel:
             maxNewSynapseCount=self.models_params["tm"]["newSynapseCount"],
             permanenceIncrement=self.models_params["tm"]["permanenceInc"],
             permanenceDecrement=self.models_params["tm"]["permanenceDec"],
-            predictedSegmentDecrement=0.0,
+            predictedSegmentDecrement=self.models_params["tm"]["predictedSegmentDecrement"],
             maxSegmentsPerCell=self.models_params["tm"]["maxSegmentsPerCell"],
             maxSynapsesPerSegment=self.models_params["tm"]["maxSynapsesPerSegment"])
 

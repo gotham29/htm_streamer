@@ -12,7 +12,7 @@ from htm_source.utils.fs import load_config
 DETECTOR = "htmStreamer"
 DATASET_COUNT = 60
 REPOS_DIR = "/Users/samheiserman/Desktop/repos"
-CONFIG_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config--full.yaml")
+CONFIG_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config.yaml")
 CONFIG_DEF_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config--default.yaml")
 RESULTS_DIR = os.path.join(REPOS_DIR, f"NAB/results/{DETECTOR}")
 DATA_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/data'))
