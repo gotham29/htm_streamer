@@ -59,9 +59,10 @@ def get_params_rdse(f: str,
         f_max = f_dict['max']
     # else find min/max from f_samples
     else:
-        rangePadding = (max(f_sample) - min(f_sample)) * (models_encoders['p_padding']/100)
-        f_min = min(f_sample) - rangePadding
-        f_max = max(f_sample) + rangePadding
+        f_min, f_max = min(f_sample), max(f_sample)
+        rangePadding = abs(f_max - f_min) * (float(models_encoders['p_padding'])/100)
+        f_min = f_min - rangePadding
+        f_max = f_max + rangePadding
     params_rdse = {
         'size': int(models_encoders['n'] * f_weight),
         'sparsity': float(models_encoders['w']/models_encoders['n']),
