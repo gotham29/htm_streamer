@@ -17,10 +17,10 @@ features:
     custom: 0
     holiday: 0
 models_state:
-  model_for_each_feature: true
-  return_pred_count: true
-  use_sp: false
+  model_for_each_feature: false
+  return_pred_count: false
+  use_sp: true
 timesteps_stop:
-  learning: 100
-  running: 110
-  sampling: 50
+  learning:
+  running:
+  sampling:
