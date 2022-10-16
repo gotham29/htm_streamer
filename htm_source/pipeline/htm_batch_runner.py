@@ -78,10 +78,7 @@ def run_batch(cfg: Union[dict, None],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         # save_models(dir_models=models_dir,
         #             features_models=features_models)
-    try:
-        timestep_limit = cfg['timesteps_stop']['running']
-    except:
-        timestep_limit = None
+    timestep_limit = cfg['timesteps_stop'].get('running', None)
 
     # 4. Build --> 'features_outputs' data structure
     outputs_dict = {'anomaly_score': [], 'anomaly_likelihood': [], 'pred_count': []}
