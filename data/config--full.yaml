@@ -3,24 +3,29 @@ features:
     type: float
     min: 4350
     max: 4750
+    weight: 1.0
   3.3_Bus_Current:
     type: float
     min: #125
     max: #145
+    weight: 1.0
   Receiver_Doppler:
     type: int
     min: 150
     max: 164
+    weight: 1.0
   Total_Photo_Current:
     type: float
     min: 195
     max: 270
+    weight: 1.0
   satellite_time:
     type: timestamp
     timeOfDay:
       - 30
       - 1
     weekend: 21
+    weight: 1.0
 features_minmax:
   3.3_Bus_Current:
   - 125.0

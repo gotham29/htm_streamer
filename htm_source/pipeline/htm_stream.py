@@ -75,9 +75,9 @@ def stream_to_htm(config_path: str,
     #     c. Train —> Models (on sample data)
     #     d. Store —> Models
     elif cfg['models_state']['mode'] == 'initializing':
-        features_enc_params = build_enc_params(cfg=cfg,
-                                               models_encoders=cfg['models_encoders'],
-                                               features_weights=cfg['features_weights'])
+        features_enc_params = build_enc_params(features=cfg['features'],
+                                               features_samples=cfg['features_samples'],
+                                               models_encoders=cfg['models_encoders'])
         features_models = init_models(use_sp=cfg['models_state']['use_sp'],
                                       return_pred_count=cfg['models_state']['return_pred_count'],
                                       models_params=cfg['models_params'],
