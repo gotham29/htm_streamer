@@ -64,7 +64,7 @@ class HTMmodel:
                 synPermActiveInc=self.models_params["sp"]["synPermActiveInc"],
                 synPermConnected=self.models_params["sp"]["synPermConnected"],
                 boostStrength=self.models_params["sp"]["boostStrength"],
-                localAreaDensity=0,
+                localAreaDensity=self.models_params['sp']['localAreaDensity'],
                 wrapAround=True)
         else:
             return None
@@ -156,14 +156,13 @@ class HTMmodel:
                 meaning: number of predictions made by TM at current timestep (# predicted cells / # active columns)
         """
         self.tm.activateDendrites(learn=False)
-        pred_cells = self.tm.getPredictiveCells()
 
         # Count number of predicted cells
-        n_pred_cells = pred_cells.getSum()
-        n_cols_per_pred = self.models_params["sp"]["numActiveColumnsPerInhArea"]
+        n_pred_cells = self.tm.getPredictiveCells().getSum()
+        n_cols_per_pred = self.tm.getWinnerCells().getSum()
 
         # Normalize to number of predictions
-        pred_count = n_pred_cells / n_cols_per_pred
+        pred_count = 0 if n_cols_per_pred == 0 else float(n_pred_cells) / n_cols_per_pred
         return pred_count
 
     def get_preds(self, timestep: int, f_data: float) -> dict:

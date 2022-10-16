@@ -122,6 +122,7 @@ def run_batch(cfg: Union[dict, None],
 if __name__ == '__main__':
     args = get_args()
     features_models, features_outputs = run_batch(cfg=None,
+                                                  cfg_default=None,
                                                   data=pd.read_csv(args.data_path),
                                                   learn=True,
                                                   iter_print=100,
