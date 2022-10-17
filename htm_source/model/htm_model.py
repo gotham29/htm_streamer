@@ -65,7 +65,7 @@ class HTMmodel:
                 synPermConnected=self.models_params["sp"]["synPermConnected"],
                 boostStrength=self.models_params["sp"]["boostStrength"],
                 localAreaDensity=self.models_params['sp']['localAreaDensity'],
-                wrapAround=True)
+                wrapAround=self.models_params['sp']['wrapAround'])
         else:
             return None
 

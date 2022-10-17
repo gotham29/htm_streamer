@@ -1,22 +1,11 @@
-import os
-
-import numpy as np
-import pandas as pd
+import argparse
 import json
-
+import numpy as np
+import os
+import pandas as pd
 import tqdm
-
 from htm_source.pipeline.htm_batch_runner import run_batch
 from htm_source.utils.fs import load_config
-
-DETECTOR = "htmStreamer"
-DATASET_COUNT = 60
-REPOS_DIR = "/Users/samheiserman/Desktop/repos"
-CONFIG_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config--nab.yaml")
-CONFIG_DEF_PATH = os.path.join(REPOS_DIR, "htm_streamer/data/config--default.yaml")
-RESULTS_DIR = os.path.join(REPOS_DIR, f"NAB/results/{DETECTOR}")
-DATA_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/data'))
-LABELS_PATH = os.path.abspath(os.path.join(REPOS_DIR, 'NAB/labels/combined_windows.json'))
 
 
 def get_labels(ds_name):
@@ -62,7 +51,33 @@ def merge_labels_into_data(ds_name):
     return df
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument('-d_htm', '--dir_htm', required=True,
+                        help='path to htm_streamer dir')
+
+    parser.add_argument('-d_nab', '--dir_nab', required=True,
+                        help='path to NAB dir')
+
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
+
+    # Get args
+    args = get_args()
+    DATASET_COUNT = 60
+    dir_htm = args.dir_htm  # "/Users/samheiserman/Desktop/repos/htm_streamer"
+    dir_nab = args.dir_nab  # "/Users/samheiserman/Desktop/repos/NAB"
+
+    CONFIG_PATH = os.path.join(dir_htm, 'data', 'config--nab.yaml')
+    CONFIG_DEF_PATH = os.path.join(dir_htm, 'data', 'config--default.yaml')
+    RESULTS_DIR = os.path.join(dir_nab, 'results', 'htmStreamer')
+    DATA_PATH = os.path.join(dir_nab, 'data')
+    LABELS_PATH = os.path.join(dir_nab, 'labels', 'combined_windows.json')
+
     # Load config & data
     config = load_config(CONFIG_PATH)
     config_def = load_config(CONFIG_DEF_PATH)
@@ -78,8 +93,6 @@ if __name__ == '__main__':
                 print(f"    = {v_}")
     print()
 
-    ## Make output dirs
-
     predictive_features = ['timestamp', 'value']
 
     with tqdm.tqdm(total=58, desc="Running NAB") as p_bar:
@@ -91,11 +104,12 @@ if __name__ == '__main__':
                     exp_name = os.path.splitext(f)[0]
                     _, exp_folder = os.path.split(root)
                     exp_folder_dir = os.path.join(RESULTS_DIR, exp_folder)
-                    os.makedirs( os.path.join(exp_folder_dir), exist_ok=True)
+                    os.makedirs(os.path.join(exp_folder_dir), exist_ok=True)
                     results_path = os.path.join(exp_folder_dir, f"htmStreamer_{f}")
                     data = merge_labels_into_data(exp_name)
                     pred_data = data[predictive_features]
                     # Train
+                    print(f"\n\n{f}")
                     features_models, features_outputs = run_batch(cfg=config,
                                                                   cfg_default=config_def,
                                                                   config_path=None,
