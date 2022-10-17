@@ -6,7 +6,7 @@ from htm_source.utils import dict_zip, frozendict
 
 import numpy as np
 from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
-from htm.bindings.algorithms import SpatialPooler, TemporalMemory, Predictor
+from htm.bindings.algorithms import SpatialPooler, TemporalMemory, Predictor, ANMode
 from htm.bindings.sdr import SDR
 
 
@@ -96,7 +96,8 @@ class HTMmodel:
             permanenceDecrement=self.models_params["tm"]["permanenceDec"],
             predictedSegmentDecrement=self.models_params["tm"]["predictedSegmentDecrement"],
             maxSegmentsPerCell=self.models_params["tm"]["maxSegmentsPerCell"],
-            maxSynapsesPerSegment=self.models_params["tm"]["maxSynapsesPerSegment"])
+            maxSynapsesPerSegment=self.models_params["tm"]["maxSynapsesPerSegment"],
+            anomalyMode=ANMode(3))  # TODO
 
     def get_single_feature_name(self) -> Union[None, str]:
         """
@@ -264,8 +265,8 @@ class HTMmodel:
         self.tm.compute(active_columns, learn=learn)
 
         # Get anomaly metrics
-        anomaly_score = self.tm.anomaly
-        anomaly_likelihood = self.anomaly_history.compute(anomaly_score)
+        anomaly_score = 1.  # TODO
+        anomaly_likelihood = self.tm.anomaly
 
         # Ensure pred_count > 0 when anomaly_score < 1.0
         if anomaly_score < 1.0 and pred_count == 0:

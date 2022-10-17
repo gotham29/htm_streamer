@@ -16,16 +16,25 @@ class EncoderFactory:
             rdse_params.activeBits = encoder_params["activeBits"]
             # rdse_params.sparsity = encoder_params["sparsity"]
             rdse_params.resolution = encoder_params['resolution']
-            return RDSE(rdse_params)
+
+            encoder = None
+            counter = 0
+            while encoder is None:
+                try:
+                    encoder = RDSE(rdse_params)
+                except RuntimeError as e:
+                    counter += 1
+                    print(f"Failed {counter} times, ", e)
+                    pass
+
+            return encoder
 
         elif dtype is HTMType.Datetime:
             return DateEncoder(timeOfDay=encoder_params["timeOfDay"],
                                weekend=encoder_params["weekend"],
                                dayOfWeek=encoder_params["dayOfWeek"],
                                holiday=encoder_params["holiday"],
-                               season=encoder_params["season"],
-                               # customDay=encoder_params["custom"],
-                               )
+                               season=encoder_params["season"])
 
         # future implementations here..
 

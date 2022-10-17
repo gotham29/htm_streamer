@@ -120,6 +120,6 @@ if __name__ == '__main__':
                                                                   features_models={})
                     # Collect results
                     data['anomaly_score'] = np.array(
-                        features_outputs[f'megamodel_features={len(predictive_features)}']['anomaly_score'])
+                        features_outputs[f'megamodel_features={len(predictive_features)}']['anomaly_likelihood'])
                     data.to_csv(results_path)
                     p_bar.update(1)
