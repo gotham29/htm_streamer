@@ -65,7 +65,8 @@ def get_params_rdse(f: str,
         f_max = f_max + rangePadding
     params_rdse = {
         'size': int(models_encoders['n'] * f_weight),
-        'sparsity': float(models_encoders['w']/models_encoders['n']),
+        # 'sparsity': float(models_encoders['w']/models_encoders['n']),
+        'activeBits': int(models_encoders['w'] * f_weight),
         'resolution': get_rdse_resolution(feature=f,
                                           f_min=f_min,
                                           f_max=f_max,

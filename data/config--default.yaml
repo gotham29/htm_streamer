@@ -1,6 +1,6 @@
 models_encoders:
   n: 400
-  w: 40  #21
+  w: 21  #40
   n_buckets: 130
   p_padding: 20
 models_params:

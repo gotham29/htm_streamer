@@ -13,13 +13,19 @@ class EncoderFactory:
         if dtype is HTMType.Numeric:
             rdse_params = RDSE_Parameters()
             rdse_params.size = encoder_params['size']
-            rdse_params.sparsity = encoder_params["sparsity"]
+            rdse_params.activeBits = encoder_params["activeBits"]
+            # rdse_params.sparsity = encoder_params["sparsity"]
             rdse_params.resolution = encoder_params['resolution']
             return RDSE(rdse_params)
 
         elif dtype is HTMType.Datetime:
             return DateEncoder(timeOfDay=encoder_params["timeOfDay"],
-                               weekend=encoder_params["weekend"])
+                               weekend=encoder_params["weekend"],
+                               dayOfWeek=encoder_params["dayOfWeek"],
+                               holiday=encoder_params["holiday"],
+                               season=encoder_params["season"],
+                               # customDay=encoder_params["custom"],
+                               )
 
         # future implementations here..
 
