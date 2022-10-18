@@ -1,24 +1,28 @@
 models_encoders:
   n: 400
-  w: 21  #40
+  w: 21
   n_buckets: 130
   p_padding: 20
 models_params:
-  anomaly:
-    period: 1000
+  alikl:
+    probationaryPeriod:  #int
+    reestimationPeriod: 100
   predictor:
     sdrc_alpha: 0.1
   sp:
     potentialPct: 0.8
     columnCount: 2048
-    globalInhibition: true  #nupic: 1
+    globalInhibition: true
     boostStrength: 0.0
-    localAreaDensity: 0.1  #0.0
-    numActiveColumnsPerInhArea: 0  #40
+    localAreaDensity: 0.0  #0.1
+    stimulusThreshold: 0
+    numActiveColumnsPerInhArea: 40  #0
     synPermActiveInc: 0.003
     synPermConnected: 0.2
     synPermInactiveDec: 0.0005
     wrapAround: true
+    minPctOverlapDutyCycle: 0.001
+    dutyCyclePeriod: 1000
   tm:
     activationThreshold: 20
     cellsPerColumn: 32

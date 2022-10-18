@@ -59,7 +59,7 @@ def init_models(use_sp: bool,
                              return_pred_count=return_pred_count,
                              models_params=models_params,
                              predictor_config=predictor_config)
-            print_mod_params(model)
+            # print_mod_params(model)
             features_models[feat] = model
 
     else:  # one multi-feature model
@@ -68,7 +68,7 @@ def init_models(use_sp: bool,
                          return_pred_count=return_pred_count,
                          models_params=models_params,
                          predictor_config=predictor_config)
-        print_mod_params(model)
+        # print_mod_params(model)
         features_models[f'megamodel_features={len(features_enc_params)}'] = model
 
     print(f'  Models initialized...')

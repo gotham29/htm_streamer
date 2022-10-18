@@ -14,9 +14,9 @@ class EncoderFactory:
             rdse_params = RDSE_Parameters()
             rdse_params.size = encoder_params['size']
             rdse_params.activeBits = encoder_params["activeBits"]
-            # rdse_params.sparsity = encoder_params["sparsity"]
             rdse_params.resolution = encoder_params['resolution']
 
+            # TODO: ugly hack to avoid RDSE collision error (from randomized test)
             encoder = None
             counter = 0
             while encoder is None:
@@ -24,7 +24,7 @@ class EncoderFactory:
                     encoder = RDSE(rdse_params)
                 except RuntimeError as e:
                     counter += 1
-                    print(f"Failed {counter} times, ", e)
+                    print(f"Failed {counter} time(s), ", e)
                     pass
 
             return encoder

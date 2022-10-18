@@ -1,13 +1,15 @@
+import math
 from typing import Mapping, Union
 
-from htm_source.data import Feature, separate_time_and_rest
-from htm_source.data.types import HTMType
-from htm_source.utils import dict_zip, frozendict
+capnp = None
 
 import numpy as np
-from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
 from htm.bindings.algorithms import SpatialPooler, TemporalMemory, Predictor, ANMode
 from htm.bindings.sdr import SDR
+
+# from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
+from htm_source.data import Feature, separate_time_and_rest, AnomalyLikelihood
+from htm_source.utils import dict_zip, frozendict
 
 
 class HTMmodel:
@@ -18,6 +20,7 @@ class HTMmodel:
                  use_sp: bool,
                  return_pred_count: bool = False):
 
+        self.iteration_ = 0
         self.use_sp = use_sp
         self.features = features
         self.models_params = models_params
@@ -26,11 +29,11 @@ class HTMmodel:
         self.return_pred_count = return_pred_count
         self.predictor = Predictor(steps=self.predictor_steps_ahead,
                                    alpha=self.models_params["predictor"]['sdrc_alpha'])
-        self.anomaly_history = AnomalyLikelihood(self.models_params["anomaly"]["period"])
-
         self.encoding_width = sum(feat.encoding_size for feat in self.features.values())
         self.sp = self.init_sp()
         self.tm = self.init_tm()
+        self.anomalyLikelihood = self.init_alikelihood()
+        # self.anomaly_history = AnomalyLikelihood(self.models_params["anomaly"]["period"])
 
         # utility attributes
         self.single_feature = self.get_single_feature_name()
@@ -97,7 +100,21 @@ class HTMmodel:
             predictedSegmentDecrement=self.models_params["tm"]["predictedSegmentDecrement"],
             maxSegmentsPerCell=self.models_params["tm"]["maxSegmentsPerCell"],
             maxSynapsesPerSegment=self.models_params["tm"]["maxSynapsesPerSegment"],
-            anomalyMode=ANMode(3))  # TODO
+            anomalyMode=ANMode(1))  # TODO
+
+        # Initialize the anomaly likelihood object
+
+    def init_alikelihood(self):
+        LearningPeriod = int(math.floor(self.models_params["alikl"]["probationaryPeriod"] / 2.0))
+        return AnomalyLikelihood(
+            learningPeriod=LearningPeriod,
+            estimationSamples=self.models_params["alikl"]["probationaryPeriod"]-LearningPeriod,
+            reestimationPeriod=self.models_params["alikl"]["reestimationPeriod"])
+
+    def get_alikelihood(self, value, anomaly_score, timestamp):
+        anomalyScore = self.anomalyLikelihood.anomalyProbability(value, anomaly_score, timestamp)
+        logScore = self.anomalyLikelihood.computeLogLikelihood(anomalyScore)
+        return logScore
 
     def get_single_feature_name(self) -> Union[None, str]:
         """
@@ -265,8 +282,11 @@ class HTMmodel:
         self.tm.compute(active_columns, learn=learn)
 
         # Get anomaly metrics
-        anomaly_score = 1.  # TODO
-        anomaly_likelihood = self.tm.anomaly
+        anomaly_score = self.tm.anomaly
+        f1 = list(features_data.keys())[0]
+        anomaly_likelihood = self.get_alikelihood(value=features_data[f1],   # TODO - resolve megamodel case
+                                                  timestamp=self.iteration_,  # TODO - include timestamp if available
+                                                  anomaly_score=anomaly_score)
 
         # Ensure pred_count > 0 when anomaly_score < 1.0
         if anomaly_score < 1.0 and pred_count == 0:
@@ -280,4 +300,9 @@ class HTMmodel:
         else:
             steps_predictions = None
 
+        # Increment iteration
+        self.iteration_ += 1
+
         return anomaly_score, anomaly_likelihood, pred_count, steps_predictions
+
+

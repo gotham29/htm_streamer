@@ -8,6 +8,19 @@ from htm_source.pipeline.htm_batch_runner import run_batch
 from htm_source.utils.fs import load_config
 
 
+def print_config(config, indents=2):
+    indent = ' ' * indents
+    for k, v in config.items():
+        print(f"\n{indent}{k}")
+        for k_, v_ in v.items():
+            print(f"{indent}  {k_}")
+            if isinstance(v_, dict):
+                for k__, v__ in v_.items():
+                    print(f"{indent}    {k__} = {v__}")
+            else:
+                print(f"{indent}    = {v_}")
+
+
 def get_labels(ds_name):
     with open(LABELS_PATH, 'r') as f:
         tags = json.loads(f.read())
@@ -69,6 +82,7 @@ if __name__ == '__main__':
     # Get args
     args = get_args()
     DATASET_COUNT = 60
+    PROBATION_PERCENT = 0.1
     dir_htm = args.dir_htm  # "/Users/samheiserman/Desktop/repos/htm_streamer"
     dir_nab = args.dir_nab  # "/Users/samheiserman/Desktop/repos/NAB"
 
@@ -81,17 +95,8 @@ if __name__ == '__main__':
     # Load config & data
     config = load_config(CONFIG_PATH)
     config_def = load_config(CONFIG_DEF_PATH)
-    print('CONFIG')
-    for k, v in config.items():
-        print(f"\n{k}")
-        for k_, v_ in v.items():
-            print(f"  {k_}")
-            if isinstance(v_, dict):
-                for k__, v__ in v_.items():
-                    print(f"    {k__} = {v__}")
-            else:
-                print(f"    = {v_}")
-    print()
+    print_config(config)
+    print_config(config_def)
 
     predictive_features = ['timestamp', 'value']
 
@@ -110,6 +115,7 @@ if __name__ == '__main__':
                     pred_data = data[predictive_features]
                     # Train
                     print(f"\n\n{f}")
+                    config_def['models_params']['alikl']['probationaryPeriod'] = int(data.shape[0]*PROBATION_PERCENT)
                     features_models, features_outputs = run_batch(cfg=config,
                                                                   cfg_default=config_def,
                                                                   config_path=None,
