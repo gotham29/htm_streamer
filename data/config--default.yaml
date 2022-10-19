@@ -5,7 +5,7 @@ models_encoders:
   p_padding: 20
 models_params:
   alikl:
-    probationaryPeriod:  #int
+    probationaryPeriod: 500
     reestimationPeriod: 100
   predictor:
     sdrc_alpha: 0.1

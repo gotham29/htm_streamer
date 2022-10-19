@@ -18,8 +18,10 @@ if __name__ == '__main__':
 
     # Load config & data
     config_path = os.path.join(os.getcwd(), 'data', 'config.yaml')
+    config_def_path = os.path.join(os.getcwd(), 'data', 'config--default.yaml')
     data_path = os.path.join(os.getcwd(), 'data', 'batch', 'sample_timeseries.csv')
     config = load_config(config_path)
+    config_def = load_config(config_def_path)
     data = pd.read_csv(data_path)
 
     # Validate & update features
@@ -37,7 +39,9 @@ if __name__ == '__main__':
 
     # Train
     features_models, features_outputs = run_batch(cfg=config,
+                                                  cfg_default=config_def,
                                                   config_path=None,
+                                                  config_default_path=None,
                                                   learn=True,
                                                   data=data,
                                                   iter_print=100,
@@ -45,7 +49,9 @@ if __name__ == '__main__':
 
     # Run
     features_models, features_outputs = run_batch(cfg=config,
+                                                  cfg_default=config_def,
                                                   config_path=None,
+                                                  config_default_path=None,
                                                   learn=False,
                                                   data=data,
                                                   iter_print=100,
