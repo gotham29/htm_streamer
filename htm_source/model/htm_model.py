@@ -32,12 +32,12 @@ class HTMmodel:
         self.encoding_width = sum(feat.encoding_size for feat in self.features.values())
         self.sp = self.init_sp()
         self.tm = self.init_tm()
-        self.anomalyLikelihood = self.init_alikelihood()
-        # self.anomaly_history = AnomalyLikelihood(self.models_params["anomaly"]["period"])
+        self.al = self.init_alikelihood()
 
         # utility attributes
         self.single_feature = self.get_single_feature_name()
         self.feature_names = list(self.features.keys())
+        self.time_feat = separate_time_and_rest(self.features.values())[0]
 
     def init_sp(self) -> Union[None, SpatialPooler]:
         """
@@ -112,8 +112,8 @@ class HTMmodel:
             reestimationPeriod=self.models_params["alikl"]["reestimationPeriod"])
 
     def get_alikelihood(self, value, anomaly_score, timestamp):
-        anomalyScore = self.anomalyLikelihood.anomalyProbability(value, anomaly_score, timestamp)
-        logScore = self.anomalyLikelihood.computeLogLikelihood(anomalyScore)
+        anomalyScore = self.al.anomalyProbability(value, anomaly_score, timestamp)
+        logScore = self.al.computeLogLikelihood(anomalyScore)
         return logScore
 
     def get_single_feature_name(self) -> Union[None, str]:
@@ -280,12 +280,17 @@ class HTMmodel:
         # Get prediction density
         pred_count = self.get_predcount() if self.return_pred_count else None
         self.tm.compute(active_columns, learn=learn)
-
         # Get anomaly metrics
         anomaly_score = self.tm.anomaly
+        # Get timestamp data if available
+        if self.time_feat is None:
+            timestamp = self.iteration_
+        else:
+            timestamp = features_data[self.time_feat]
+        # Choose feature for value arg
         f1 = list(features_data.keys())[0]
         anomaly_likelihood = self.get_alikelihood(value=features_data[f1],   # TODO - resolve megamodel case
-                                                  timestamp=self.iteration_,  # TODO - include timestamp if available
+                                                  timestamp=timestamp,
                                                   anomaly_score=anomaly_score)
 
         # Ensure pred_count > 0 when anomaly_score < 1.0

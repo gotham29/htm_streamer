@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
     predictive_features = ['timestamp', 'value']
 
-    with tqdm.tqdm(total=58, desc="Running NAB") as p_bar:
+    with tqdm.tqdm(total=58, desc="\n\nRunning NAB") as p_bar:
         for root, dirs, files in os.walk(DATA_PATH):
             for f in files:
                 if f.endswith('.csv'):
