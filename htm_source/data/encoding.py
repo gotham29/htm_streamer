@@ -12,6 +12,7 @@ class EncoderFactory:
         """
         if dtype is HTMType.Numeric:
             rdse_params = RDSE_Parameters()
+            rdse_params.seed = encoder_params['seed']
             rdse_params.size = encoder_params['size']
             rdse_params.activeBits = encoder_params["activeBits"]
             rdse_params.resolution = encoder_params['resolution']

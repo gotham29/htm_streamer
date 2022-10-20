@@ -11,7 +11,7 @@ from htm_source.utils.fs import load_config
 def print_config(config, indents=2):
     indent = ' ' * indents
     for k, v in config.items():
-        print(f"\n{indent}{k}")
+        print(f"{indent}{k}")
         for k_, v_ in v.items():
             print(f"{indent}  {k_}")
             if isinstance(v_, dict):

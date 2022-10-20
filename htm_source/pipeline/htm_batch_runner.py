@@ -98,14 +98,15 @@ def run_batch(cfg: Union[dict, None],
         if cfg['models_state']['model_for_each_feature']:
             for f, f_dict in cfg['features'].items():
                 if to_htm_type(f_dict['type']) is HTMType.Datetime:
-                    continue  # the rest of the code will never run!
+                    continue
 
                 aScore, aLikl, pCount, sPreds = features_models[f].run(features_data, timestep, learn,
                                                                        cfg['models_predictor'])
                 features_outputs[f]['anomaly_score'].append(aScore)
                 features_outputs[f]['anomaly_likelihood'].append(aLikl)
                 features_outputs[f]['pred_count'].append(pCount)
-        else:  # single-models case
+        # single-models case
+        else:
             aScore, aLikl, pCount, sPreds = features_models[multi_feat].run(features_data, timestep, learn,
                                                                             cfg['models_predictor'])
             features_outputs[multi_feat]['anomaly_score'].append(aScore)

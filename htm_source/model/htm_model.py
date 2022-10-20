@@ -4,7 +4,7 @@ from typing import Mapping, Union
 capnp = None
 
 import numpy as np
-from htm.bindings.algorithms import SpatialPooler, TemporalMemory, Predictor, ANMode
+from htm.bindings.algorithms import SpatialPooler, TemporalMemory, Predictor
 from htm.bindings.sdr import SDR
 
 # from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
@@ -36,8 +36,10 @@ class HTMmodel:
 
         # utility attributes
         self.single_feature = self.get_single_feature_name()
+        self.minVal = None
+        self.maxVal = None
         self.feature_names = list(self.features.keys())
-        self.time_feat = separate_time_and_rest(self.features.values())[0]
+        self.feature_timestamp = separate_time_and_rest(self.features.values())[0]
 
     def init_sp(self) -> Union[None, SpatialPooler]:
         """
@@ -68,7 +70,8 @@ class HTMmodel:
                 synPermConnected=self.models_params["sp"]["synPermConnected"],
                 boostStrength=self.models_params["sp"]["boostStrength"],
                 localAreaDensity=self.models_params['sp']['localAreaDensity'],
-                wrapAround=self.models_params['sp']['wrapAround'])
+                wrapAround=self.models_params['sp']['wrapAround'],
+                seed=self.models_params['sp']['seed'])
         else:
             return None
 
@@ -100,18 +103,16 @@ class HTMmodel:
             predictedSegmentDecrement=self.models_params["tm"]["predictedSegmentDecrement"],
             maxSegmentsPerCell=self.models_params["tm"]["maxSegmentsPerCell"],
             maxSynapsesPerSegment=self.models_params["tm"]["maxSynapsesPerSegment"],
-            anomalyMode=ANMode(1))  # TODO
+            seed=self.models_params['sp']['seed'])
 
-        # Initialize the anomaly likelihood object
-
-    def init_alikelihood(self):
+    def init_alikelihood(self) -> AnomalyLikelihood:
         LearningPeriod = int(math.floor(self.models_params["alikl"]["probationaryPeriod"] / 2.0))
         return AnomalyLikelihood(
             learningPeriod=LearningPeriod,
-            estimationSamples=self.models_params["alikl"]["probationaryPeriod"]-LearningPeriod,
+            estimationSamples=self.models_params["alikl"]["probationaryPeriod"] - LearningPeriod,
             reestimationPeriod=self.models_params["alikl"]["reestimationPeriod"])
 
-    def get_alikelihood(self, value, anomaly_score, timestamp):
+    def get_alikelihood(self, value, anomaly_score, timestamp) -> float:
         anomalyScore = self.al.anomalyProbability(value, anomaly_score, timestamp)
         logScore = self.al.computeLogLikelihood(anomalyScore)
         return logScore
@@ -225,6 +226,21 @@ class HTMmodel:
         self.predictor.learn(timestep, active_cells, f_data // self.predictor_resolution)
         return steps_predictions
 
+    def check_spatial_anomaly(self, spatial_tolerance, features_data) -> bool:
+        spatialAnomaly = False
+        value = features_data[self.single_feature]
+        if self.minVal != self.maxVal:
+            tolerance = (self.maxVal - self.minVal) * spatial_tolerance
+            maxExpected = self.maxVal + tolerance
+            minExpected = self.minVal - tolerance
+            if value > maxExpected or value < minExpected:
+                spatialAnomaly = True
+        if self.maxVal is None or value > self.maxVal:
+            self.maxVal = value
+        if self.minVal is None or value < self.minVal:
+            self.minVal = value
+        return spatialAnomaly
+
     def run(self,
             features_data: Mapping,
             timestep: int,
@@ -282,16 +298,19 @@ class HTMmodel:
         self.tm.compute(active_columns, learn=learn)
         # Get anomaly metrics
         anomaly_score = self.tm.anomaly
-        # Get timestamp data if available
-        if self.time_feat is None:
-            timestamp = self.iteration_
-        else:
-            timestamp = features_data[self.time_feat]
         # Choose feature for value arg
-        f1 = list(features_data.keys())[0]
-        anomaly_likelihood = self.get_alikelihood(value=features_data[f1],   # TODO - resolve megamodel case
+        f1 = self.single_feature if self.single_feature else list(features_data.keys())[0]
+        # Get timestamp data if available
+        timestamp = self.iteration_ if not self.feature_timestamp else features_data[self.feature_timestamp]
+        anomaly_likelihood = self.get_alikelihood(value=features_data[f1],  # TODO - resolve megamodel case
                                                   timestamp=timestamp,
                                                   anomaly_score=anomaly_score)
+
+        # Check for spatial anomaly (NAB)
+        if self.single_feature and self.models_params['spatial_anom']['enable']:
+            spatialAnomaly = self.check_spatial_anomaly(self.models_params['spatial_anom']['tolerance'], features_data)
+            if spatialAnomaly:
+                anomaly_likelihood = 1.0
 
         # Ensure pred_count > 0 when anomaly_score < 1.0
         if anomaly_score < 1.0 and pred_count == 0:
@@ -309,5 +328,3 @@ class HTMmodel:
         self.iteration_ += 1
 
         return anomaly_score, anomaly_likelihood, pred_count, steps_predictions
-
-

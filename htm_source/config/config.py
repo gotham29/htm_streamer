@@ -1,6 +1,7 @@
 import numpy as np
 
 from htm_source.utils.general import isnumeric
+from htm_source.data.types import HTMType, to_htm_type
 
 
 def reset_config(cfg: dict) -> dict:
@@ -65,7 +66,6 @@ def get_params_rdse(f: str,
         f_max = f_max + rangePadding
     params_rdse = {
         'size': int(models_encoders['n'] * f_weight),
-        # 'sparsity': float(models_encoders['w']/models_encoders['n']),
         'activeBits': int(models_encoders['w'] * f_weight),
         'resolution': get_rdse_resolution(feature=f,
                                           f_min=f_min,
@@ -78,8 +78,6 @@ def get_params_rdse(f: str,
 def build_enc_params(features: dict,
                      models_encoders: dict,
                      features_samples: dict,
-                     types_numeric: list = ('int', 'float'),
-                     types_time: list = ('timestamp', 'datetime')
                      ) -> dict:
     """
     Purpose:
@@ -106,22 +104,23 @@ def build_enc_params(features: dict,
     features_enc_params = {}
     for f, f_dict in features.items():
         # get enc - numeric
-        if f_dict['type'] in types_numeric:
+        if to_htm_type(f_dict['type']) is HTMType.Numeric:
             features_enc_params[f] = get_params_rdse(f=f,
                                                      f_dict=f_dict,
                                                      f_weight=features_weights[f],
                                                      f_sample=features_samples[f],
                                                      models_encoders=models_encoders,)
         # get enc - datetime
-        elif f_dict['type'] in types_time:
+        elif to_htm_type(f_dict['type']) is HTMType.Datetime:
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
         # get enc - categoric
-        elif f_dict['type'] == 'category':
+        elif f_dict['type'] == 'category':  # TODO - add categoric HTMType
             raise NotImplementedError("Category encoder not implemented yet")
             # features_enc_params[f] = get_params_category(f_dict)
         else:
             raise TypeError(f"Unsupported type: {f_dict['type']}")
         features_enc_params[f]['type'] = f_dict['type']
+        features_enc_params[f]['seed'] = models_encoders['seed']
     return features_enc_params
 
 

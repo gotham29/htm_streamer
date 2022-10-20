@@ -3,12 +3,14 @@ models_encoders:
   w: 21
   n_buckets: 130
   p_padding: 20
+  seed: 0
 models_params:
+  spatial_anom:
+    enable: true
+    tolerance: 0.05
   alikl:
     probationaryPeriod: 500
     reestimationPeriod: 100
-  predictor:
-    sdrc_alpha: 0.1
   sp:
     potentialPct: 0.8
     columnCount: 2048
@@ -23,6 +25,7 @@ models_params:
     wrapAround: true
     minPctOverlapDutyCycle: 0.001
     dutyCyclePeriod: 1000
+    seed: 0  #1956
   tm:
     activationThreshold: 20
     cellsPerColumn: 32
@@ -36,6 +39,9 @@ models_params:
     permanenceInc: 0.04
     permanenceConnected: 0.5
     predictedSegmentDecrement: 0.001
+    seed: 0  #1960
+  predictor:
+    sdrc_alpha: 0.1
 models_predictor:
   enable: false
   resolution: 1
