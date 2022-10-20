@@ -32,7 +32,7 @@ features:
     weekend: 0
     weight: 1.0
 models_state:
-  model_for_each_feature: true
+  model_for_each_feature: false
   return_pred_count: true
   use_sp: false
 timesteps_stop:

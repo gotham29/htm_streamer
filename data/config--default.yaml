@@ -6,8 +6,12 @@ models_encoders:
   seed: 0
 models_params:
   spatial_anom:
-    enable: true
+    enable: false
     tolerance: 0.05
+    perc_min: 2
+    perc_max: 98
+    anom_prop: 0.3
+    window: 1000
   alikl:
     probationaryPeriod: 500
     reestimationPeriod: 100
