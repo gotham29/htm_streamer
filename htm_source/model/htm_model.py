@@ -230,7 +230,7 @@ class HTMmodel:
         # filter time feature from features_data
         features_data = {f: val for f, val in features_data.items() if f != self.feature_timestamp}
         # get number of feats req for spatial anomaly
-        anom_feats_req = min(int(len(features_data)*params['anom_prop']), 1)
+        anom_feats_req = max(int(len(features_data)*params['anom_prop']), 1)
         # update sample w/latest data
         for f, val in features_data.items():
             self.features_samples[f].append(val)
