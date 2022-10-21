@@ -65,14 +65,46 @@ def get_params_rdse(f: str,
         f_min = f_min - rangePadding
         f_max = f_max + rangePadding
     params_rdse = {
-        'size': int(models_encoders['n'] * f_weight),
-        'activeBits': int(models_encoders['w'] * f_weight),
         'resolution': get_rdse_resolution(feature=f,
                                           f_min=f_min,
                                           f_max=f_max,
                                           n_buckets=models_encoders['n_buckets'])
     }
     return params_rdse
+
+
+def get_params_category(f_weight: float,
+                        models_encoders: dict) -> dict:
+    """
+    Purpose:
+        Get enc params for 'f'
+    Inputs:
+        f:
+            type: str
+            meaning: name of feature
+        f_dict:
+            type: dict
+            meaning: holds type, min & max for 'f'
+        models_encoders:
+            type: dict
+            meaning: encoding params from config
+        f_weight:
+            type: float
+            meaning: weight for 'f'
+        f_sample:
+            type: list
+            meaning: values for 'f'
+    Outputs:
+        params_rdse
+            type: dict
+            meaning: enc params for 'f'
+    """
+    params_category = {
+        'size': int(models_encoders['n'] * f_weight),
+        'activeBits': int(models_encoders['w'] * f_weight),
+        'category': True
+    }
+    return params_category
 
 
 def build_enc_params(features: dict,
@@ -114,13 +146,16 @@ def build_enc_params(features: dict,
         elif to_htm_type(f_dict['type']) is HTMType.Datetime:
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
         # get enc - categoric
-        elif f_dict['type'] == 'category':  # TODO - add categoric HTMType
-            raise NotImplementedError("Category encoder not implemented yet")
-            # features_enc_params[f] = get_params_category(f_dict)
+        elif to_htm_type(f_dict['type']) is HTMType.Categoric:
+            features_enc_params[f] = get_params_category(f_weight=features_weights[f],
+                                                         models_encoders=models_encoders)
         else:
             raise TypeError(f"Unsupported type: {f_dict['type']}")
+        # set seed, size, activeBits
         features_enc_params[f]['type'] = f_dict['type']
         features_enc_params[f]['seed'] = models_encoders['seed']
+        features_enc_params[f]['size'] = int(models_encoders['n'] * features_weights[f])
+        features_enc_params[f]['activeBits'] = int(models_encoders['w'] * features_weights[f])
     return features_enc_params
 
 
