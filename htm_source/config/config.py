@@ -79,23 +79,14 @@ def get_params_category(f_weight: float,
     Purpose:
         Get enc params for 'f'
     Inputs:
-        f:
-            type: str
-            meaning: name of feature
-        f_dict:
-            type: dict
-            meaning: holds type, min & max for 'f'
-        models_encoders:
-            type: dict
-            meaning: encoding params from config
         f_weight:
             type: float
             meaning: weight for 'f'
-        f_sample:
-            type: list
-            meaning: values for 'f'
+        models_encoders:
+            type: dict
+            meaning: encoding params from config
     Outputs:
-        params_rdse
+        params_category
             type: dict
             meaning: enc params for 'f'
     """
