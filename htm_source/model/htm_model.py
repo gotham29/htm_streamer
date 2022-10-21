@@ -105,6 +105,19 @@ class HTMmodel:
             seed=self.models_params['sp']['seed'])
 
     def init_alikelihood(self) -> AnomalyLikelihood:
+        """
+        Purpose:
+            Init HTMModel.al
+        Inputs:
+            HTMmodel.models_params['alikl']
+                type: dict
+                meaning: hyperparams for alikelihood
+        Outputs:
+            HTMmodel.al
+                type: nupic.AnomalyLikelihood
+                meaning: HTM native alg that for postprocessing raw anomaly scores
+        """
+
         LearningPeriod = int(math.floor(self.models_params["alikl"]["probationaryPeriod"] / 2.0))
         return AnomalyLikelihood(
             learningPeriod=LearningPeriod,
@@ -112,9 +125,27 @@ class HTMmodel:
             reestimationPeriod=self.models_params["alikl"]["reestimationPeriod"])
 
     def get_alikelihood(self, value, anomaly_score, timestamp) -> float:
+        """
+        Purpose:
+            Return anomaly likelihood for given input data point
+        Inputs:
+            value:
+                type: float
+                meaning: current input data point
+            anomaly_score:
+                type: float
+                meaning: HTM raw anomaly score output from HTMmodel.tm
+            timestamp:
+                type: datetime or int
+                meaning: timestamp feature (or HTMmodel.iteration_ if no timestamp)
+        Outputs:
+            anomalyLikelihood:
+                type: float
+                meaning: likelihood value (used to classify data as anomalous or not)
+        """
         anomalyScore = self.al.anomalyProbability(value, anomaly_score, timestamp)
-        logScore = self.al.computeLogLikelihood(anomalyScore)
-        return logScore
+        anomalyLikelihood = self.al.computeLogLikelihood(anomalyScore)
+        return anomalyLikelihood
 
     def get_single_feature_name(self) -> Union[None, str]:
         """
@@ -226,28 +257,56 @@ class HTMmodel:
         return steps_predictions
 
     def check_spatial_anomaly(self, params, features_data) -> bool:
+        """
+        Purpose:
+            Check for 'spatial' anomaly (if data exceed a min/max threshold)
+        Inputs:
+            params:
+                type: dict
+                meaning: info to config min/max thresholding
+            features_data:
+                type: dict
+                meaning: meaning: current data for each feature
+        Outputs:
+            spatialAnomaly:
+                type: bool
+                meaning: whether features_data is a 'spatial' anomaly
+        """
         spatialAnomaly = False
         # filter time feature from features_data
         features_data = {f: val for f, val in features_data.items() if f != self.feature_timestamp}
         # get number of feats req for spatial anomaly
         anom_feats_req = max(int(len(features_data)*params['anom_prop']), 1)
+        # get max/min values (by percentile)
+        sample_empty = False
+        features_minmax = {f: {} for f in features_data}
+        for f in features_data:
+            if len(self.features_samples[f]) == 0:
+                sample_empty = True
+                continue
+            features_minmax[f]['min'] = np.percentile(self.features_samples[f], params['perc_min'])
+            features_minmax[f]['max'] = np.percentile(self.features_samples[f], params['perc_max'])
+        # get anom features
+        if not sample_empty:
+            features_anom = []
+            minmax_equal = False
+            for f, val in features_data.items():
+                if features_minmax[f]['max'] == features_minmax[f]['min']:
+                    minmax_equal = True
+                    continue
+                tolerance = (features_minmax[f]['max'] - features_minmax[f]['min']) * params['tolerance']
+                maxExpected = features_minmax[f]['max'] + tolerance
+                minExpected = features_minmax[f]['min'] - tolerance
+                if (val >= maxExpected) or (val <= minExpected):
+                    features_anom.append(f)
+            # check for spatial anom
+            if not minmax_equal:
+                if len(features_anom) >= anom_feats_req:
+                    spatialAnomaly = True
         # update sample w/latest data
         for f, val in features_data.items():
             self.features_samples[f].append(val)
             self.features_samples[f] = self.features_samples[f][-params['window']:]
-        # get max/min values (by percentile)
-        features_minmax = {f: {} for f in features_data}
-        for f in features_data:
-            features_minmax[f]['min'] = np.percentile(self.features_samples[f], params['perc_min'])
-            features_minmax[f]['max'] = np.percentile(self.features_samples[f], params['perc_max'])
-        # get anom features
-        features_anom = []
-        for f, val in features_data.items():
-            if val > features_minmax[f]['max'] or val < features_minmax[f]['min']:
-                features_anom.append(f)
-        # check for spatial anom
-        if len(features_anom) >= anom_feats_req:
-            spatialAnomaly = True
         return spatialAnomaly
 
     def run(self,
