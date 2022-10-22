@@ -55,7 +55,7 @@ def init_models(use_sp: bool,
         for feat in non_time_features:
             single_feat = {time_feature: features[time_feature], feat: features[feat]}
             model = HTMmodel(features=frozendict(single_feat),
-                             use_sp=use_sp,
+                             use_spatial_pooler=use_sp,
                              return_pred_count=return_pred_count,
                              models_params=models_params,
                              predictor_config=predictor_config)
@@ -64,7 +64,7 @@ def init_models(use_sp: bool,
 
     else:  # one multi-feature model
         model = HTMmodel(features=frozendict(features),
-                         use_sp=use_sp,
+                         use_spatial_pooler=use_sp,
                          return_pred_count=return_pred_count,
                          models_params=models_params,
                          predictor_config=predictor_config)

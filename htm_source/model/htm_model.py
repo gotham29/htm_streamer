@@ -17,18 +17,18 @@ class HTMmodel:
                  features: frozendict[str, Feature],
                  models_params: dict,
                  predictor_config: dict,
-                 use_sp: bool,
+                 use_spatial_pooler: bool,
                  return_pred_count: bool = False):
 
         self.iteration_ = 0
-        self.use_sp = use_sp
         self.features = features
         self.models_params = models_params
-        self.predictor_resolution = predictor_config['resolution']
-        self.predictor_steps_ahead = predictor_config['steps_ahead']
+
         self.return_pred_count = return_pred_count
-        self.predictor = Predictor(steps=self.predictor_steps_ahead,
-                                   alpha=self.models_params["predictor"]['sdrc_alpha'])
+        self.use_predictor = predictor_config['enable']
+        self.use_spatial_pooler = use_spatial_pooler
+        self.use_spatial_anomaly = self.models_params['spatial_anom']['enable']
+
         self.encoding_width = sum(feat.encoding_size for feat in self.features.values())
         self.sp = self.init_sp()
         self.tm = self.init_tm()
@@ -39,6 +39,14 @@ class HTMmodel:
         self.feature_names = list(self.features.keys())
         self.features_samples = {f: [] for f in self.feature_names}
         self.feature_timestamp = separate_time_and_rest(self.features.values())[0]
+
+        # predictor (optional)
+        if self.use_predictor:
+            self.predictor_resolution = predictor_config['resolution']
+            self.predictor_steps_ahead = predictor_config['steps_ahead']
+            self.predictor = Predictor(steps=self.predictor_steps_ahead,
+                                       alpha=self.models_params["predictor"]['sdrc_alpha'])
+
 
     def init_sp(self) -> Union[None, SpatialPooler]:
         """
@@ -56,7 +64,7 @@ class HTMmodel:
                 type: htm.core.SpatialPooler
                 meaning: HTM native alg that selects activeColumns for input to TM
         """
-        if self.use_sp:
+        if self.use_spatial_pooler:
             return SpatialPooler(
                 inputDimensions=(self.encoding_width,),
                 columnDimensions=(self.models_params["sp"]["columnCount"],),
@@ -88,7 +96,7 @@ class HTMmodel:
                 meaning: HTM native alg that activates & depolarizes activeColumns' cells within HTM region
         """
 
-        column_dimensions = self.models_params["sp"]["columnCount"] if self.use_sp else self.encoding_width
+        column_dimensions = self.models_params["sp"]["columnCount"] if self.use_spatial_pooler else self.encoding_width
         return TemporalMemory(
             columnDimensions=(column_dimensions,),
             cellsPerColumn=self.models_params["tm"]["cellsPerColumn"],
@@ -144,8 +152,8 @@ class HTMmodel:
                 meaning: likelihood value (used to classify data as anomalous or not)
         """
         anomalyScore = self.al.anomalyProbability(value, anomaly_score, timestamp)
-        anomalyLikelihood = self.al.computeLogLikelihood(anomalyScore)
-        return anomalyLikelihood
+        logScore = self.al.computeLogLikelihood(anomalyScore)
+        return logScore
 
     def get_single_feature_name(self) -> Union[None, str]:
         """
@@ -353,7 +361,7 @@ class HTMmodel:
         encoding = self.get_encoding(features_data)
 
         # SPATIAL POOLER (or just encoding)
-        if self.use_sp:
+        if self.use_spatial_pooler:
             # Create an SDR to represent active columns
             active_columns = SDR(self.sp.getColumnDimensions())
             self.sp.compute(encoding, learn, active_columns)
@@ -367,15 +375,15 @@ class HTMmodel:
         # Get anomaly metrics
         anomaly_score = self.tm.anomaly
         # Choose feature for value arg
-        f1 = self.single_feature if self.single_feature else list(features_data.keys())[0]
+        f1 = self.single_feature if self.single_feature else self.feature_names[0]
         # Get timestamp data if available
-        timestamp = self.iteration_ if not self.feature_timestamp else features_data[self.feature_timestamp]
+        timestamp = features_data[self.feature_timestamp] if self.feature_timestamp else self.iteration_
         anomaly_likelihood = self.get_alikelihood(value=features_data[f1],  # TODO - resolve megamodel case
                                                   timestamp=timestamp,
                                                   anomaly_score=anomaly_score)
 
         # Check for spatial anomaly (NAB)
-        if self.models_params['spatial_anom']['enable']:
+        if self.use_spatial_anomaly:
             spatialAnomaly = self.check_spatial_anomaly(self.models_params['spatial_anom'], features_data)
             if spatialAnomaly:
                 anomaly_likelihood = 1.0
@@ -386,7 +394,7 @@ class HTMmodel:
 
         # PREDICTOR
         # Predict raw feature value -- IF enabled AND model is 1 feature (excluding timestamp)
-        if self.single_feature and predictor_config['enable']:
+        if self.single_feature and self.use_predictor:
             steps_predictions = self.get_preds(timestep=timestep,
                                                f_data=features_data[self.single_feature])
         else:
