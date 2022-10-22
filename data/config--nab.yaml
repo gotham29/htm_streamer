@@ -1,0 +1,26 @@
+features:
+  value:
+    type: float
+    weight: 1.0
+    min:
+    max:
+  timestamp:
+    type: timestamp
+    weight: 1.0
+    format: '%Y-%m-%d %X'
+    timeOfDay:
+      - 21  #30
+      - 9.49  #1
+    weekend: 0  #21
+    season: 0
+    dayOfWeek: 0
+    custom: 0
+    holiday: 0
+models_state:
+  model_for_each_feature: false
+  return_pred_count: false
+  use_sp: true
+timesteps_stop:
+  learning:
+  running:
+  sampling:

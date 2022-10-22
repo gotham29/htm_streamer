@@ -16,7 +16,9 @@ from htm_source.data.types import HTMType, to_htm_type
 
 
 def run_batch(cfg: Union[dict, None],
+              cfg_default: Union[dict, None],
               config_path: Union[str, None],
+              config_default_path: Union[str, None],
               learn: bool,
               data: pd.DataFrame,
               iter_print: int,
@@ -52,6 +54,9 @@ def run_batch(cfg: Union[dict, None],
     if cfg is None:
         cfg = load_config(config_path)
         print(f'\nLoaded —> Config from: {config_path}')
+    if cfg_default is None:
+        cfg_default = load_config(config_default_path)
+        print(f'\nLoaded —> Config default from: {config_default_path}')
 
     # 2. Ensure --> Expected features present
     missing_feats = [f for f in cfg['features'] if f not in data]
@@ -61,7 +66,7 @@ def run_batch(cfg: Union[dict, None],
     do_init_models = True if len(features_models) == 0 else False
     if do_init_models:
         cfg['features_samples'] = {f: data[f].values for f in cfg['features']}
-        cfg = validate_params_init(cfg)
+        cfg = validate_params_init(cfg, cfg_default)
         features_enc_params = build_enc_params(features=cfg['features'],
                                                features_samples=cfg['features_samples'],
                                                models_encoders=cfg['models_encoders'])
@@ -73,10 +78,7 @@ def run_batch(cfg: Union[dict, None],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         # save_models(dir_models=models_dir,
         #             features_models=features_models)
-    try:
-        timestep_limit = cfg['timesteps_stop']['running']
-    except:
-        timestep_limit = None
+    timestep_limit = cfg['timesteps_stop'].get('running', None)
 
     # 4. Build --> 'features_outputs' data structure
     outputs_dict = {'anomaly_score': [], 'anomaly_likelihood': [], 'pred_count': []}
@@ -96,14 +98,15 @@ def run_batch(cfg: Union[dict, None],
         if cfg['models_state']['model_for_each_feature']:
             for f, f_dict in cfg['features'].items():
                 if to_htm_type(f_dict['type']) is HTMType.Datetime:
-                    continue  # the rest of the code will never run!
+                    continue
 
                 aScore, aLikl, pCount, sPreds = features_models[f].run(features_data, timestep, learn,
                                                                        cfg['models_predictor'])
                 features_outputs[f]['anomaly_score'].append(aScore)
                 features_outputs[f]['anomaly_likelihood'].append(aLikl)
                 features_outputs[f]['pred_count'].append(pCount)
-        else:  # single-models case
+        # single-models case
+        else:
             aScore, aLikl, pCount, sPreds = features_models[multi_feat].run(features_data, timestep, learn,
                                                                             cfg['models_predictor'])
             features_outputs[multi_feat]['anomaly_score'].append(aScore)
@@ -120,8 +123,10 @@ def run_batch(cfg: Union[dict, None],
 if __name__ == '__main__':
     args = get_args()
     features_models, features_outputs = run_batch(cfg=None,
+                                                  cfg_default=None,
                                                   data=pd.read_csv(args.data_path),
                                                   learn=True,
                                                   iter_print=100,
                                                   config_path=args.config_path,
+                                                  config_default_path=args.config_default_path,
                                                   features_models={})

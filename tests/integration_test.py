@@ -31,9 +31,12 @@ class IntegrationTests(unittest.TestCase):
 
     def test_01_run_batch(self):
         config_path = os.path.join(_DATA_DIR, 'config.yaml')
+        config_default_path = os.path.join(_DATA_DIR, 'config--default.yaml')
         data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
         features_models, features_outputs = run_batch(cfg=None,
+                                                      cfg_default=None,
                                                       config_path=config_path,
+                                                      config_default_path=config_default_path,
                                                       learn=True,
                                                       data=pd.read_csv(data_path),
                                                       iter_print=1000,
@@ -42,8 +45,9 @@ class IntegrationTests(unittest.TestCase):
 
     def test_02_run_stream(self):
         config_path = os.path.join(_DATA_DIR, 'config.yaml')
+        config_default_path = os.path.join(_DATA_DIR, 'config--default.yaml')
         data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
-        result = run_stream(config_path, data_path, _DATA_STREAM_DIR, _OUTPUTS_DIR, _MODELS_DIR)
+        result = run_stream(config_path, config_default_path, data_path, _DATA_STREAM_DIR, _OUTPUTS_DIR, _MODELS_DIR)
         self.assertIsNone(result)
 
 

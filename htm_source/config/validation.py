@@ -1,8 +1,6 @@
 import os
 
 from htm_source.config import get_mode
-from htm_source.config.defaults import get_default_params_htm, get_default_params_predictor, \
-    get_default_params_encoder, get_default_params_weights
 
 
 def validate_params_timestep0(cfg: dict) -> dict:
@@ -21,7 +19,7 @@ def validate_params_timestep0(cfg: dict) -> dict:
         cfg['timesteps_stop'] = {}
     # Add 'learning' to 'timesteps_stop'
     if 'learning' not in cfg['timesteps_stop']:
-        cfg['timesteps_stop']['learning'] = 1000000
+        cfg['timesteps_stop']['learning'] = None 
     # Add 'timestep' & 'learn' to 'models_state'
     if 'timestep' not in cfg['models_state']:
         cfg['models_state']['timestep'] = 0
@@ -39,6 +37,7 @@ def validate_params_timestep0(cfg: dict) -> dict:
 
 
 def validate_config(cfg: dict,
+                    cfg_default: dict,
                     data: dict,
                     models_dir: str,
                     outputs_dir: str
@@ -87,7 +86,7 @@ def validate_config(cfg: dict,
     # Assert valid params -- ONLY for INIT step
     elif cfg['models_state']['mode'] == 'initializing':
         cfg['models_state']['learn'] = True
-        cfg = validate_params_init(cfg)
+        cfg = validate_params_init(cfg, cfg_default)
 
     else:  # Mode == 'running'
         timestep_current, timestep_init = cfg['models_state']['timestep'], cfg['models_state']['timestep_initialized']
@@ -167,7 +166,7 @@ def validate_params_required(cfg: dict,
                                     f"'sampling' = {sampling}"
 
 
-def validate_params_init(cfg: dict) -> dict:
+def validate_params_init(cfg: dict, cfg_default: dict) -> dict:
     """
     Purpose:
         Ensure valid entries for config params -- used only in 'initializing' mode
@@ -178,61 +177,40 @@ def validate_params_init(cfg: dict) -> dict:
     Outputs:
         cfg -- extended with all needed default params
     """
-    # Get default model_params -- IF not provided
-    if 'models_params' not in cfg:
-        cfg['models_params'] = get_default_params_htm()
-
-    # Get default models_predictor -- IF not provided
-    if 'models_predictor' not in cfg:
-        cfg['models_predictor'] = get_default_params_predictor()
-
-    # Get default models_encoders -- IF not provided
-    if 'models_encoders' not in cfg:
-        cfg['models_encoders'] = get_default_params_encoder()
-
-    if 'features_weights' not in cfg:
-        cfg['features_weights'] = get_default_params_weights(cfg['features'])
+    ## Get cfg dicts not found in cfg
+    dicts_req = ['models_encoders', 'models_params', 'models_predictor']
+    for dreq in dicts_req:
+        if dreq not in cfg:
+            cfg[dreq] = cfg_default[dreq]
 
     # Assert valid models_encoders dict
     enc_params_types = {
-        'minmax_percentiles': list,
         'n': int,
+        'w': int,
         'n_buckets': int,
-        'sparsity': float,
-        'timestamp': dict,
+        'p_padding': int,
     }
     for param, p_type in enc_params_types.items():
         param_v = cfg['models_encoders'][param]
         assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
-    # Assert minmax_percentiles valid
-    min_perc = cfg['models_encoders']['minmax_percentiles'][0]
-    max_perc = cfg['models_encoders']['minmax_percentiles'][1]
-    assert min_perc < 10, f"Min percentile expected < 10\n  Found --> {min_perc}"
-    assert max_perc > 90, f"Min percentile expected > 90\n  Found --> {max_perc}"
-
     # Assert n valid
     n = cfg['models_encoders']['n']
-    assert n > 500, f"'n' should be > 500\n  Found --> {n}"
+    assert n > 200, f"'n' should be > 200\n  Found --> {n}"
+
+    # Assert w valid
+    w = cfg['models_encoders']['w']
+    assert w >= 0.05*n, f"'w' should be > 5% of n \n  Found --> {w}\n  Should be at least --> {int(0.05*n)+1}"
+    assert w <= 0.2*n, f"'w' should be < 20% of n \n  Found --> {w}\n  Should be at most --> {int(0.2*n)+1}"
 
     # Assert n_buckets valid
     n_buckets = cfg['models_encoders']['n_buckets']
     assert n_buckets > 100, f"'n_buckets' should be > 100\n  Found --> {n_buckets}"
 
-    # Assert sparsity valid
-    sparsity = cfg['models_encoders']['sparsity']
-    assert 0.01 < sparsity < 0.10, f"'sparsity' should be in range 0.01 - 0.10 \n  Found --> {sparsity}"
-
-    # Assert valid timestamp dict
-    timestamp_params_types = {
-        'enable': bool,
-        'feature': str,
-        'timeOfDay': list,
-        'weekend': int,
-    }
-    for param, p_type in timestamp_params_types.items():
-        param_v = cfg['models_encoders']['timestamp'][param]
-        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+    # Assert padding valid
+    p_padding = cfg['models_encoders']['p_padding']
+    assert p_padding >= -100, f"'p_padding' should be >= -100 \n  Found --> {p_padding}"
+    assert p_padding <= 100, f"'p_padding' should be <= 100 \n  Found --> {p_padding}"
 
     # Assert valid timeOfDay
     ###
@@ -252,7 +230,7 @@ def validate_params_init(cfg: dict) -> dict:
 
     # Assert valid models_params
     model_params_types = {
-        'anomaly': dict,
+        'alikl': dict,
         'predictor': dict,
         'sp': dict,
         'tm': dict,
@@ -263,10 +241,11 @@ def validate_params_init(cfg: dict) -> dict:
 
     # Assert valid anomaly_params_types
     anomaly_params_types = {
-        'period': int,
+        'probationaryPeriod': int,
+        'reestimationPeriod': int,
     }
     for param, p_type in anomaly_params_types.items():
-        param_v = cfg['models_params']['anomaly'][param]
+        param_v = cfg['models_params']['alikl'][param]
         assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid predictor_params_types
@@ -279,14 +258,18 @@ def validate_params_init(cfg: dict) -> dict:
 
     # Assert valid sp_params
     sp_params = {
-        'boostStrength': float,
-        'columnCount': int,
-        'localAreaDensity': float,
+        'globalInhibition': bool,
         'potentialPct': float,
+        'potentialPct': float,
+        'boostStrength': float,
         'synPermActiveInc': float,
         'synPermConnected': float,
+        'localAreaDensity': float,
         'synPermInactiveDec': float,
+        'columnCount': int,
+        'numActiveColumnsPerInhArea': int,
     }
+
     for param, p_type in sp_params.items():
         param_v = cfg['models_params']['sp'][param]
         assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"

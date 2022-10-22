@@ -6,6 +6,15 @@ from htm_source.data import Feature, separate_time_and_rest
 from htm_source.utils import frozendict
 
 
+def print_mod_params(mod):
+    for k,v in mod.models_params.items():
+        if k == 'sp' and not mod.use_sp:
+            continue
+        print(f"{k}")
+        for k_, v_ in v.items():
+            print(f"  {k_} = {v_}")
+
+
 def init_models(use_sp: bool,
                 return_pred_count: bool,
                 models_params: dict,
@@ -50,6 +59,7 @@ def init_models(use_sp: bool,
                              return_pred_count=return_pred_count,
                              models_params=models_params,
                              predictor_config=predictor_config)
+            # print_mod_params(model)
             features_models[feat] = model
 
     else:  # one multi-feature model
@@ -58,6 +68,7 @@ def init_models(use_sp: bool,
                          return_pred_count=return_pred_count,
                          models_params=models_params,
                          predictor_config=predictor_config)
+        # print_mod_params(model)
         features_models[f'megamodel_features={len(features_enc_params)}'] = model
 
     print(f'  Models initialized...')
@@ -72,7 +83,6 @@ def run_models(learn: bool,
                timestep: int,
                features_data: dict,
                features_models: dict,
-               timestamp_config: dict,
                predictor_config: dict
                ) -> (dict, dict):
     """
@@ -115,11 +125,6 @@ def run_models(learn: bool,
         result = run_model(args)
         features_models[f] = result['model']
         features_outputs[f] = {k: v for k, v in result.items() if k not in ['model', 'feature']}
-        # add timestamp data -- IF feature present
-        if timestamp_config['feature'] in features_data:
-            time_feat = timestamp_config['feature']
-            features_outputs[f][time_feat] = str(features_data[time_feat])
-
     return features_outputs, features_models
 
 

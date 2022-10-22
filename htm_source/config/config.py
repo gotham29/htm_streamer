@@ -1,6 +1,7 @@
 import numpy as np
 
 from htm_source.utils.general import isnumeric
+from htm_source.data.types import HTMType, to_htm_type
 
 
 def reset_config(cfg: dict) -> dict:
@@ -26,9 +27,9 @@ def reset_config(cfg: dict) -> dict:
 
 def get_params_rdse(f: str,
                     f_dict: dict,
-                    models_encoders: dict,
+                    f_sample: list,
                     f_weight: float,
-                    f_sample: list) -> dict:
+                    models_encoders: dict) -> dict:
     """
     Purpose:
         Get enc params for 'f'
@@ -55,17 +56,21 @@ def get_params_rdse(f: str,
     """
     # use min/max if specified
     if isnumeric(f_dict['min']) and isnumeric(f_dict['max']):
-        f_minmax = [f_dict['min'], f_dict['max']]
+        f_min = f_dict['min']
+        f_max = f_dict['max']
     # else find min/max from f_samples
     else:
-        min_perc, max_perc = models_encoders['minmax_percentiles']
-        f_minmax = [np.percentile(f_sample, min_perc), np.percentile(f_sample, max_perc)]
+        f_min, f_max = min(f_sample), max(f_sample)
+        rangePadding = abs(f_max - f_min) * (float(models_encoders['p_padding'])/100)
+        f_min = f_min - rangePadding
+        f_max = f_max + rangePadding
     params_rdse = {
         'size': int(models_encoders['n'] * f_weight),
-        'sparsity': models_encoders['sparsity'],
-        'resolution': get_rdse_resolution(f,
-                                          f_minmax,
-                                          models_encoders['n_buckets'])
+        'activeBits': int(models_encoders['w'] * f_weight),
+        'resolution': get_rdse_resolution(feature=f,
+                                          f_min=f_min,
+                                          f_max=f_max,
+                                          n_buckets=models_encoders['n_buckets'])
     }
     return params_rdse
 
@@ -73,8 +78,6 @@ def get_params_rdse(f: str,
 def build_enc_params(features: dict,
                      models_encoders: dict,
                      features_samples: dict,
-                     types_numeric: list = ('int', 'float'),
-                     types_time: list = ('timestamp', 'datetime')
                      ) -> dict:
     """
     Purpose:
@@ -97,31 +100,33 @@ def build_enc_params(features: dict,
             type: dict
             meaning: set of encoder params for each feature ('size, sparsity', 'resolution')
     """
-    features_weights = {k: v['weight'] for k, v in features.items()}
+    features_weights = {k: v.get('weight', 1.0) for k, v in features.items()}
     features_enc_params = {}
     for f, f_dict in features.items():
         # get enc - numeric
-        if f_dict['type'] in types_numeric:
-            features_enc_params[f] = get_params_rdse(f,
-                                                     f_dict,
-                                                     models_encoders,
-                                                     features_weights[f],
-                                                     features_samples[f])
+        if to_htm_type(f_dict['type']) is HTMType.Numeric:
+            features_enc_params[f] = get_params_rdse(f=f,
+                                                     f_dict=f_dict,
+                                                     f_weight=features_weights[f],
+                                                     f_sample=features_samples[f],
+                                                     models_encoders=models_encoders,)
         # get enc - datetime
-        elif f_dict['type'] in types_time:
+        elif to_htm_type(f_dict['type']) is HTMType.Datetime:
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
         # get enc - categoric
-        elif f_dict['type'] == 'category':
+        elif f_dict['type'] == 'category':  # TODO - add categoric HTMType
             raise NotImplementedError("Category encoder not implemented yet")
             # features_enc_params[f] = get_params_category(f_dict)
         else:
             raise TypeError(f"Unsupported type: {f_dict['type']}")
         features_enc_params[f]['type'] = f_dict['type']
+        features_enc_params[f]['seed'] = models_encoders['seed']
     return features_enc_params
 
 
 def get_rdse_resolution(feature: str,
-                        minmax: list,
+                        f_min: float,
+                        f_max: float,
                         n_buckets: int
                         ) -> float:
     """
@@ -131,9 +136,6 @@ def get_rdse_resolution(feature: str,
         feature
             type: str
             meaning: name of given feature
-        minmax
-            type: list
-            meaning: min & max feature values
         n_buckets
             type: int
             meaning: number of categories to divide (max-min) range over
@@ -142,10 +144,10 @@ def get_rdse_resolution(feature: str,
             type: float
             meaning: param calculated for feature's RDSE encoder
     """
-    minmax_range = float(minmax[1]) - float(minmax[0])
-    resolution = minmax_range / float(n_buckets)
+    resolution = (f_max-f_min) / float(n_buckets)
     if resolution == 0:
-        print(f"Dropping feature, due to no variation in sample\n  --> {feature}")  # does this happen actually?
+        resolution = 1.0
+
     return resolution
 
 

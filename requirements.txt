@@ -2,6 +2,7 @@
 
 htm.core
 setuptools>=34.4.0 # needed for Windows with MSVC
+tqdm
 pip>=19.3.1
 pandas>=1.2.4
 PyYAML==6.0

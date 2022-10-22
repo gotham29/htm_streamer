@@ -1,7 +1,5 @@
 from datetime import datetime
 from typing import Union, Tuple, Iterable
-
-from dateutil.parser import parse as dateutil_parse
 from htm_source.data.types import HTMType, to_htm_type
 from htm_source.data.encoding import EncoderFactory
 from htm.bindings.sdr import SDR
