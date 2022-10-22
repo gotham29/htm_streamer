@@ -147,7 +147,7 @@ def get_rdse_resolution(feature: str,
     resolution = (f_max-f_min) / float(n_buckets)
     if resolution == 0:
         resolution = 1.0
-        print(f"Dropping feature, due to no variation in sample\n  --> {feature}")  # does this happen actually?
+
     return resolution
 
 
