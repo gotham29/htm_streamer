@@ -162,8 +162,7 @@ def run_model(args) -> dict:
     feature, htm_model, features_data, timestep, learn, use_sp, predictor_config = args
     anomaly_score, anomaly_likelihood, pred_count, steps_predictions = htm_model.run(learn=learn,
                                                                                      timestep=timestep,
-                                                                                     features_data=features_data,
-                                                                                     predictor_config=predictor_config)
+                                                                                     features_data=features_data)
     result = {'model': htm_model,
               'feature': feature,
               'timestep': timestep,

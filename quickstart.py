@@ -17,8 +17,8 @@ if __name__ == '__main__':
     timestep_tostop_running = 5000
 
     # Load config & data
-    config_path = os.path.join(os.getcwd(), 'data', 'config.yaml')
-    config_def_path = os.path.join(os.getcwd(), 'data', 'config--default.yaml')
+    config_path = os.path.join(os.getcwd(), 'config', 'config.yaml')
+    config_def_path = os.path.join(os.getcwd(), 'config', 'config--default.yaml')
     data_path = os.path.join(os.getcwd(), 'data', 'batch', 'sample_timeseries.csv')
     config = load_config(config_path)
     config_def = load_config(config_def_path)

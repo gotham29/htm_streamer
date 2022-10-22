@@ -47,7 +47,6 @@ class HTMmodel:
             self.predictor = Predictor(steps=self.predictor_steps_ahead,
                                        alpha=self.models_params["predictor"]['sdrc_alpha'])
 
-
     def init_sp(self) -> Union[None, SpatialPooler]:
         """
         Purpose:
@@ -117,7 +116,7 @@ class HTMmodel:
         Purpose:
             Init HTMModel.al
         Inputs:
-            HTMmodel.models_params['alikl']
+            HTMmodel.models_params['anomaly_likelihood']
                 type: dict
                 meaning: hyperparams for alikelihood
         Outputs:
@@ -126,11 +125,11 @@ class HTMmodel:
                 meaning: HTM native alg that for postprocessing raw anomaly scores
         """
 
-        LearningPeriod = int(math.floor(self.models_params["alikl"]["probationaryPeriod"] / 2.0))
+        LearningPeriod = int(math.floor(self.models_params["anomaly_likelihood"]["probationaryPeriod"] / 2.0))
         return AnomalyLikelihood(
             learningPeriod=LearningPeriod,
-            estimationSamples=self.models_params["alikl"]["probationaryPeriod"] - LearningPeriod,
-            reestimationPeriod=self.models_params["alikl"]["reestimationPeriod"])
+            estimationSamples=self.models_params["anomaly_likelihood"]["probationaryPeriod"] - LearningPeriod,
+            reestimationPeriod=self.models_params["anomaly_likelihood"]["reestimationPeriod"])
 
     def get_alikelihood(self, value, anomaly_score, timestamp) -> float:
         """
@@ -284,7 +283,7 @@ class HTMmodel:
         # filter time feature from features_data
         features_data = {f: val for f, val in features_data.items() if f != self.feature_timestamp}
         # get number of feats req for spatial anomaly
-        anom_feats_req = max(int(len(features_data)*params['anom_prop']), 1)
+        anom_feats_req = max(int(len(features_data) * params['anom_prop']), 1)
         # get max/min values (by percentile)
         sample_empty = False
         features_minmax = {f: {} for f in features_data}
@@ -321,7 +320,6 @@ class HTMmodel:
             features_data: Mapping,
             timestep: int,
             learn: bool,
-            predictor_config: dict
             ) -> (float, float, float, dict):
         """
         Purpose:
@@ -336,9 +334,6 @@ class HTMmodel:
             learn
                 type: bool
                 meaning: whether learning is enabled in HTMmodel
-            predictor_config
-                type: dict
-                meaning: param values for HTMmodel.predictor (user-specified in config.yaml)
         Outputs:
             anomaly_score
                 type: float
@@ -378,7 +373,7 @@ class HTMmodel:
         f1 = self.single_feature if self.single_feature else self.feature_names[0]
         # Get timestamp data if available
         timestamp = features_data[self.feature_timestamp] if self.feature_timestamp else self.iteration_
-        anomaly_likelihood = self.get_alikelihood(value=features_data[f1],  # TODO - resolve megamodel case
+        anomaly_likelihood = self.get_alikelihood(value=features_data[f1],
                                                   timestamp=timestamp,
                                                   anomaly_score=anomaly_score)
 
