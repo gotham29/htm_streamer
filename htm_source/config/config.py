@@ -28,7 +28,6 @@ def reset_config(cfg: dict) -> dict:
 def get_params_rdse(f: str,
                     f_dict: dict,
                     f_sample: list,
-                    f_weight: float,
                     models_encoders: dict) -> dict:
     """
     Purpose:
@@ -40,15 +39,12 @@ def get_params_rdse(f: str,
         f_dict:
             type: dict
             meaning: holds type, min & max for 'f'
-        models_encoders:
-            type: dict
-            meaning: encoding params from config
-        f_weight:
-            type: float
-            meaning: weight for 'f'
         f_sample:
             type: list
             meaning: values for 'f'
+        models_encoders:
+            type: dict
+            meaning: encoding params from config
     Outputs:
         params_rdse
             type: dict
@@ -73,28 +69,18 @@ def get_params_rdse(f: str,
     return params_rdse
 
 
-def get_params_category(f_weight: float,
-                        models_encoders: dict) -> dict:
+def get_params_category() -> dict:
     """
     Purpose:
         Get enc params for 'f'
     Inputs:
-        f_weight:
-            type: float
-            meaning: weight for 'f'
-        models_encoders:
-            type: dict
-            meaning: encoding params from config
+        n/a
     Outputs:
         params_category
             type: dict
-            meaning: enc params for 'f'
+            meaning: enc params for category
     """
-    params_category = {
-        'size': int(models_encoders['n'] * f_weight),
-        'activeBits': int(models_encoders['w'] * f_weight),
-        'category': True
-    }
+    params_category = {'category': True}
     return params_category
 
 
@@ -130,7 +116,6 @@ def build_enc_params(features: dict,
         if to_htm_type(f_dict['type']) is HTMType.Numeric:
             features_enc_params[f] = get_params_rdse(f=f,
                                                      f_dict=f_dict,
-                                                     f_weight=features_weights[f],
                                                      f_sample=features_samples[f],
                                                      models_encoders=models_encoders,)
         # get enc - datetime
@@ -138,8 +123,7 @@ def build_enc_params(features: dict,
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
         # get enc - categoric
         elif to_htm_type(f_dict['type']) is HTMType.Categoric:
-            features_enc_params[f] = get_params_category(f_weight=features_weights[f],
-                                                         models_encoders=models_encoders)
+            features_enc_params[f] = get_params_category()
         else:
             raise TypeError(f"Unsupported type: {f_dict['type']}")
         # set seed, size, activeBits

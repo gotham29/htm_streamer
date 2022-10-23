@@ -93,13 +93,11 @@ def run_batch(cfg: Union[dict, None],
     print('Running main loop...')
     for timestep, row in data[:timestep_limit].iterrows():
         features_data = dict(row)
-
         # multi-models case
         if cfg['models_state']['model_for_each_feature']:
             for f, f_dict in cfg['features'].items():
                 if to_htm_type(f_dict['type']) is HTMType.Datetime:
                     continue
-
                 aScore, aLikl, pCount, sPreds = features_models[f].run(features_data, timestep, learn)
                 features_outputs[f]['anomaly_score'].append(aScore)
                 features_outputs[f]['anomaly_likelihood'].append(aLikl)
@@ -110,7 +108,6 @@ def run_batch(cfg: Union[dict, None],
             features_outputs[multi_feat]['anomaly_score'].append(aScore)
             features_outputs[multi_feat]['anomaly_likelihood'].append(aLikl)
             features_outputs[multi_feat]['pred_count'].append(pCount)
-
         # report status
         if timestep > iter_print and timestep % iter_print == 0:
             print(f'  completed row: {timestep}')
