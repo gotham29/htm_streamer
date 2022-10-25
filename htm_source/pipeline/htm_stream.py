@@ -13,8 +13,8 @@ from htm_source.model.runners import init_models, run_models, track_tm
 from htm_source.pipeline.htm_batch_runner import run_batch
 
 
-def stream_to_htm(config_path: str,
-                  config_default_path,
+def stream_to_htm(config_path_user: str,
+                  config_path_model,
                   data_path: str,
                   models_dir: str,
                   outputs_dir: str):
@@ -50,15 +50,15 @@ def stream_to_htm(config_path: str,
     """
 
     # 1. Load —> Config from Config Path
-    cfg = load_config(config_path)
-    cfg_default = load_config(config_default_path)
+    cfg_user = load_config(config_path_user)
+    cfg_model = load_config(config_path_model)
 
     # 2. Load —> ML Inputs from ML Inputs Path
     data = load_json(data_path)
 
     # 3. Validate --> Config
-    cfg = validate_config(cfg=cfg,
-                          cfg_default=cfg_default,
+    cfg = validate_config(cfg_user=cfg_user,
+                          cfg_model=cfg_model,
                           data=data,
                           models_dir=models_dir,
                           outputs_dir=outputs_dir)
@@ -87,13 +87,13 @@ def stream_to_htm(config_path: str,
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
-        features_models, features_outputs = run_batch(cfg=cfg,
-                                                      cfg_default=cfg_default,
+        features_models, features_outputs = run_batch(cfg_user=cfg_user,
+                                                      cfg_model=cfg_model,
                                                       data=pd.DataFrame(cfg['features_samples']),
                                                       learn=True,
                                                       iter_print=100,
-                                                      config_path=None,
-                                                      config_default_path=None,
+                                                      config_path_user=None,
+                                                      config_path_model=None,
                                                       features_models=features_models)
         for f, outs in features_outputs.items():
             path_out = os.path.join(outputs_dir, f"sample--{f}.csv")
@@ -143,9 +143,9 @@ def stream_to_htm(config_path: str,
 
     # 8. Store —> Config
     save_config(cfg=cfg,
-                yaml_path=config_path)
+                yaml_path=config_path_user)
 
 
 if __name__ == '__main__':
     args = get_args()
-    stream_to_htm(args.config_path, args.config_default_path, args.data_path, args.models_dir, args.outputs_dir)
+    stream_to_htm(args.config_path_user, args.config_path_model, args.data_path, args.models_dir, args.outputs_dir)

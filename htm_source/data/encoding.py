@@ -7,6 +7,7 @@ from htm_source.data.types import HTMType
 SETUP LOGGER
 """
 
+
 def init_rdse(rdse_params, max_fail=3):
     encoder = None
     counter = 0
@@ -37,9 +38,8 @@ class EncoderFactory:
             rdse_params.activeBits = encoder_params["activeBits"]
             if dtype is HTMType.Numeric:
                 rdse_params.resolution = encoder_params['resolution']
-            else:  #dHTMType.Categoric
+            else:  # dtype is HTMType.Categoric
                 rdse_params.category = True
-            # TODO: ugly hack to avoid RDSE collision error (from randomized test)
             encoder = init_rdse(rdse_params)
 
         elif dtype is HTMType.Datetime:
