@@ -3,8 +3,11 @@ from htm.encoders.rdse import RDSE_Parameters, RDSE
 
 from htm_source.data.types import HTMType
 
+"""
+SETUP LOGGER
+"""
 
-def init_rdse(rdse_params):
+def init_rdse(rdse_params, max_fail=3):
     encoder = None
     counter = 0
     while encoder is None:
@@ -12,7 +15,10 @@ def init_rdse(rdse_params):
             encoder = RDSE(rdse_params)
         except RuntimeError as e:
             counter += 1
-            print(f"Failed {counter} time(s), ", e)
+            if counter == max_fail:
+                # logger.error(f"Failed RDSE random collision check {max_fail} times\n  change rdse params --> {rdse_params}")
+                print(f"Failed {counter} time(s), ", e)
+                raise e
             pass
     return encoder
 
