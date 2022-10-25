@@ -78,8 +78,8 @@ def get_args():
 
 
 def run_nab(dir_htm, dir_nab, dataset_count, probation_proportion):
-    path_config = os.path.join(dir_htm, 'data', 'config--nab.yaml')
-    path_config_def = os.path.join(dir_htm, 'data', 'config--default.yaml')
+    path_config = os.path.join(dir_htm, 'config', 'config--nab.yaml')
+    path_config_def = os.path.join(dir_htm, 'config', 'config--default.yaml')
     dir_results = os.path.join(dir_nab, 'results', 'htmStreamer')
     path_data = os.path.join(dir_nab, 'data')
     path_labels = os.path.join(dir_nab, 'labels', 'combined_windows.json')
@@ -108,7 +108,8 @@ def run_nab(dir_htm, dir_nab, dataset_count, probation_proportion):
                 pred_data = data[predictive_features]
                 # Train
                 print(f"\n\n{f}")
-                config_def['models_params']['alikl']['probationaryPeriod'] = int(data.shape[0] * probation_proportion)
+                config_def['models_params']['anomaly_likelihood']['probationaryPeriod'] = int(
+                    data.shape[0] * probation_proportion)
                 features_models, features_outputs = run_batch(cfg=config,
                                                               cfg_default=config_def,
                                                               config_path=None,

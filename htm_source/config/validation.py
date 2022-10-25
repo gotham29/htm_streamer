@@ -230,7 +230,7 @@ def validate_params_init(cfg: dict, cfg_default: dict) -> dict:
 
     # Assert valid models_params
     model_params_types = {
-        'alikl': dict,
+        'anomaly_likelihood': dict,
         'predictor': dict,
         'sp': dict,
         'tm': dict,
@@ -245,7 +245,7 @@ def validate_params_init(cfg: dict, cfg_default: dict) -> dict:
         'reestimationPeriod': int,
     }
     for param, p_type in anomaly_params_types.items():
-        param_v = cfg['models_params']['alikl'][param]
+        param_v = cfg['models_params']['anomaly_likelihood'][param]
         assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert valid predictor_params_types

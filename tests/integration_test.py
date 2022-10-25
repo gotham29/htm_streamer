@@ -6,6 +6,7 @@ import pandas as pd
 _TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 _REPO_DIR = os.path.join(_TESTS_DIR, '..')
 _DATA_DIR = os.path.join(_REPO_DIR, 'data')
+_CONFIG_DIR = os.path.join(_REPO_DIR, 'config')
 _MODELS_DIR = os.path.join(_TESTS_DIR, 'models')
 _OUTPUTS_DIR = os.path.join(_TESTS_DIR, 'results')
 _DATA_STREAM_DIR = os.path.join(_TESTS_DIR, 'data')
@@ -30,8 +31,8 @@ os.makedirs(_DATA_STREAM_DIR, exist_ok=True)
 class IntegrationTests(unittest.TestCase):
 
     def test_01_run_batch(self):
-        config_path = os.path.join(_DATA_DIR, 'config.yaml')
-        config_default_path = os.path.join(_DATA_DIR, 'config--default.yaml')
+        config_path = os.path.join(_CONFIG_DIR, 'config.yaml')
+        config_default_path = os.path.join(_CONFIG_DIR, 'config--default.yaml')
         data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
         features_models, features_outputs = run_batch(cfg=None,
                                                       cfg_default=None,
@@ -44,8 +45,8 @@ class IntegrationTests(unittest.TestCase):
         self.assertIsNone(None)
 
     def test_02_run_stream(self):
-        config_path = os.path.join(_DATA_DIR, 'config.yaml')
-        config_default_path = os.path.join(_DATA_DIR, 'config--default.yaml')
+        config_path = os.path.join(_CONFIG_DIR, 'config.yaml')
+        config_default_path = os.path.join(_CONFIG_DIR, 'config--default.yaml')
         data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
         result = run_stream(config_path, config_default_path, data_path, _DATA_STREAM_DIR, _OUTPUTS_DIR, _MODELS_DIR)
         self.assertIsNone(result)

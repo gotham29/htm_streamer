@@ -1,3 +1,32 @@
+run_batch
+  load_config
+  if do_init_models:
+    validate_params_init
+    build_enc_params
+      if type == numeric:
+        get_params_rdse
+      elif typw == categoric:
+        get_params_category
+    init_models
+      separate_time_and_rest
+      HTMmodel
+  for row in data:
+    HTMmodel.run
+      HTMmodel.get_encoding
+        htm.core.RDSE.encode
+        htm.core.SDR.concatenate
+      htm.core.SDR
+      htm.core.SpatialPooler.compute
+      HTMmodel.get_predcount
+        htm.core.TemporalMemory.activateDendrites
+        htm.core.TemporalMemory.getPredictiveCells
+      htm.core.TemporalMemory.compute
+      htm.core.AnomalyLikelihood.compute
+      HTMmodel.get_preds
+        htm.core.TemporalMemory.getActiveCells
+        htm.core.Predictor.infer
+        htm.core.Predictor.learn
+
 run_stream
   load_config
   check_for_missing_features

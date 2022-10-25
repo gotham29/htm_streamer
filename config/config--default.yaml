@@ -12,7 +12,7 @@ models_params:
     perc_max: 100
     anom_prop: 0.3
     window: 100000
-  alikl:
+  anomaly_likelihood:
     probationaryPeriod: 500
     reestimationPeriod: 100
   sp:
