@@ -78,17 +78,17 @@ def get_args():
 
 
 def run_nab(dir_htm, dir_nab, dataset_count, probation_proportion):
-    path_config = os.path.join(dir_htm, 'config', 'config--nab.yaml')
-    path_config_def = os.path.join(dir_htm, 'config', 'config--default.yaml')
+    config_path_user = os.path.join(dir_htm, 'config', 'config--nab.yaml')
+    config_path_model = os.path.join(dir_htm, 'config', 'config--model_default.yaml')
     dir_results = os.path.join(dir_nab, 'results', 'htmStreamer')
     path_data = os.path.join(dir_nab, 'data')
     path_labels = os.path.join(dir_nab, 'labels', 'combined_windows.json')
 
     # Load config & data
-    config = load_config(path_config)
-    config_def = load_config(path_config_def)
-    print_config(config)
-    print_config(config_def)
+    cfg_user = load_config(config_path_user)
+    cfg_model = load_config(config_path_model)
+    print_config(cfg_user)
+    print_config(cfg_model)
 
     predictive_features = ['timestamp', 'value']
 
@@ -108,12 +108,12 @@ def run_nab(dir_htm, dir_nab, dataset_count, probation_proportion):
                 pred_data = data[predictive_features]
                 # Train
                 print(f"\n\n{f}")
-                config_def['models_params']['anomaly_likelihood']['probationaryPeriod'] = int(
+                cfg_model['models_params']['anomaly_likelihood']['probationaryPeriod'] = int(
                     data.shape[0] * probation_proportion)
-                features_models, features_outputs = run_batch(cfg=config,
-                                                              cfg_default=config_def,
-                                                              config_path=None,
-                                                              config_default_path=None,
+                features_models, features_outputs = run_batch(cfg_user=cfg_user,
+                                                              cfg_model=cfg_model,
+                                                              config_path_user=None,
+                                                              config_path_model=None,
                                                               learn=True,
                                                               data=pred_data,
                                                               iter_print=999999,

@@ -17,41 +17,41 @@ if __name__ == '__main__':
     timestep_tostop_running = 5000
 
     # Load config & data
-    config_path = os.path.join(os.getcwd(), 'config', 'config.yaml')
-    config_def_path = os.path.join(os.getcwd(), 'config', 'config--default.yaml')
+    config_path_user = os.path.join(os.getcwd(), 'tests', 'config--test.yaml')
+    config_path_model = os.path.join(os.getcwd(), 'config', 'config--model_default.yaml')
     data_path = os.path.join(os.getcwd(), 'data', 'batch', 'sample_timeseries.csv')
-    config = load_config(config_path)
-    config_def = load_config(config_def_path)
+    cfg_user = load_config(config_path_user)
+    cfg_model = load_config(config_path_model)
     data = pd.read_csv(data_path)
 
     # Validate & update features
-    cfg_features = {k: v for k, v in config['features'].items() if k in features}
+    cfg_features = {k: v for k, v in cfg_user['features'].items() if k in features}
     assert len(cfg_features) > 0, f"features don't match, check config.yaml\n  " \
-                                  f"found: {features} \n  config.yaml: {config['features'].keys().to_list}"
+                                  f"found: {features} \n  config.yaml: {cfg_user['features'].keys().to_list}"
     features_invalid = [f for f in cfg_features if f not in data]
     assert len(features_invalid) == 0, f"features not found --> {sorted(features_invalid)}"
-    config['features'] = cfg_features
-    config['timesteps_stop']['sampling'] = timestep_tostop_sampling
-    config['timesteps_stop']['learning'] = timestep_tostop_learning
-    config['timesteps_stop']['running'] = timestep_tostop_running
-    config['models_state']['model_for_each_feature'] = model_for_each_feature
-    config['models_state']['return_pred_count'] = return_pred_count
+    cfg_user['features'] = cfg_features
+    cfg_user['timesteps_stop']['sampling'] = timestep_tostop_sampling
+    cfg_user['timesteps_stop']['learning'] = timestep_tostop_learning
+    cfg_user['timesteps_stop']['running'] = timestep_tostop_running
+    cfg_user['models_state']['model_for_each_feature'] = model_for_each_feature
+    cfg_user['models_state']['return_pred_count'] = return_pred_count
 
     # Train
-    features_models, features_outputs = run_batch(cfg=config,
-                                                  cfg_default=config_def,
-                                                  config_path=None,
-                                                  config_default_path=None,
+    features_models, features_outputs = run_batch(cfg_user=cfg_user,
+                                                  cfg_model=cfg_model,
+                                                  config_path_user=None,
+                                                  config_path_model=None,
                                                   learn=True,
                                                   data=data,
                                                   iter_print=100,
                                                   features_models={})
 
     # Run
-    features_models, features_outputs = run_batch(cfg=config,
-                                                  cfg_default=config_def,
-                                                  config_path=None,
-                                                  config_default_path=None,
+    features_models, features_outputs = run_batch(cfg_user=cfg_user,
+                                                  cfg_model=cfg_model,
+                                                  config_path_user=None,
+                                                  config_path_model=None,
                                                   learn=False,
                                                   data=data,
                                                   iter_print=100,

@@ -36,8 +36,8 @@ def validate_params_timestep0(cfg: dict) -> dict:
     return cfg
 
 
-def validate_config(cfg: dict,
-                    cfg_default: dict,
+def validate_config(cfg_user: dict,
+                    cfg_model: dict,
                     data: dict,
                     models_dir: str,
                     outputs_dir: str
@@ -67,7 +67,7 @@ def validate_config(cfg: dict,
             meaning: config (yaml) -- validated & extended w/defaults
     """
     # Add params -- IF not found (first timestep)
-    cfg = validate_params_timestep0(cfg)
+    cfg = validate_params_timestep0(cfg_user)
 
     # Get mode
     cfg['models_state']['mode'] = get_mode(cfg)
@@ -86,7 +86,7 @@ def validate_config(cfg: dict,
     # Assert valid params -- ONLY for INIT step
     elif cfg['models_state']['mode'] == 'initializing':
         cfg['models_state']['learn'] = True
-        cfg = validate_params_init(cfg, cfg_default)
+        cfg = validate_params_init(cfg, cfg_model)
 
     else:  # Mode == 'running'
         timestep_current, timestep_init = cfg['models_state']['timestep'], cfg['models_state']['timestep_initialized']
@@ -166,7 +166,7 @@ def validate_params_required(cfg: dict,
                                     f"'sampling' = {sampling}"
 
 
-def validate_params_init(cfg: dict, cfg_default: dict) -> dict:
+def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
     """
     Purpose:
         Ensure valid entries for config params -- used only in 'initializing' mode
@@ -181,7 +181,7 @@ def validate_params_init(cfg: dict, cfg_default: dict) -> dict:
     dicts_req = ['models_encoders', 'models_params', 'models_predictor']
     for dreq in dicts_req:
         if dreq not in cfg:
-            cfg[dreq] = cfg_default[dreq]
+            cfg[dreq] = cfg_model[dreq]
 
     # Assert valid models_encoders dict
     enc_params_types = {

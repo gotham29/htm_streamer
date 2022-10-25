@@ -4,6 +4,67 @@ import os
 
 from setuptools import setup, find_packages
 
+REPO_DIR = os.path.dirname(os.path.realpath(__file__))
+
+
+# Utility function to read the README file.
+# Used for the long_description.  It's nice, because now 1) we have a top level
+# README file and 2) it's easier to type in the README file than to put a raw
+# string in below ...
+def read(fname):
+    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+        result = f.read()
+    return result
+
+
+def parseFile(requirementFile):
+    """
+    Parse requirement file.
+    :return: list of requirements.
+    """
+    try:
+        return [
+            line.strip()
+            for line in open(requirementFile).readlines()
+            if not line.startswith("#")
+        ]
+    except IOError:
+        return []
+
+
+def findRequirements():
+    """
+    Read the requirements.txt file and parse into requirements for setup's
+    install_requirements option.
+    """
+    requirementsPath = os.path.join(REPO_DIR, "requirements.txt")
+    requirements = parseFile(requirementsPath)
+    return requirements
+
+
+if __name__ == "__main__":
+    requirements = findRequirements()
+
+    setup(
+        name="htm_source",
+        version="0.0.90",
+        author="Sam Heiserman",
+        author_email="sheiser1@binghamton.edu",
+        description=(
+            "HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series"),
+        license="MIT",
+        packages=find_packages(),
+        long_description=read("README.md"),
+        install_requires=requirements,
+        include_package_data=True,
+        keywords=["pypi", "htm_source"]
+    )
+
+"""
+import os
+
+from setuptools import setup, find_packages
+
 with open('README.md') as f:
     readme = f.read()
 
@@ -57,3 +118,4 @@ setup(
     install_requires=INSTALL_REQUIRES,
     keywords=["pypi", "htm_source"],
 )
+"""

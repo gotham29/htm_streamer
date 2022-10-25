@@ -31,13 +31,13 @@ os.makedirs(_DATA_STREAM_DIR, exist_ok=True)
 class IntegrationTests(unittest.TestCase):
 
     def test_01_run_batch(self):
-        config_path = os.path.join(_CONFIG_DIR, 'config.yaml')
-        config_default_path = os.path.join(_CONFIG_DIR, 'config--default.yaml')
+        config_path_user = os.path.join(_TESTS_DIR, 'config--test.yaml')
+        config_path_model = os.path.join(_CONFIG_DIR, 'config--model_default.yaml')
         data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
-        features_models, features_outputs = run_batch(cfg=None,
-                                                      cfg_default=None,
-                                                      config_path=config_path,
-                                                      config_default_path=config_default_path,
+        features_models, features_outputs = run_batch(cfg_user=None,
+                                                      cfg_model=None,
+                                                      config_path_user=config_path_user,
+                                                      config_path_model=config_path_model,
                                                       learn=True,
                                                       data=pd.read_csv(data_path),
                                                       iter_print=1000,
@@ -45,10 +45,10 @@ class IntegrationTests(unittest.TestCase):
         self.assertIsNone(None)
 
     def test_02_run_stream(self):
-        config_path = os.path.join(_CONFIG_DIR, 'config.yaml')
-        config_default_path = os.path.join(_CONFIG_DIR, 'config--default.yaml')
+        config_path_user = os.path.join(_TESTS_DIR, 'config--test.yaml')
+        config_path_model = os.path.join(_CONFIG_DIR, 'config--model_default.yaml')
         data_path = os.path.join(_DATA_DIR, 'batch', 'sample_timeseries.csv')
-        result = run_stream(config_path, config_default_path, data_path, _DATA_STREAM_DIR, _OUTPUTS_DIR, _MODELS_DIR)
+        result = run_stream(config_path_user, config_path_model, data_path, _DATA_STREAM_DIR, _OUTPUTS_DIR, _MODELS_DIR)
         self.assertIsNone(result)
 
 

@@ -15,10 +15,10 @@ from htm_source.model.runners import init_models
 from htm_source.data.types import HTMType, to_htm_type
 
 
-def run_batch(cfg: Union[dict, None],
-              cfg_default: Union[dict, None],
-              config_path: Union[str, None],
-              config_default_path: Union[str, None],
+def run_batch(cfg_user: Union[dict, None],
+              cfg_model: Union[dict, None],
+              config_path_user: Union[str, None],
+              config_path_model: Union[str, None],
               learn: bool,
               data: pd.DataFrame,
               iter_print: int,
@@ -51,22 +51,22 @@ def run_batch(cfg: Union[dict, None],
     """
 
     # 1. Load —> Config from Config Path IF not passed in as arg
-    if cfg is None:
-        cfg = load_config(config_path)
-        print(f'\nLoaded —> Config from: {config_path}')
-    if cfg_default is None:
-        cfg_default = load_config(config_default_path)
-        print(f'\nLoaded —> Config default from: {config_default_path}')
+    if cfg_user is None:
+        cfg_user = load_config(config_path_user)
+        print(f'\nLoaded —> Config from: {config_path_user}')
+    if cfg_model is None:
+        cfg_model = load_config(config_path_model)
+        print(f'\nLoaded —> Config default from: {config_path_model}')
 
     # 2. Ensure --> Expected features present
-    missing_feats = [f for f in cfg['features'] if f not in data]
+    missing_feats = [f for f in cfg_user['features'] if f not in data]
     assert len(missing_feats) == 0, f"expected features missing!\n  --> {sorted(missing_feats)}"
 
     # 3. Init Models --> IF 'features_models' is empty
     do_init_models = True if len(features_models) == 0 else False
     if do_init_models:
-        cfg['features_samples'] = {f: data[f].values for f in cfg['features']}
-        cfg = validate_params_init(cfg, cfg_default)
+        cfg_user['features_samples'] = {f: data[f].values for f in cfg_user['features']}
+        cfg = validate_params_init(cfg_user, cfg_model)
         features_enc_params = build_enc_params(features=cfg['features'],
                                                features_samples=cfg['features_samples'],
                                                models_encoders=cfg['models_encoders'])
@@ -78,15 +78,15 @@ def run_batch(cfg: Union[dict, None],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         # save_models(dir_models=models_dir,
         #             features_models=features_models)
-    timestep_limit = cfg['timesteps_stop'].get('running', None)
+    timestep_limit = cfg_user['timesteps_stop'].get('running', None)
 
     # 4. Build --> 'features_outputs' data structure
     outputs_dict = {'anomaly_score': [], 'anomaly_likelihood': [], 'pred_count': []}
     # multi-models case
-    if cfg['models_state']['model_for_each_feature']:
-        features_outputs = {f: outputs_dict for f in cfg['features']}
+    if cfg_user['models_state']['model_for_each_feature']:
+        features_outputs = {f: outputs_dict for f in cfg_user['features']}
     else:  # single-models case
-        multi_feat = f"megamodel_features={len(cfg['features'])}"
+        multi_feat = f"megamodel_features={len(cfg_user['features'])}"
         features_outputs = {multi_feat: outputs_dict}
 
     # 5. Run --> 'data' through 'features_models'
@@ -94,8 +94,8 @@ def run_batch(cfg: Union[dict, None],
     for timestep, row in data[:timestep_limit].iterrows():
         features_data = dict(row)
         # multi-models case
-        if cfg['models_state']['model_for_each_feature']:
-            for f, f_dict in cfg['features'].items():
+        if cfg_user['models_state']['model_for_each_feature']:
+            for f, f_dict in cfg_user['features'].items():
                 if to_htm_type(f_dict['type']) is HTMType.Datetime:
                     continue
                 aScore, aLikl, pCount, sPreds = features_models[f].run(features_data, timestep, learn)
@@ -117,11 +117,11 @@ def run_batch(cfg: Union[dict, None],
 
 if __name__ == '__main__':
     args = get_args()
-    features_models, features_outputs = run_batch(cfg=None,
-                                                  cfg_default=None,
+    features_models, features_outputs = run_batch(cfg_user=None,
+                                                  cfg_model=None,
                                                   data=pd.read_csv(args.data_path),
                                                   learn=True,
                                                   iter_print=100,
-                                                  config_path=args.config_path,
-                                                  config_default_path=args.config_default_path,
+                                                  config_path_user=args.config_path_user,
+                                                  config_path_model=args.config_path_model,
                                                   features_models={})
