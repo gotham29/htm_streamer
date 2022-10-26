@@ -23,11 +23,6 @@ os.makedirs(_MODELS_DIR, exist_ok=True)
 os.makedirs(_DATA_STREAM_DIR, exist_ok=True)
 
 
-# print(f'\n_MODELS_DIR = {_MODELS_DIR}')
-# print(f'_DATA_STREAM_DIR = {_DATA_STREAM_DIR}')
-# print(f'_OUTPUTS_DIR = {_OUTPUTS_DIR}\n')
-
-
 class IntegrationTests(unittest.TestCase):
 
     def test_01_run_batch(self):

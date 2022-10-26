@@ -7,18 +7,22 @@ import tqdm
 from htm_source.pipeline.htm_batch_runner import run_batch
 from htm_source.utils.fs import load_config
 
+from logger import setup_applevel_logger
+log = setup_applevel_logger(file_name='htm_debug.log')
+
 
 def print_config(config, indents=2):
+    log.info(msg="  config:")
     indent = ' ' * indents
     for k, v in config.items():
-        print(f"{indent}{k}")
+        log.info(msg=f"    {indent}{k}")
         for k_, v_ in v.items():
-            print(f"{indent}  {k_}")
+            log.info(msg=f"      {indent}  {k_}")
             if isinstance(v_, dict):
                 for k__, v__ in v_.items():
-                    print(f"{indent}    {k__} = {v__}")
+                    log.info(msg=f"      {indent}    {k__} = {v__}")
             else:
-                print(f"{indent}    = {v_}")
+                log.info(msg=f"      {indent}    = {v_}")
 
 
 def get_labels(ds_name, path_labels):
@@ -78,6 +82,7 @@ def get_args():
 
 
 def run_nab(dir_htm, dir_nab, dataset_count, probation_proportion):
+    log.info("\n\n**run_nab()")
     config_path_user = os.path.join(dir_htm, 'config', 'config--nab.yaml')
     config_path_model = os.path.join(dir_htm, 'config', 'config--model_default.yaml')
     dir_results = os.path.join(dir_nab, 'results', 'htmStreamer')
@@ -107,7 +112,7 @@ def run_nab(dir_htm, dir_nab, dataset_count, probation_proportion):
                 data = merge_labels_into_data(exp_name, path_data, path_labels)
                 pred_data = data[predictive_features]
                 # Train
-                print(f"\n\n{f}")
+                log.info(f"\n  file = {f}")
                 cfg_model['models_params']['anomaly_likelihood']['probationaryPeriod'] = int(
                     data.shape[0] * probation_proportion)
                 features_models, features_outputs = run_batch(cfg_user=cfg_user,

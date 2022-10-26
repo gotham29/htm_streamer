@@ -1,6 +1,14 @@
 import os
+import sys
 
 from htm_source.config import get_mode
+
+_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+sys.path.append(_SOURCE_DIR)
+
+from logger import get_logger
+
+log = get_logger(__name__)
 
 
 def validate_params_timestep0(cfg: dict) -> dict:
@@ -289,6 +297,6 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
     for param, p_type in tm_params.items():
         param_v = cfg['models_params']['tm'][param]
         assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
-    print(f'  Config validated!')
+    log.info(msg='  Config validated!')
 
     return cfg

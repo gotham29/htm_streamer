@@ -1,18 +1,29 @@
 import concurrent.futures
 import multiprocessing as mp
+import os
+import sys
 from collections import defaultdict
-from htm_source.model import HTMmodel
+
 from htm_source.data import Feature, separate_time_and_rest
+from htm_source.model import HTMmodel
 from htm_source.utils import frozendict
+
+_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+sys.path.append(_SOURCE_DIR)
+
+from logger import get_logger
+
+log = get_logger(__name__)
 
 
 def print_mod_params(mod):
+    log.info('Model Params:')
     for k,v in mod.models_params.items():
         if k == 'sp' and not mod.use_sp:
             continue
-        print(f"{k}")
+        log.info(f"  {k}")
         for k_, v_ in v.items():
-            print(f"  {k_} = {v_}")
+            log.info(msg=f"    {k_} = {v_}")
 
 
 def init_models(use_sp: bool,
@@ -71,9 +82,11 @@ def init_models(use_sp: bool,
         # print_mod_params(model)
         features_models[f'megamodel_features={len(features_enc_params)}'] = model
 
-    print(f'  Models initialized...')
+    log.info(msg="  Models initialized...")
     for f, model in features_models.items():
-        print(f'    {f}  (size={model.encoding_width})')
+        log.info(msg=f"    {f}")
+        log.info(msg=f'      enc size = {model.encoding_width}')
+        log.info(msg=f'      tm size  = {model.tm.numberOfColumns()}')
 
     return features_models
 
