@@ -8,7 +8,7 @@ from htm_source.pipeline.htm_batch_runner import run_batch
 from htm_source.utils.fs import load_config
 
 from logger import setup_applevel_logger
-log = setup_applevel_logger(file_name='htm_debug.log')
+log = setup_applevel_logger(file_name= os.path.join(os.getcwd(),'logs.log') )
 
 
 def print_config(config, indents=2):

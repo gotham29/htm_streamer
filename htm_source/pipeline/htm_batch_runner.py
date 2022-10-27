@@ -15,7 +15,7 @@ from htm_source.model.runners import init_models
 from htm_source.data.types import HTMType, to_htm_type
 
 from logger import setup_applevel_logger
-log = setup_applevel_logger(file_name='htm_debug.log')
+log = setup_applevel_logger(file_name= os.path.join(_SOURCE_DIR,'logs.log') )
 
 
 def run_batch(cfg_user: Union[dict, None],

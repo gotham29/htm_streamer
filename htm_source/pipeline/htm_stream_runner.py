@@ -12,7 +12,7 @@ from htm_source.config import reset_config
 from htm_source.pipeline.htm_stream import stream_to_htm
 
 from logger import setup_applevel_logger
-log = setup_applevel_logger(file_name='htm_debug.log')
+log = setup_applevel_logger(file_name= os.path.join(_SOURCE_DIR,'logs.log') )
 
 
 def run_stream(config_path_user: str,

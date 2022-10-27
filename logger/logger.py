@@ -18,7 +18,7 @@ def setup_applevel_logger(logger_name = APP_LOGGER_NAME,
     logger.addHandler(sh)
 
     if file_name:
-        fh = logging.FileHandler(file_name, encoding='utf-8')
+        fh = logging.FileHandler(file_name, encoding='utf-8', mode='w')
         fh.setFormatter(formatter)
         logger.addHandler(fh)
 
