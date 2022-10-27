@@ -27,7 +27,7 @@ class HTMmodel:
         self.return_pred_count = return_pred_count
         self.use_predictor = predictor_config['enable']
         self.use_spatial_pooler = use_spatial_pooler
-        self.use_spatial_anomaly = self.models_params['spatial_anom']['enable']
+        self.use_spatial_anomaly = self.models_params['spatial_anomaly']['enable']
 
         self.encoding_width = sum(feat.encoding_size for feat in self.features.values())
         self.sp = self.init_sp()
@@ -379,7 +379,7 @@ class HTMmodel:
 
         # Check for spatial anomaly (NAB)
         if self.use_spatial_anomaly:
-            spatialAnomaly = self.check_spatial_anomaly(self.models_params['spatial_anom'], features_data)
+            spatialAnomaly = self.check_spatial_anomaly(self.models_params['spatial_anomaly'], features_data)
             if spatialAnomaly:
                 anomaly_likelihood = 1.0
 

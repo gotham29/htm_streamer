@@ -5,7 +5,7 @@ models_encoders:
   p_padding: 20
   seed: 0
 models_params:
-  spatial_anom:
+  spatial_anomaly:
     enable: true
     tolerance: 0.05
     perc_min: 0
