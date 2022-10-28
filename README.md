@@ -2,8 +2,7 @@
 
 ## 1) htm.core
 ### Pip
-From command line:
-* **Install packages** `pip install htm.core`
+n/a
 ### Git
 From command line:
 * **Clone htm.core repo**: `git clone https://github.com/htm-community/htm.core.git`
