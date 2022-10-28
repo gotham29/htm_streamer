@@ -64,7 +64,10 @@ def run_batch(cfg_user: Union[dict, None],
 
     # 2. Ensure --> Expected features present
     missing_feats = [f for f in cfg_user['features'] if f not in data]
-    assert len(missing_feats) == 0, f"  expected features missing!\n  --> {sorted(missing_feats)}"
+    if len(missing_feats) > 0:
+        msg = f"  expected features missing!\n  --> {sorted(missing_feats)}"
+        log.error(msg=msg)
+        raise msg
 
     # 3. Init Models --> IF 'features_models' is empty
     do_init_models = True if len(features_models) == 0 else False
