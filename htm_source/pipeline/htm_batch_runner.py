@@ -79,6 +79,7 @@ def run_batch(cfg_user: Union[dict, None],
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
+                                      spatial_anomaly_config=cfg['spatial_anomaly'],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         # save_models(dir_models=models_dir,
         #             features_models=features_models)

@@ -31,6 +31,7 @@ def init_models(use_sp: bool,
                 models_params: dict,
                 predictor_config: dict,
                 features_enc_params: dict,
+                spatial_anomaly_config: dict,
                 model_for_each_feature: bool) -> dict:
     """
     Purpose:
@@ -69,7 +70,8 @@ def init_models(use_sp: bool,
                              use_spatial_pooler=use_sp,
                              return_pred_count=return_pred_count,
                              models_params=models_params,
-                             predictor_config=predictor_config)
+                             predictor_config=predictor_config,
+                             spatial_anomaly_config=spatial_anomaly_config)
             # print_mod_params(model)
             features_models[feat] = model
 
@@ -78,7 +80,8 @@ def init_models(use_sp: bool,
                          use_spatial_pooler=use_sp,
                          return_pred_count=return_pred_count,
                          models_params=models_params,
-                         predictor_config=predictor_config)
+                         predictor_config=predictor_config,
+                         spatial_anomaly_config=spatial_anomaly_config)
         # print_mod_params(model)
         features_models[f'megamodel_features={len(features_enc_params)}'] = model
 

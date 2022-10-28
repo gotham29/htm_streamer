@@ -189,7 +189,7 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
         cfg -- extended with all needed default params
     """
     ## Get cfg dicts not found in cfg
-    dicts_req = ['models_encoders', 'models_params', 'models_predictor']
+    dicts_req = ['models_encoders', 'models_params', 'models_predictor', 'spatial_anomaly']
     for dreq in dicts_req:
         if dreq not in cfg:
             cfg[dreq] = cfg_model[dreq]
@@ -197,8 +197,6 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
     # Validate config param types
     ptypes_model = {
         'anomaly_likelihood': dict,
-        'spatial_anomaly': dict,
-        'predictor': dict,
         'sp': dict,
         'tm': dict,
     }
@@ -208,10 +206,11 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
         'n_buckets': int,
         'p_padding': int,
     }
-    ptypes_modpredictor = {
+    ptypes_predictor = {
         'enable': bool,
         'resolution': int,
         'steps_ahead': list,
+        'sdrc_alpha': float
     }
     ptypes_anomlikelihood = {
         'probationaryPeriod': int,
@@ -224,9 +223,6 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
         'perc_max': int,
         'anom_prop': float,
         'window': int,
-    }
-    ptypes_htmpredictor = {
-        'sdrc_alpha': float
     }
     ptypes_sp = {
         'globalInhibition': bool,
@@ -259,16 +255,13 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
     validate_param_types(cfg_types=ptypes_enc, cfg_values=cfg['models_encoders'])
 
     ## cfg['models_predictor']
-    validate_param_types(cfg_types=ptypes_modpredictor, cfg_values=cfg['models_predictor'])
+    validate_param_types(cfg_types=ptypes_predictor, cfg_values=cfg['models_predictor'])
+
+    ## cfg['spatial_anomaly']
+    validate_param_types(cfg_types=ptypes_spatialanom, cfg_values=cfg['spatial_anomaly'])
 
     ## cfg['models_params']['anomaly_likelihood']
     validate_param_types(cfg_types=ptypes_anomlikelihood, cfg_values=cfg['models_params']['anomaly_likelihood'])
-
-    ## cfg['models_params']['spatial_anomaly']
-    validate_param_types(cfg_types=ptypes_spatialanom, cfg_values=cfg['models_params']['spatial_anomaly'])
-
-    ## cfg['models_params']['predictor']
-    validate_param_types(cfg_types=ptypes_htmpredictor, cfg_values=cfg['models_params']['predictor'])
 
     ## cfg['models_params']['sp']
     validate_param_types(cfg_types=ptypes_sp, cfg_values=cfg['models_params']['sp'])

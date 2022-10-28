@@ -94,6 +94,7 @@ def stream_to_htm(config_path_user: str,
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
+                                      spatial_anomaly_config=cfg['spatial_anomaly'],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         features_models, features_outputs = run_batch(cfg_user=cfg_user,
                                                       cfg_model=cfg_model,
