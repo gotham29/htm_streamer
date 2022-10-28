@@ -24,9 +24,9 @@ From command line:
   * `cd htm_streamer`
 * **Install packages**: `pip install -r requirements.txt`
 
-## 3) Run Integration Test
+## 3) Run Integration Tests
 From command line:
-* **Run**: `python tests/integration_test.py`
+* **Run**: `python tests/integration_tests.py`
 * **Get results**: `htm_streamer/tests`
 
 <br/>
