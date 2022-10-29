@@ -101,7 +101,7 @@ def validate_config(cfg_user: dict,
             msg = f"current timestep ({timestep_current}) <= timestep_initialized " \
                   f"({timestep_init})\n This shouldn't be when in 'running' mode"
             log.error(msg=msg)
-            raise msg
+            raise ValueError(msg)
 
     return cfg
 
@@ -157,14 +157,14 @@ def validate_params_required(cfg: dict,
         if not os.path.exists(d):
             msg = f"dir not found --> {d}"
             log.error(msg=msg)
-            raise msg
+            raise Exception(msg)
 
     # Assert features present in data:
     for f in cfg['features']:
         if not f in data:
             msg = f"features missing from data --> {f}\n  Found --> {data.keys()}"
             log.error(msg=msg)
-            raise msg
+            raise ValueError(msg)
 
     # Assert timesteps_stop values valid
     if 'learning' in cfg['timesteps_stop']:
@@ -174,7 +174,7 @@ def validate_params_required(cfg: dict,
                   f"but Found\n learning' = {learning}\n  " \
                   f"'sampling' = {sampling}"
             log.error(msg=msg)
-            raise msg
+            raise ValueError(msg)
 
 
 def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
@@ -302,7 +302,7 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
 
     if error:
         log.error(msg=msg)
-        raise msg
+        raise ValueError(msg)
 
     log.info(msg='  Config validated!')
 
@@ -315,5 +315,5 @@ def validate_param_types(cfg_types, cfg_values):
         if not isinstance(p_val, p_type):
             msg = f"Param: {p} should be type {p_type}\n  Found --> {p_val} type:{type(p)}"
             log.error(msg=msg)
-            raise msg
+            raise TypeError(msg)
 

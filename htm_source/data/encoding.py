@@ -25,7 +25,7 @@ def init_rdse(rdse_params, max_fail=3):
             if counter == max_fail:
                 log.error(
                     msg=f"Failed RDSE random collision check {max_fail} times\n  change rdse params --> {rdse_params}")
-                raise e
+                raise RuntimeError(e)
             pass
     return encoder
 

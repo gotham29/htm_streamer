@@ -639,7 +639,7 @@ def updateAnomalyLikelihoods(anomalyScores,
     if len(newParams["historicalLikelihoods"]) > windowSize:
         msg = f"historicalLikelihoods ({len(newParams['historicalLikelihoods'])}) must be >= windowSize ({windowSize})"
         log.error(msg=msg)
-        raise msg
+        raise ValueError(msg)
 
     if verbosity > 3:
         log.info(msg=f"Number of likelihoods: {len(likelihoods)}")
