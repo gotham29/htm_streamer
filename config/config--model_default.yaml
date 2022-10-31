@@ -5,13 +5,6 @@ models_encoders:
   p_padding: 20
   seed: 0
 models_params:
-  spatial_anom:
-    enable: true
-    tolerance: 0.05
-    perc_min: 0
-    perc_max: 100
-    anom_prop: 0.3
-    window: 100000
   anomaly_likelihood:
     probationaryPeriod: 500
     reestimationPeriod: 100
@@ -44,11 +37,17 @@ models_params:
     permanenceConnected: 0.5
     predictedSegmentDecrement: 0.001
     seed: 0  #1960
-  predictor:
-    sdrc_alpha: 0.1
 models_predictor:
   enable: false
   resolution: 1
+  sdrc_alpha: 0.1
   steps_ahead:
   - 1
   - 2
+spatial_anomaly:
+  enable: true
+  tolerance: 0.05
+  perc_min: 0
+  perc_max: 100
+  anom_prop: 0.3
+  window: 100000

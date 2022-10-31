@@ -1,5 +1,6 @@
 import os
 import sys
+
 import pandas as pd
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
@@ -11,6 +12,13 @@ from htm_source.config import build_enc_params, extend_features_samples
 from htm_source.config.validation import validate_config
 from htm_source.model.runners import init_models, run_models, track_tm
 from htm_source.pipeline.htm_batch_runner import run_batch
+
+_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+sys.path.append(_SOURCE_DIR)
+
+from logger import get_logger
+
+log = get_logger(__name__)
 
 
 def stream_to_htm(config_path_user: str,
@@ -86,6 +94,7 @@ def stream_to_htm(config_path_user: str,
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
+                                      spatial_anomaly_config=cfg['spatial_anomaly'],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         features_models, features_outputs = run_batch(cfg_user=cfg_user,
                                                       cfg_model=cfg_model,
@@ -121,7 +130,7 @@ def stream_to_htm(config_path_user: str,
         if cfg['models_state']['track_tm']:
             is_track_timestep = cfg['models_state']['timestep'] % cfg['models_state']['track_iter'] == 0
             if is_track_timestep:
-                print(f"  tracking TM, timestep --> {cfg['models_state']['timestep']}")
+                log.info(msg=f"  tracking TM, timestep --> {cfg['models_state']['timestep']}")
                 cfg = track_tm(cfg, features_models)
         save_outputs(dir_out=outputs_dir,
                      timestep_init=cfg['models_state']['timestep_initialized'],
@@ -132,9 +141,9 @@ def stream_to_htm(config_path_user: str,
                     features_models=features_models)
 
         if learn != cfg['models_state']['learn']:
-            print(f'  Learn changed!')
-            print(f"      row = {cfg['models_state']['timestep']}")
-            print(f"      {cfg['models_state']['learn']} --> {learn}")
+            log.info(msg='  Learn changed!')
+            log.info(msg=f"      row = {cfg['models_state']['timestep']}")
+            log.info(msg=f"      {cfg['models_state']['learn']} --> {learn}")
             cfg['models_state']['learn'] = learn
 
     # 7. Update Config

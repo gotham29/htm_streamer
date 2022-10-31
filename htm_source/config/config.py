@@ -1,7 +1,15 @@
-import numpy as np
+import os
+import sys
 
-from htm_source.utils.general import isnumeric
 from htm_source.data.types import HTMType, to_htm_type
+from htm_source.utils.general import isnumeric
+
+_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+sys.path.append(_SOURCE_DIR)
+
+from logger import get_logger
+
+log = get_logger(__name__)
 
 
 def reset_config(cfg: dict) -> dict:
@@ -57,7 +65,7 @@ def get_params_rdse(f: str,
     # else find min/max from f_samples
     else:
         f_min, f_max = min(f_sample), max(f_sample)
-        rangePadding = abs(f_max - f_min) * (float(models_encoders['p_padding'])/100)
+        rangePadding = abs(f_max - f_min) * (float(models_encoders['p_padding']) / 100)
         f_min = f_min - rangePadding
         f_max = f_max + rangePadding
     params_rdse = {
@@ -117,7 +125,7 @@ def build_enc_params(features: dict,
             features_enc_params[f] = get_params_rdse(f=f,
                                                      f_dict=f_dict,
                                                      f_sample=features_samples[f],
-                                                     models_encoders=models_encoders,)
+                                                     models_encoders=models_encoders, )
         # get enc - datetime
         elif to_htm_type(f_dict['type']) is HTMType.Datetime:
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
@@ -154,10 +162,11 @@ def get_rdse_resolution(feature: str,
             type: float
             meaning: param calculated for feature's RDSE encoder
     """
-    resolution = (f_max-f_min) / float(n_buckets)
+    resolution = (f_max - f_min) / float(n_buckets)
     if resolution == 0:
         resolution = 1.0
 
+        log.info(msg=f"Dropping feature, due to no variation in sample\n  --> {feature}")  # for constants
     return resolution
 
 
@@ -206,8 +215,6 @@ def get_mode(cfg: dict) -> str:
         mode = 'running'
 
     if mode_prev != mode:
-        print(f'  Mode changed!')
-        print(f"      row = {cfg['models_state']['timestep']}")
-        print(f"      {mode_prev} --> {mode}")
+        log.info(msg=f"  Mode changed @row {cfg['models_state']['timestep']}\n    {mode_prev} --> {mode}")
 
     return mode

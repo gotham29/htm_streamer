@@ -14,6 +14,9 @@ from htm_source.config.validation import validate_params_init
 from htm_source.model.runners import init_models
 from htm_source.data.types import HTMType, to_htm_type
 
+from logger import setup_applevel_logger
+log = setup_applevel_logger(file_name= os.path.join(_SOURCE_DIR,'logs.log') )
+
 
 def run_batch(cfg_user: Union[dict, None],
               cfg_model: Union[dict, None],
@@ -49,18 +52,22 @@ def run_batch(cfg_user: Union[dict, None],
         'stream_to_htm' --> called for each stream data
         'config.yaml' --> reset after last stream data
     """
+    log.info("\n\n** run_batch()")
 
     # 1. Load —> Config from Config Path IF not passed in as arg
     if cfg_user is None:
         cfg_user = load_config(config_path_user)
-        print(f'\nLoaded —> Config from: {config_path_user}')
+        log.info(msg=f"  Loaded —> Config-User from: {config_path_user}")
     if cfg_model is None:
         cfg_model = load_config(config_path_model)
-        print(f'\nLoaded —> Config default from: {config_path_model}')
+        log.info(msg=f"  Loaded —> Config-Model from: {config_path_model}")
 
     # 2. Ensure --> Expected features present
     missing_feats = [f for f in cfg_user['features'] if f not in data]
-    assert len(missing_feats) == 0, f"expected features missing!\n  --> {sorted(missing_feats)}"
+    if len(missing_feats) > 0:
+        msg = f"  expected features missing!\n  --> {sorted(missing_feats)}"
+        log.error(msg=msg)
+        raise ValueError(msg)
 
     # 3. Init Models --> IF 'features_models' is empty
     do_init_models = True if len(features_models) == 0 else False
@@ -75,6 +82,7 @@ def run_batch(cfg_user: Union[dict, None],
                                       models_params=cfg['models_params'],
                                       predictor_config=cfg['models_predictor'],
                                       features_enc_params=features_enc_params,
+                                      spatial_anomaly_config=cfg['spatial_anomaly'],
                                       model_for_each_feature=cfg['models_state']['model_for_each_feature'])
         # save_models(dir_models=models_dir,
         #             features_models=features_models)
@@ -90,7 +98,7 @@ def run_batch(cfg_user: Union[dict, None],
         features_outputs = {multi_feat: outputs_dict}
 
     # 5. Run --> 'data' through 'features_models'
-    print('Running main loop...')
+    log.info(msg="  Running main loop...")
     for timestep, row in data[:timestep_limit].iterrows():
         features_data = dict(row)
         # multi-models case
@@ -110,7 +118,7 @@ def run_batch(cfg_user: Union[dict, None],
             features_outputs[multi_feat]['pred_count'].append(pCount)
         # report status
         if timestep > iter_print and timestep % iter_print == 0:
-            print(f'  completed row: {timestep}')
+            log.info(msg=f"  completed row: {timestep}")
 
     return features_models, features_outputs
 
