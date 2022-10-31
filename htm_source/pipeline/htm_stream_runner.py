@@ -11,9 +11,6 @@ from htm_source.utils.fs import save_json, load_config, save_config
 from htm_source.config import reset_config
 from htm_source.pipeline.htm_stream import stream_to_htm
 
-from logger import setup_applevel_logger
-log = setup_applevel_logger(file_name= os.path.join(_SOURCE_DIR,'logs.log') )
-
 
 def run_stream(config_path_user: str,
                config_path_model: str,
@@ -47,16 +44,15 @@ def run_stream(config_path_user: str,
         'stream_to_htm' --> called for each stream data
         'config.yaml' --> reset after last stream data
     """
-    log.info("\n\n** run_stream()")
 
     # 1. Load —> Config from Config Path
     cfg = load_config(config_path_user)
 
-    log.info(msg=f'  Loaded —> Config from: {config_path_user}')
+    print(f'\nLoaded —> Config from: {config_path_user}')
 
     # 2. Load —> ML Inputs from ML Inputs Path
     data = pd.read_csv(data_path)
-    log.info(msg=f'  Loaded —> Data from: {data_path}')
+    print(f'Loaded —> Data from: {data_path}')
 
     # 3. Delete any .pkl in dir_models
     pkl_files = [f for f in os.listdir(models_dir) if '.pkl' in f]
@@ -73,15 +69,15 @@ def run_stream(config_path_user: str,
     except:
         timestep_limit = 1000000
 
-    log.info('  Running main loop...')
+    print('Running main loop...')
     for idx, row in data[:timestep_limit].iterrows():
         # skip rows where any cfg['features'] aren't numeric
         features_missing = check_for_missing_features(row=row,
                                                       features_expected=cfg['features'])
         if len(features_missing) > 0:
-            log.info(msg=f'    skipping row: {idx}')
-            log.info(msg=f'    features_missing = {features_missing}')
-            log.info(msg=f'    data = {dict(row)}\n')
+            print(f'\n  skipping row: {idx}')
+            print(f'    features_missing = {features_missing}')
+            print(f'    data = {dict(row)}\n')
             continue
         # write data
         data_stream_path = os.path.join(data_stream_dir, f'inputrow={idx}.json')
@@ -92,7 +88,7 @@ def run_stream(config_path_user: str,
         os.remove(data_stream_path)
         # print progress
         if idx > 1 and idx % 1000 == 0:
-            log.info(msg=f'    completed row: {idx}')
+            print(f'  completed row: {idx}')
     # 5. Reset cfg
     cfg = reset_config(cfg)
     cfg = save_config(cfg, config_path_user)

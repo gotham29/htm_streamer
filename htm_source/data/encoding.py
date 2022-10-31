@@ -1,17 +1,11 @@
-import os
-import sys
-
 from htm.encoders.date import DateEncoder
 from htm.encoders.rdse import RDSE_Parameters, RDSE
 
 from htm_source.data.types import HTMType
 
-_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-sys.path.append(_SOURCE_DIR)
-
-from logger import get_logger
-
-log = get_logger(__name__)
+"""
+SETUP LOGGER
+"""
 
 
 def init_rdse(rdse_params, max_fail=3):
@@ -23,9 +17,9 @@ def init_rdse(rdse_params, max_fail=3):
         except RuntimeError as e:
             counter += 1
             if counter == max_fail:
-                log.error(
-                    msg=f"Failed RDSE random collision check {max_fail} times\n  change rdse params --> {rdse_params}")
-                raise RuntimeError(e)
+                # logger.error(f"Failed RDSE random collision check {max_fail} times\n  change rdse params --> {rdse_params}")
+                print(f"Failed {counter} time(s), ", e)
+                raise e
             pass
     return encoder
 

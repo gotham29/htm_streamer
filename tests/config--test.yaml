@@ -37,7 +37,7 @@ features:
 models_state:
   model_for_each_feature: true
   return_pred_count: true
-  use_sp: true
+  use_sp: false
 timesteps_stop:
   learning: 100
   running: 110

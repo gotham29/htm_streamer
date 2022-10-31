@@ -1,14 +1,6 @@
 import os
-import sys
 
 from htm_source.config import get_mode
-
-_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-sys.path.append(_SOURCE_DIR)
-
-from logger import get_logger
-
-log = get_logger(__name__)
 
 
 def validate_params_timestep0(cfg: dict) -> dict:
@@ -25,12 +17,9 @@ def validate_params_timestep0(cfg: dict) -> dict:
     # Add 'timesteps_stop' config
     if 'timesteps_stop' not in cfg:
         cfg['timesteps_stop'] = {}
-    # Add 'sampling' to 'timesteps_stop'
-    if 'sampling' not in cfg['timesteps_stop']:
-        cfg['timesteps_stop']['sampling'] = 100
-        # Add 'learning' to 'timesteps_stop'
+    # Add 'learning' to 'timesteps_stop'
     if 'learning' not in cfg['timesteps_stop']:
-        cfg['timesteps_stop']['learning'] = None
+        cfg['timesteps_stop']['learning'] = None 
     # Add 'timestep' & 'learn' to 'models_state'
     if 'timestep' not in cfg['models_state']:
         cfg['models_state']['timestep'] = 0
@@ -39,6 +28,10 @@ def validate_params_timestep0(cfg: dict) -> dict:
     if 'track_tm' not in cfg['models_state']:
         cfg['models_state']['track_tm'] = False
         cfg['models_state']['track_iter'] = 10
+    # Ensure cfg['timesteps_stop']['sampling'] provided if 'features_minmax' ism't
+    if 'features_minmax' not in cfg:
+        assert 'timesteps_stop' in cfg, "'timesteps_stop' dict expected in config when 'features_minmax' not found"
+        assert 'sampling' in cfg['timesteps_stop'], "'sampling' int expected in cfg['timesteps_stop']"
 
     return cfg
 
@@ -53,15 +46,15 @@ def validate_config(cfg_user: dict,
     Purpose:
         Ensure validity of all config values
     Inputs:
-        cfg_user
+        cfg
             type: dict
-            meaning: config with user-modified values ('features', 'models_state', 'timesteps_stop')
-        cfg_model
-            type: dict
-            meaning: config with default values ('models_params', 'models_encoders', 'models_predictor')
+            meaning: config (yaml)
         data
             type: dict
             meaning: current data for each feature
+        timestep
+            type: int
+            meaning: current timestep
         models_dir
             type: str
             meaning: path to dir where HTM models are written
@@ -71,7 +64,7 @@ def validate_config(cfg_user: dict,
     Outputs:
         cfg
             type: dict
-            meaning: config with combined user & default values
+            meaning: config (yaml) -- validated & extended w/defaults
     """
     # Add params -- IF not found (first timestep)
     cfg = validate_params_timestep0(cfg_user)
@@ -97,11 +90,8 @@ def validate_config(cfg_user: dict,
 
     else:  # Mode == 'running'
         timestep_current, timestep_init = cfg['models_state']['timestep'], cfg['models_state']['timestep_initialized']
-        if timestep_current <= timestep_init:
-            msg = f"current timestep ({timestep_current}) <= timestep_initialized " \
-                  f"({timestep_init})\n This shouldn't be when in 'running' mode"
-            log.error(msg=msg)
-            raise ValueError(msg)
+        assert timestep_current > timestep_init, f"current timestep ({timestep_current}) <= timestep_initialized " \
+                                                 f"({timestep_init})\n This shouldn't be when in 'running' mode"
 
     return cfg
 
@@ -129,15 +119,26 @@ def validate_params_required(cfg: dict,
     Outputs:
         cfg (unchanged)
     """
-
-    # Validate config param types
-    ptypes_cfguser = {
+    # Assert all expected params are present & correct type
+    params_types = {
         'features': dict,
         'models_state': dict,
         'timesteps_stop': dict,
     }
-    ptypes_timesteps_stop = {k: int for k, v in cfg['timesteps_stop'].items()}
-    ptypes_models_state = {
+    for param, p_type in params_types.items():
+        param_v = cfg[param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+
+    # Assert timesteps_stop valid
+    timesteps_stop_params_types = {
+        k: int for k, v in cfg['timesteps_stop'].items()
+    }
+    for param, p_type in timesteps_stop_params_types.items():
+        param_v = cfg['timesteps_stop'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+
+    # Assert models_state valid
+    modelsstate_params_types = {
         'learn': bool,
         'timestep': int,
         'track_tm': bool,
@@ -145,36 +146,24 @@ def validate_params_required(cfg: dict,
         'track_iter': int,
         'model_for_each_feature': bool,
     }
-    ## cfg
-    validate_param_types(cfg_types=ptypes_cfguser, cfg_values=cfg)
-    ## cfg['timesteps_stop']
-    validate_param_types(cfg_types=ptypes_timesteps_stop, cfg_values=cfg['timesteps_stop'])
-    ## cfg['models_state']
-    validate_param_types(cfg_types=ptypes_models_state, cfg_values=cfg['models_state'])
+    for param, p_type in modelsstate_params_types.items():
+        param_v = cfg['models_state'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
 
     # Assert dirs exist
     for d in [models_dir, outputs_dir]:
-        if not os.path.exists(d):
-            msg = f"dir not found --> {d}"
-            log.error(msg=msg)
-            raise Exception(msg)
+        assert os.path.exists(d), f"dir not found --> {d}"
 
     # Assert features present in data:
     for f in cfg['features']:
-        if not f in data:
-            msg = f"features missing from data --> {f}\n  Found --> {data.keys()}"
-            log.error(msg=msg)
-            raise ValueError(msg)
+        assert f in data, f"features missing from data --> {f}\n  Found --> {data.keys()}"
 
     # Assert timesteps_stop values valid
-    if 'learning' in cfg['timesteps_stop']:
+    if 'sampling' in cfg['timesteps_stop']:
         learning, sampling = cfg['timesteps_stop']['learning'], cfg['timesteps_stop']['sampling']
-        if learning <= sampling:
-            msg = f"In 'timesteps_stop' config, expected 'learning' > 'sampling'" \
-                  f"but Found\n learning' = {learning}\n  " \
-                  f"'sampling' = {sampling}"
-            log.error(msg=msg)
-            raise ValueError(msg)
+        assert learning > sampling, f"In 'timesteps_stop' config, expected 'learning' > 'sampling'" \
+                                    f"but Found\n learning' = {learning}\n  " \
+                                    f"'sampling' = {sampling}"
 
 
 def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
@@ -189,42 +178,86 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
         cfg -- extended with all needed default params
     """
     ## Get cfg dicts not found in cfg
-    dicts_req = ['models_encoders', 'models_params', 'models_predictor', 'spatial_anomaly']
+    dicts_req = ['models_encoders', 'models_params', 'models_predictor']
     for dreq in dicts_req:
         if dreq not in cfg:
             cfg[dreq] = cfg_model[dreq]
 
-    # Validate config param types
-    ptypes_model = {
-        'anomaly_likelihood': dict,
-        'sp': dict,
-        'tm': dict,
-    }
-    ptypes_enc = {
+    # Assert valid models_encoders dict
+    enc_params_types = {
         'n': int,
         'w': int,
         'n_buckets': int,
         'p_padding': int,
     }
-    ptypes_predictor = {
+    for param, p_type in enc_params_types.items():
+        param_v = cfg['models_encoders'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+
+    # Assert n valid
+    n = cfg['models_encoders']['n']
+    assert n > 200, f"'n' should be > 200\n  Found --> {n}"
+
+    # Assert w valid
+    w = cfg['models_encoders']['w']
+    assert w >= 0.05*n, f"'w' should be > 5% of n \n  Found --> {w}\n  Should be at least --> {int(0.05*n)+1}"
+    assert w <= 0.2*n, f"'w' should be < 20% of n \n  Found --> {w}\n  Should be at most --> {int(0.2*n)+1}"
+
+    # Assert n_buckets valid
+    n_buckets = cfg['models_encoders']['n_buckets']
+    assert n_buckets > 100, f"'n_buckets' should be > 100\n  Found --> {n_buckets}"
+
+    # Assert padding valid
+    p_padding = cfg['models_encoders']['p_padding']
+    assert p_padding >= -100, f"'p_padding' should be >= -100 \n  Found --> {p_padding}"
+    assert p_padding <= 100, f"'p_padding' should be <= 100 \n  Found --> {p_padding}"
+
+    # Assert valid timeOfDay
+    ###
+
+    # Assert valid weekend
+    ###
+
+    # Assert valid models_predictor
+    predictor_params_types = {
         'enable': bool,
         'resolution': int,
         'steps_ahead': list,
-        'sdrc_alpha': float
     }
-    ptypes_anomlikelihood = {
+    for param, p_type in predictor_params_types.items():
+        param_v = cfg['models_predictor'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+
+    # Assert valid models_params
+    model_params_types = {
+        'anomaly_likelihood': dict,
+        'predictor': dict,
+        'sp': dict,
+        'tm': dict,
+    }
+    for param, p_type in model_params_types.items():
+        param_v = cfg['models_params'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+
+    # Assert valid anomaly_params_types
+    anomaly_params_types = {
         'probationaryPeriod': int,
         'reestimationPeriod': int,
     }
-    ptypes_spatialanom = {
-        'enable': bool,
-        'tolerance': float,
-        'perc_min': int,
-        'perc_max': int,
-        'anom_prop': float,
-        'window': int,
+    for param, p_type in anomaly_params_types.items():
+        param_v = cfg['models_params']['anomaly_likelihood'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+
+    # Assert valid predictor_params_types
+    predictor_params_types = {
+        'sdrc_alpha': float,
     }
-    ptypes_sp = {
+    for param, p_type in predictor_params_types.items():
+        param_v = cfg['models_params']['predictor'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+
+    # Assert valid sp_params
+    sp_params = {
         'globalInhibition': bool,
         'potentialPct': float,
         'potentialPct': float,
@@ -236,7 +269,13 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
         'columnCount': int,
         'numActiveColumnsPerInhArea': int,
     }
-    ptypes_tm = {
+
+    for param, p_type in sp_params.items():
+        param_v = cfg['models_params']['sp'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+
+    # Assert valid tm_params
+    tm_params = {
         'activationThreshold': int,
         'cellsPerColumn': int,
         'initialPerm': float,
@@ -247,73 +286,9 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
         'permanenceDec': float,
         'permanenceInc': float,
     }
-
-    ## cfg['models_params']
-    validate_param_types(cfg_types=ptypes_model, cfg_values=cfg['models_params'])
-
-    ## cfg['models_encoders']
-    validate_param_types(cfg_types=ptypes_enc, cfg_values=cfg['models_encoders'])
-
-    ## cfg['models_predictor']
-    validate_param_types(cfg_types=ptypes_predictor, cfg_values=cfg['models_predictor'])
-
-    ## cfg['spatial_anomaly']
-    validate_param_types(cfg_types=ptypes_spatialanom, cfg_values=cfg['spatial_anomaly'])
-
-    ## cfg['models_params']['anomaly_likelihood']
-    validate_param_types(cfg_types=ptypes_anomlikelihood, cfg_values=cfg['models_params']['anomaly_likelihood'])
-
-    ## cfg['models_params']['sp']
-    validate_param_types(cfg_types=ptypes_sp, cfg_values=cfg['models_params']['sp'])
-
-    ## cfg['models_params']['tm']
-    validate_param_types(cfg_types=ptypes_tm, cfg_values=cfg['models_params']['tm'])
-
-    error = False
-    # Assert n valid
-    n = cfg['models_encoders']['n']
-    if n < 200:
-        error = True
-        msg = f"'n' should be > 200\n  Found --> {n}"
-
-    # Assert w valid
-    w = cfg['models_encoders']['w']
-    if w < 0.05 * n:
-        error = True
-        msg = f"'w' should be > 5% of n \n  Found --> {w}\n  Should be at least --> {int(0.05 * n) + 1}"
-    if w > 0.2 * n:
-        error = True
-        msg = f"'w' should be < 20% of n \n  Found --> {w}\n  Should be at most --> {int(0.2 * n) + 1}"
-
-    # Assert n_buckets valid
-    n_buckets = cfg['models_encoders']['n_buckets']
-    if n_buckets < 100:
-        error = True
-        msg = f"'n_buckets' should be > 100\n  Found --> {n_buckets}"
-
-    # Assert padding valid
-    p_padding = cfg['models_encoders']['p_padding']
-    if p_padding < -100:
-        error = True
-        msg = f"'p_padding' should be >= -100 \n  Found --> {p_padding}"
-    if p_padding > 100:
-        error = True
-        msg = f"'p_padding' should be <= 100 \n  Found --> {p_padding}"
-
-    if error:
-        log.error(msg=msg)
-        raise ValueError(msg)
-
-    log.info(msg='  Config validated!')
+    for param, p_type in tm_params.items():
+        param_v = cfg['models_params']['tm'][param]
+        assert isinstance(param_v, p_type), f"Param: {param} should be type {p_type}\n  Found --> {p_type(param_v)}"
+    print(f'  Config validated!')
 
     return cfg
-
-
-def validate_param_types(cfg_types, cfg_values):
-    for p, p_type in cfg_types.items():
-        p_val = cfg_values[p]
-        if not isinstance(p_val, p_type):
-            msg = f"Param: {p} should be type {p_type}\n  Found --> {p_val} type:{type(p)}"
-            log.error(msg=msg)
-            raise TypeError(msg)
-

@@ -16,9 +16,6 @@ tests/models/
 tests/validate--NAB
 NAB/
 
-# Log
-logs.log
-
 # Mac related
 .DS_Store
 **/.DS_Store

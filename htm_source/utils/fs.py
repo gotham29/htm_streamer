@@ -1,16 +1,9 @@
 import json
 import os
-import sys
 import pickle
 
 import pandas as pd
 import yaml
-
-_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-sys.path.append(_SOURCE_DIR)
-
-from logger import get_logger
-log = get_logger(__name__)
 
 
 def load_json(path_json: str) -> dict:
@@ -171,7 +164,7 @@ def save_outputs(features_outputs: dict, timestep_init: int, timestep_current: i
                 result_total = pd.concat([pd.read_csv(path_result_total), result_current], axis=0)
             result_total.to_csv(path_result_total, index=False)
     if first_output:
-        log.info(msg=f"  Save Outputs Accumulated = {save_outputs_accumulated}\n")
+        print(f"  Save Outputs Accumulated = {save_outputs_accumulated}\n")
 
 
 def load_config(yaml_path: str) -> dict:

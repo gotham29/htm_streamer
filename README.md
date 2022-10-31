@@ -2,7 +2,8 @@
 
 ## 1) htm.core
 ### Pip
-n/a
+From command line:
+* **Install packages** `pip install htm.core`
 ### Git
 From command line:
 * **Clone htm.core repo**: `git clone https://github.com/htm-community/htm.core.git`
@@ -24,9 +25,9 @@ From command line:
   * `cd htm_streamer`
 * **Install packages**: `pip install -r requirements.txt`
 
-## 3) Run Integration Tests
+## 3) Run Integration Test
 From command line:
-* **Run**: `python tests/integration_tests.py`
+* **Run**: `python tests/integration_test.py`
 * **Get results**: `htm_streamer/tests`
 
 <br/>

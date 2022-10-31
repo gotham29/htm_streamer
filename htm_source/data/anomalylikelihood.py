@@ -1,18 +1,9 @@
 import collections
 import math
 import numbers
-import os
-import sys
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
-
-_SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-sys.path.append(_SOURCE_DIR)
-
-from logger import get_logger
-
-log = get_logger(__name__)
 
 
 class Serializable(object):
@@ -265,7 +256,7 @@ class AnomalyLikelihood(Serializable):
 
 
         if claLearningPeriod != None:
-            log.warning(msg="claLearningPeriod is deprecated, use learningPeriod instead.")
+            print("claLearningPeriod is deprecated, use learningPeriod instead.")
             self._learningPeriod = claLearningPeriod
         else:
             self._learningPeriod = learningPeriod
@@ -500,10 +491,10 @@ def estimateAnomalyLikelihoods(anomalyScores,
                 a small JSON dict that contains the state of the estimator
     """
     if verbosity > 1:
-        log.info(msg="In estimateAnomalyLikelihoods.")
-        log.info(msg=f"Number of anomaly scores: {len(anomalyScores)}")
-        log.info(msg=f"Skip records= {skipRecords}")
-        log.info(msg=f"First 20: {anomalyScores[0:min(20, len(anomalyScores))]}")
+        print("In estimateAnomalyLikelihoods.")
+        print("Number of anomaly scores:", len(anomalyScores))
+        print("Skip records=", skipRecords)
+        print("First 20:", anomalyScores[0:min(20, len(anomalyScores))])
 
     if len(anomalyScores) == 0:
         raise ValueError("Must have at least one anomalyScore")
@@ -558,10 +549,12 @@ def estimateAnomalyLikelihoods(anomalyScores,
     }
 
     if verbosity > 1:
-        log.info(msg=f"Discovered params=\n  {params}")
-        log.info(msg=f"Number of likelihoods: {len(likelihoods)}")
-        log.info(msg=f"First 20 likelihoods:\n  {filteredLikelihoods[0:min(20, len(filteredLikelihoods))]}")
-        log.info(msg="leaving estimateAnomalyLikelihoods")
+        print("Discovered params=")
+        print(params)
+        print("Number of likelihoods:", len(likelihoods))
+        print("First 20 likelihoods:", (
+            filteredLikelihoods[0:min(20, len(filteredLikelihoods))] ))
+        print("leaving estimateAnomalyLikelihoods")
 
 
     return (filteredLikelihoods, aggRecordList, params)
@@ -587,10 +580,10 @@ def updateAnomalyLikelihoods(anomalyScores,
                 an updated JSON object containing the state of this metric.
     """
     if verbosity > 3:
-        log.info(msg="In updateAnomalyLikelihoods.")
-        log.info(msg=f"Number of anomaly scores: {len(anomalyScores)}")
-        log.info(msg=f"First 20:  {anomalyScores[0:min(20, len(anomalyScores))]}")
-        log.info(msg=f"Params: {params}")
+        print("In updateAnomalyLikelihoods.")
+        print("Number of anomaly scores:", len(anomalyScores))
+        print("First 20:", anomalyScores[0:min(20, len(anomalyScores))])
+        print("Params:", params)
 
     if len(anomalyScores) == 0:
         raise ValueError("Must have at least one anomalyScore")
@@ -636,15 +629,12 @@ def updateAnomalyLikelihoods(anomalyScores,
         "historicalLikelihoods": historicalLikelihoods,
     }
 
-    if len(newParams["historicalLikelihoods"]) > windowSize:
-        msg = f"historicalLikelihoods ({len(newParams['historicalLikelihoods'])}) must be >= windowSize ({windowSize})"
-        log.error(msg=msg)
-        raise ValueError(msg)
+    assert len(newParams["historicalLikelihoods"]) <= windowSize
 
     if verbosity > 3:
-        log.info(msg=f"Number of likelihoods: {len(likelihoods)}")
-        log.info(msg=f"First 20 likelihoods: {likelihoods[0:min(20, len(likelihoods))]}")
-        log.info(msg="Leaving updateAnomalyLikelihoods.")
+        print("Number of likelihoods:", len(likelihoods))
+        print("First 20 likelihoods:", likelihoods[0:min(20, len(likelihoods))])
+        print("Leaving updateAnomalyLikelihoods.")
 
     return (likelihoods, aggRecordList, newParams)
 
@@ -700,7 +690,7 @@ def _anomalyScoreMovingAverage(anomalyScores,
         # Skip (but log) records without correct number of entries
         if not isinstance(record, (list, tuple)) or len(record) != 3:
             if verbosity >= 1:
-                log.info(msg=f"Mlaformed record: {record}")
+                print("Malformed record:", record)
             continue
 
         avg, historicalValues, total = (
@@ -710,8 +700,8 @@ def _anomalyScoreMovingAverage(anomalyScores,
         averagedRecordList.append( [record[0], record[1], avg] )
 
         if verbosity > 2:
-            log.info(msg=f"Aggregating input record: {record}")
-            log.info(msg=f"Result: {[record[0], record[1], avg]}")
+            print("Aggregating input record:", record)
+            print("Result:", [record[0], record[1], avg])
 
     return averagedRecordList, historicalValues, total
 
@@ -757,7 +747,7 @@ def nullDistribution(verbosity=0):
         between 0 and 1 pretty likely.
     """
     if verbosity>0:
-        log.info(msg="Returning nullDistribution")
+        print("Returning nullDistribution")
     return {
         "name": "normal",
         "mean": 0.5,
