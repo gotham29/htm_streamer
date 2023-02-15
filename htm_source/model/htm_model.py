@@ -14,7 +14,7 @@ from htm_source.utils import dict_zip, frozendict
 
 class HTMmodel:
     def __init__(self,
-                 features: frozendict[str, Feature],
+                 features,  #: frozendict[str, Feature],
                  models_params: dict,
                  predictor_config: dict,
                  spatial_anomaly_config: dict,
