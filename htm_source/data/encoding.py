@@ -1,6 +1,7 @@
 import os
 import sys
 
+from htm.bindings.sdr import SDR
 from htm.encoders.date import DateEncoder
 from htm.encoders.rdse import RDSE_Parameters, RDSE
 
@@ -14,12 +15,15 @@ from logger import get_logger
 log = get_logger(__name__)
 
 
-def init_rdse(rdse_params, max_fail=3):
+def init_rdse(rdse_params, max_fail=5, shape=None):
     encoder = None
     counter = 0
+    if shape is None:
+        shape = [rdse_params.size]
+
     while encoder is None:
         try:
-            encoder = RDSE(rdse_params)
+            encoder = ShapedRDSE(shape, rdse_params)
         except RuntimeError as e:
             counter += 1
             if counter == max_fail:
@@ -29,6 +33,14 @@ def init_rdse(rdse_params, max_fail=3):
             pass
     return encoder
 
+# TODO identity?
+class DummyEncoder:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def encode(self, data):
+        return data
+
 
 class EncoderFactory:
     @staticmethod
@@ -36,17 +48,16 @@ class EncoderFactory:
         """
         Returns the appropriate encoder based on given HTMType and parameters dict
         """
-        # if dtype is HTMType.Numeric:
-        if dtype in [HTMType.Numeric, HTMType.Categoric]:
+        if dtype in [HTMType.Numeric, HTMType.Categorical]:
             rdse_params = RDSE_Parameters()
             rdse_params.seed = encoder_params['seed']
             rdse_params.size = encoder_params['size']
             rdse_params.activeBits = encoder_params["activeBits"]
             if dtype is HTMType.Numeric:
                 rdse_params.resolution = encoder_params['resolution']
-            else:  # dtype is HTMType.Categoric
+            else:  # dtype is HTMType.Categorical
                 rdse_params.category = True
-            encoder = init_rdse(rdse_params)
+            encoder = init_rdse(rdse_params, shape=encoder_params.get('shape', None))
 
         elif dtype is HTMType.Datetime:
             encoder = DateEncoder(timeOfDay=encoder_params["timeOfDay"],
@@ -55,9 +66,32 @@ class EncoderFactory:
                                   holiday=encoder_params["holiday"],
                                   season=encoder_params["season"])
 
+        elif dtype is HTMType.SDR:
+            encoder = DummyEncoder()
+
         # future implementations here..
 
         else:
             raise NotImplementedError(f"Encoder not implemented for '{dtype}'")
 
         return encoder
+
+
+class ShapedRDSE:
+    """ Like RDSE, but able to return multidimensional encodings """
+    def __init__(self, shape, rdse_params):
+        self.encoder = RDSE(rdse_params)
+        self.shape = shape
+
+    def encode(self, *args, **kwargs) -> SDR:
+        encoding: SDR = self.encoder.encode(*args, **kwargs)
+        encoding.reshape(self.shape)
+        return encoding
+
+    @property
+    def size(self):
+        return self.encoder.size
+
+    @property
+    def dimensions(self):
+        return self.shape

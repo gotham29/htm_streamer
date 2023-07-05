@@ -1,5 +1,9 @@
+import math
 import os
 import sys
+
+import numpy as np
+import pandas as pd
 
 from htm_source.data.types import HTMType, to_htm_type
 from htm_source.utils.general import isnumeric
@@ -68,12 +72,12 @@ def get_params_rdse(f: str,
         rangePadding = abs(f_max - f_min) * (float(models_encoders['p_padding']) / 100)
         f_min = f_min - rangePadding
         f_max = f_max + rangePadding
-    params_rdse = {
-        'resolution': get_rdse_resolution(feature=f,
-                                          f_min=f_min,
-                                          f_max=f_max,
-                                          n_buckets=models_encoders['n_buckets'])
-    }
+
+    # TODO: min max needed?
+    res = f_dict['resolution']
+    res = res if res is not None else get_rdse_resolution(feature=f, f_sample=f_sample)
+    params_rdse = {'resolution': res}
+
     return params_rdse
 
 
@@ -92,10 +96,9 @@ def get_params_category() -> dict:
     return params_category
 
 
-def build_enc_params(features: dict,
-                     models_encoders: dict,
-                     features_samples: dict,
-                     ) -> dict:
+def build_enc_params(features_cfg: dict,
+                     encoders_cfg: dict,
+                     data_samples: pd.DataFrame) -> dict:
     """
     Purpose:
         Set encoder params fpr each feature (using ether found or sampled min/max)
@@ -117,36 +120,46 @@ def build_enc_params(features: dict,
             type: dict
             meaning: set of encoder params for each feature ('size, sparsity', 'resolution')
     """
-    features_weights = {k: v.get('weight', 1.0) for k, v in features.items()}
+    features_weights = {k: v.get('weight', 1.0) for k, v in features_cfg.items()}
     features_enc_params = {}
-    for f, f_dict in features.items():
+    enc_size = encoders_cfg['n']
+    for f, f_dict in features_cfg.items():
         # get enc - numeric
         if to_htm_type(f_dict['type']) is HTMType.Numeric:
-            features_enc_params[f] = get_params_rdse(f=f,
-                                                     f_dict=f_dict,
-                                                     f_sample=features_samples[f],
-                                                     models_encoders=models_encoders, )
+            f_sample = data_samples[f].values
+            res = f_dict.get('resolution', None)
+            res = res if res is not None else get_rdse_resolution(feature=f, f_sample=f_sample)
+            features_enc_params[f] = {'resolution': res}
         # get enc - datetime
         elif to_htm_type(f_dict['type']) is HTMType.Datetime:
             features_enc_params[f] = {k: v for k, v in f_dict.items() if k != 'type'}
         # get enc - categoric
-        elif to_htm_type(f_dict['type']) is HTMType.Categoric:
+        elif to_htm_type(f_dict['type']) is HTMType.Categorical:
             features_enc_params[f] = get_params_category()
         else:
             raise TypeError(f"Unsupported type: {f_dict['type']}")
         # set seed, size, activeBits
         features_enc_params[f]['type'] = f_dict['type']
-        features_enc_params[f]['seed'] = models_encoders['seed']
-        features_enc_params[f]['size'] = int(models_encoders['n'] * features_weights[f])
-        features_enc_params[f]['activeBits'] = int(models_encoders['w'] * features_weights[f])
+        features_enc_params[f]['seed'] = encoders_cfg['seed']
+        if isinstance(enc_size, (list, tuple)) and len(enc_size) > 1:
+            if features_weights[f] != 1:
+                print(f"Feature weight is only supported for flat encoding, ignoring weight for '{f}'")
+
+            features_enc_params[f]['shape'] = enc_size
+            features_enc_params[f]['size'] = math.prod(enc_size)
+            features_enc_params[f]['activeBits'] = encoders_cfg['w']
+        else:
+            if isinstance(enc_size, (list, tuple)):
+                enc_size = enc_size[0]
+
+            features_enc_params[f]['size'] = int(enc_size * features_weights[f])
+            features_enc_params[f]['activeBits'] = int(encoders_cfg['w'] * features_weights[f])
     return features_enc_params
 
 
 def get_rdse_resolution(feature: str,
-                        f_min: float,
-                        f_max: float,
-                        n_buckets: int
-                        ) -> float:
+                        f_sample: list,
+                        q: int = 10) -> float:
     """
     Purpose:
         Calculate 'resolution' pararm to RDSE for given feature
@@ -162,11 +175,16 @@ def get_rdse_resolution(feature: str,
             type: float
             meaning: param calculated for feature's RDSE encoder
     """
-    resolution = (f_max - f_min) / float(n_buckets)
+    diffs = np.abs(f_sample[:-1] - f_sample[1:])
+    if (resolution := np.percentile(diffs, q)) == 0:
+        while q < 100 and resolution == 0:
+            q += 5
+            resolution = np.percentile(diffs, q)
+
     if resolution == 0:
         resolution = 1.0
+        log.info(msg=f"No variation in sample\n  --> {feature} !!!!")  # for constants
 
-        log.info(msg=f"Dropping feature, due to no variation in sample\n  --> {feature}")  # for constants
     return resolution
 
 

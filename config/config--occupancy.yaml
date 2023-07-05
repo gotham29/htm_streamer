@@ -1,0 +1,35 @@
+features:
+  Temperature:
+    type: float
+    weight: 1
+    min:
+    max:
+    resolution:
+  Humidity:
+    type: float
+    weight: 1
+    min:
+    max:
+    resolution:
+  Light:
+    type: float
+    weight: 1
+    min:
+    max:
+    resolution:
+  CO2:
+    type: float
+    weight: 1
+    min:
+    max:
+    resolution:
+
+models_state:
+  model_for_each_feature: true
+  return_pred_count: no
+  use_sp: true
+
+timesteps_stop:
+  learning:
+  running:
+  sampling:

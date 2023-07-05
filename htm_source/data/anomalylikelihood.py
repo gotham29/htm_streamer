@@ -26,7 +26,6 @@ class Serializable(object):
 
     __metaclass__ = ABCMeta
 
-
     @classmethod
     @abstractmethod
     def getSchema(cls):
@@ -37,7 +36,6 @@ class Serializable(object):
         @returns Cap'n Proto schema
         """
         pass
-
 
     @classmethod
     @abstractmethod
@@ -51,7 +49,6 @@ class Serializable(object):
         """
         pass
 
-
     @abstractmethod
     def write(self, proto):
         """
@@ -61,7 +58,6 @@ class Serializable(object):
         :param proto: Cap'n Proto obj
         """
         pass
-
 
     @classmethod
     def readFromFile(cls, f, packed=True):
@@ -82,7 +78,6 @@ class Serializable(object):
 
         # Return first-class instance initialized from proto obj
         return cls.read(proto)
-
 
     def writeToFile(self, f, packed=True):
         """
@@ -109,7 +104,6 @@ class Serializable(object):
 class MovingAverage(Serializable):
     """Helper class for computing moving average and sliding window"""
 
-
     def __init__(self, windowSize, existingHistoricalValues=None):
         """
         new instance of MovingAverage, so method .next() can be used
@@ -119,17 +113,16 @@ class MovingAverage(Serializable):
         """
         if not isinstance(windowSize, numbers.Integral):
             raise TypeError("MovingAverage - windowSize must be integer type")
-        if  windowSize <= 0:
+        if windowSize <= 0:
             raise ValueError("MovingAverage - windowSize must be >0")
 
         self.windowSize = windowSize
         if existingHistoricalValues is not None:
             self.slidingWindow = existingHistoricalValues[
-                                 len(existingHistoricalValues)-windowSize:]
+                                 len(existingHistoricalValues) - windowSize:]
         else:
             self.slidingWindow = []
         self.total = float(sum(self.slidingWindow))
-
 
     @staticmethod
     def compute(slidingWindow, total, newVal, windowSize):
@@ -150,17 +143,14 @@ class MovingAverage(Serializable):
         total += newVal
         return float(total) / len(slidingWindow), slidingWindow, total
 
-
     def next(self, newValue):
         """Instance method wrapper around compute."""
         newAverage, self.slidingWindow, self.total = self.compute(
             self.slidingWindow, self.total, newValue, self.windowSize)
         return newAverage
 
-
     def getSlidingWindow(self):
         return self.slidingWindow
-
 
     def getCurrentAvg(self):
         """get current average"""
@@ -178,17 +168,14 @@ class MovingAverage(Serializable):
             self.total = 0
             self.slidingWindow = sum(self.slidingWindow)
 
-
     def __eq__(self, o):
         return (isinstance(o, MovingAverage) and
                 o.slidingWindow == self.slidingWindow and
                 o.total == self.total and
                 o.windowSize == self.windowSize)
 
-
     def __call__(self, value):
         return self.next(value)
-
 
     @classmethod
     def read(cls, proto):
@@ -198,12 +185,10 @@ class MovingAverage(Serializable):
         movingAverage.total = proto.total
         return movingAverage
 
-
     def write(self, proto):
         proto.windowSize = self.windowSize
         proto.slidingWindow = self.slidingWindow
         proto.total = self.total
-
 
     # @classmethod
     # def getSchema(cls):
@@ -222,7 +207,6 @@ class AnomalyLikelihood(Serializable):
           anomalyProbability = anomalyLikelihood.anomalyProbability(
               value, anomalyScore, timestamp)
     """
-
 
     def __init__(self,
                  claLearningPeriod=None,
@@ -263,7 +247,6 @@ class AnomalyLikelihood(Serializable):
         self._historicalScores = collections.deque(maxlen=historicWindowSize)
         self._distribution = None
 
-
         if claLearningPeriod != None:
             log.warning(msg="claLearningPeriod is deprecated, use learningPeriod instead.")
             self._learningPeriod = claLearningPeriod
@@ -272,7 +255,6 @@ class AnomalyLikelihood(Serializable):
 
         self._probationaryPeriod = self._learningPeriod + estimationSamples
         self._reestimationPeriod = reestimationPeriod
-
 
     def __eq__(self, o):
         # pylint: disable=W0212
@@ -285,7 +267,6 @@ class AnomalyLikelihood(Serializable):
                 self._reestimationPeriod == o._reestimationPeriod)
         # pylint: enable=W0212
 
-
     def __str__(self):
         return ("AnomalyLikelihood: %s %s %s %s %s %s" % (
             self._iteration,
@@ -293,8 +274,7 @@ class AnomalyLikelihood(Serializable):
             self._distribution,
             self._probationaryPeriod,
             self._learningPeriod,
-            self._reestimationPeriod) )
-
+            self._reestimationPeriod))
 
     @staticmethod
     def computeLogLikelihood(likelihood):
@@ -307,7 +287,6 @@ class AnomalyLikelihood(Serializable):
         # The log formula is:
         #     Math.log(1.0000000001 - likelihood) / Math.log(1.0 - 0.9999999999)
         return math.log(1.0000000001 - likelihood) / -23.02585084720009
-
 
     @staticmethod
     def _calcSkipRecords(numIngested, windowSize, learningPeriod):
@@ -326,7 +305,6 @@ class AnomalyLikelihood(Serializable):
         """
         numShiftedOut = max(0, numIngested - windowSize)
         return min(numIngested, max(0, learningPeriod - numShiftedOut))
-
 
     # @classmethod
     # def getSchema(cls):
@@ -348,7 +326,7 @@ class AnomalyLikelihood(Serializable):
         for i, score in enumerate(proto.historicalScores):
             anomalyLikelihood._historicalScores.append((i, score.value,
                                                         score.anomalyScore))
-        if proto.distribution.name: # is "" when there is no distribution.
+        if proto.distribution.name:  # is "" when there is no distribution.
             anomalyLikelihood._distribution = dict()
             anomalyLikelihood._distribution['distribution'] = dict()
             anomalyLikelihood._distribution['distribution']["name"] = proto.distribution.name
@@ -375,7 +353,6 @@ class AnomalyLikelihood(Serializable):
         # pylint: enable=W0212
 
         return anomalyLikelihood
-
 
     def write(self, proto):
         """ capnp serialization method for the anomaly likelihood object
@@ -406,7 +383,7 @@ class AnomalyLikelihood(Serializable):
             for i, value in enumerate(historicalValues):
                 pHistValues[i] = float(value)
 
-            #proto.distribution.movingAverage.historicalValues = self._distribution["movingAverage"]["historicalValues"]
+            # proto.distribution.movingAverage.historicalValues = self._distribution["movingAverage"]["historicalValues"]
             proto.distribution.movingAverage.total = float(self._distribution["movingAverage"]["total"])
 
             historicalLikelihoods = self._distribution["historicalLikelihoods"]
@@ -419,7 +396,6 @@ class AnomalyLikelihood(Serializable):
         proto.learningPeriod = self._learningPeriod
         proto.reestimationPeriod = self._reestimationPeriod
         proto.historicWindowSize = self._historicalScores.maxlen
-
 
     def anomalyProbability(self, value, anomalyScore, timestamp=None):
         """
@@ -442,9 +418,8 @@ class AnomalyLikelihood(Serializable):
             likelihood = 0.5
         else:
             # On a rolling basis we re-estimate the distribution
-            if ( (self._distribution is None) or
-                    (self._iteration % self._reestimationPeriod == 0) ):
-
+            if ((self._distribution is None) or
+                    (self._iteration % self._reestimationPeriod == 0)):
                 numSkipRecords = self._calcSkipRecords(
                     numIngested=self._iteration,
                     windowSize=self._historicalScores.maxlen,
@@ -509,16 +484,16 @@ def estimateAnomalyLikelihoods(anomalyScores,
         raise ValueError("Must have at least one anomalyScore")
 
     # Compute averaged anomaly scores
-    aggRecordList, historicalValues, total =  _anomalyScoreMovingAverage(
+    aggRecordList, historicalValues, total = _anomalyScoreMovingAverage(
         anomalyScores,
-        windowSize = averagingWindow,
-        verbosity = verbosity)
+        windowSize=averagingWindow,
+        verbosity=verbosity)
     s = [r[2] for r in aggRecordList]
     dataValues = np.array(s)
 
     # Estimate the distribution of anomaly scores based on aggregated records
     if len(aggRecordList) <= skipRecords:
-        distributionParams = nullDistribution(verbosity = verbosity)
+        distributionParams = nullDistribution(verbosity=verbosity)
     else:
         distributionParams = estimateNormal(dataValues[skipRecords:])
 
@@ -535,7 +510,7 @@ def estimateAnomalyLikelihoods(anomalyScores,
                                                 performLowerBoundCheck=False)
 
             if metricDistribution["variance"] < 1.5e-5:
-                distributionParams = nullDistribution(verbosity = verbosity)
+                distributionParams = nullDistribution(verbosity=verbosity)
 
     # Estimate likelihoods based on this distribution
     likelihoods = np.array(dataValues, dtype=float)
@@ -544,14 +519,14 @@ def estimateAnomalyLikelihoods(anomalyScores,
 
     # Filter likelihood values
     filteredLikelihoods = np.array(
-        _filterLikelihoods(likelihoods) )
+        _filterLikelihoods(likelihoods))
 
     params = {
-        "distribution":       distributionParams,
+        "distribution": distributionParams,
         "movingAverage": {
             "historicalValues": historicalValues,
-            "total":            total,
-            "windowSize":       averagingWindow,
+            "total": total,
+            "windowSize": averagingWindow,
         },
         "historicalLikelihoods":
             list(likelihoods[-min(averagingWindow, len(likelihoods)):]),
@@ -563,8 +538,8 @@ def estimateAnomalyLikelihoods(anomalyScores,
         log.info(msg=f"First 20 likelihoods:\n  {filteredLikelihoods[0:min(20, len(filteredLikelihoods))]}")
         log.info(msg="leaving estimateAnomalyLikelihoods")
 
-
     return (filteredLikelihoods, aggRecordList, params)
+
 
 def updateAnomalyLikelihoods(anomalyScores,
                              params,
@@ -604,9 +579,9 @@ def updateAnomalyLikelihoods(anomalyScores,
 
     # Compute moving averages of these new scores using the previous values
     # as well as likelihood for these scores using the old estimator
-    historicalValues  = params["movingAverage"]["historicalValues"]
-    total             = params["movingAverage"]["total"]
-    windowSize        = params["movingAverage"]["windowSize"]
+    historicalValues = params["movingAverage"]["historicalValues"]
+    total = params["movingAverage"]["total"]
+    windowSize = params["movingAverage"]["windowSize"]
 
     aggRecordList = np.zeros(len(anomalyScores), dtype=float)
     likelihoods = np.zeros(len(anomalyScores), dtype=float)
@@ -615,7 +590,7 @@ def updateAnomalyLikelihoods(anomalyScores,
             MovingAverage.compute(historicalValues, total, v[2], windowSize)
         )
         aggRecordList[i] = newAverage
-        likelihoods[i]   = tailProbability(newAverage, params["distribution"])
+        likelihoods[i] = tailProbability(newAverage, params["distribution"])
 
     # Filter the likelihood values. First we prepend the historical likelihoods
     # to the current set. Then we filter the values.  We peel off the likelihoods
@@ -648,6 +623,7 @@ def updateAnomalyLikelihoods(anomalyScores,
 
     return (likelihoods, aggRecordList, newParams)
 
+
 def _filterLikelihoods(likelihoods,
                        redThreshold=0.99999, yellowThreshold=0.999):
     """
@@ -656,7 +632,7 @@ def _filterLikelihoods(likelihoods,
     a list of floats.
     :returns: A new list of floats likelihoods containing the filtered values.
     """
-    redThreshold    = 1.0 - redThreshold
+    redThreshold = 1.0 - redThreshold
     yellowThreshold = 1.0 - yellowThreshold
 
     # The first value is untouched
@@ -679,6 +655,7 @@ def _filterLikelihoods(likelihoods,
 
     return filteredLikelihoods
 
+
 def _anomalyScoreMovingAverage(anomalyScores,
                                windowSize=10,
                                verbosity=0,
@@ -694,7 +671,7 @@ def _anomalyScoreMovingAverage(anomalyScores,
 
     historicalValues = []
     total = 0.0
-    averagedRecordList = []    # Aggregated records
+    averagedRecordList = []  # Aggregated records
     for record in anomalyScores:
 
         # Skip (but log) records without correct number of entries
@@ -707,13 +684,14 @@ def _anomalyScoreMovingAverage(anomalyScores,
             MovingAverage.compute(historicalValues, total, record[2], windowSize)
         )
 
-        averagedRecordList.append( [record[0], record[1], avg] )
+        averagedRecordList.append([record[0], record[1], avg])
 
         if verbosity > 2:
             log.info(msg=f"Aggregating input record: {record}")
             log.info(msg=f"Result: {[record[0], record[1], avg]}")
 
     return averagedRecordList, historicalValues, total
+
 
 def estimateNormal(sampleData, performLowerBoundCheck=True):
     """
@@ -749,6 +727,7 @@ def estimateNormal(sampleData, performLowerBoundCheck=True):
 
     return params
 
+
 def nullDistribution(verbosity=0):
     """
     :param verbosity: integer controlling extent of printouts for debugging
@@ -756,7 +735,7 @@ def nullDistribution(verbosity=0):
     :returns: A distribution that is very broad and makes every anomaly score
         between 0 and 1 pretty likely.
     """
-    if verbosity>0:
+    if verbosity > 0:
         log.info(msg="Returning nullDistribution")
     return {
         "name": "normal",
@@ -764,6 +743,7 @@ def nullDistribution(verbosity=0):
         "variance": 1e6,
         "stdev": 1e3,
     }
+
 
 def tailProbability(x, distributionParams):
     """
@@ -785,7 +765,8 @@ def tailProbability(x, distributionParams):
     # Calculate the Q function with the complementary error function, explained
     # here: http://www.gaussianwaves.com/2012/07/q-function-and-error-functions
     z = (x - distributionParams["mean"]) / distributionParams["stdev"]
-    return 0.5 * math.erfc(z/1.4142)
+    return 0.5 * math.erfc(z / 1.4142)
+
 
 def isValidEstimatorParams(p):
     """

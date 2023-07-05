@@ -65,7 +65,10 @@ def init_models(use_sp: bool,
     if model_for_each_feature:  # multiple models, one per feature
         time_feature, non_time_features = separate_time_and_rest(features.values())
         for feat in non_time_features:
-            single_feat = {time_feature: features[time_feature], feat: features[feat]}
+            single_feat = {feat: features[feat]}
+            if time_feature is not None:
+                single_feat['time_feature'] = features[time_feature]
+
             model = HTMmodel(features=frozendict(single_feat),
                              use_spatial_pooler=use_sp,
                              return_pred_count=return_pred_count,

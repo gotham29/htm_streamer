@@ -1,0 +1,53 @@
+features:
+  AF3:
+    type: float
+    weight: 1
+  F7:
+    type: float
+    weight: 1
+  F3:
+    type: float
+    weight: 1
+  FC5:
+    type: float
+    weight: 1
+  T7:
+    type: float
+    weight: 1
+  P7:
+    type: float
+    weight: 1
+  O1:
+    type: float
+    weight: 1
+  O2:
+    type: float
+    weight: 1
+  P8:
+    type: float
+    weight: 1
+  T8:
+    type: float
+    weight: 1
+  FC6:
+    type: float
+    weight: 1
+  F4:
+    type: float
+    weight: 1
+  F8:
+    type: float
+    weight: 1
+  AF4:
+    type: float
+    weight: 1
+
+models_state:
+  model_for_each_feature: true
+  return_pred_count: no
+  use_sp: true
+
+timesteps_stop:
+  learning:
+  running:
+  sampling:

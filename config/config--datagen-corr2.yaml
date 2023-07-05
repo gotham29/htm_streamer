@@ -1,0 +1,35 @@
+features:
+  seq1:
+    type: cat
+    weight: 0.5
+    min:
+    max:
+    resolution:
+  seq2:
+    type: cat
+    weight: 0.5
+    min:
+    max:
+    resolution:
+  seq3:
+    type: cat
+    weight: 0.5
+    min:
+    max:
+    resolution:
+  seq4:
+    type: cat
+    weight: 0.5
+    min:
+    max:
+    resolution:
+
+models_state:
+  model_for_each_feature: true
+  return_pred_count: no
+  use_sp: true
+
+timesteps_stop:
+  learning:
+  running:
+  sampling:

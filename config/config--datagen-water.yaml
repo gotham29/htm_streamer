@@ -1,0 +1,29 @@
+features:
+  level:
+    type: float
+    weight: 1.5
+    min:
+    max:
+    resolution:
+  f_in:
+    type: cat
+    weight: 0.6
+    min:
+    max:
+    resolution:
+  f_out:
+    type: cat
+    weight: 0.6
+    min:
+    max:
+    resolution:
+
+models_state:
+  model_for_each_feature: true
+  return_pred_count: no
+  use_sp: true
+
+timesteps_stop:
+  learning:
+  running:
+  sampling:

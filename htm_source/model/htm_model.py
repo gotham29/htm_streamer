@@ -1,403 +1,197 @@
-import math
-from typing import Mapping, Union
+from __future__ import annotations
 
-capnp = None
+from abc import ABC
 
 import numpy as np
-from htm.bindings.algorithms import SpatialPooler, TemporalMemory, Predictor
+from htm_source.data import AnomalyLikelihood
+from htm.bindings.algorithms import SpatialPooler, TemporalMemory
 from htm.bindings.sdr import SDR
 
-# from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
-from htm_source.data import Feature, separate_time_and_rest, AnomalyLikelihood
-from htm_source.utils import dict_zip, frozendict
+from htm_source.utils.sdr import sdr_max_pool, flatten_shape, squeeze_shape
 
 
-class HTMmodel:
-    def __init__(self,
-                 features: frozendict[str, Feature],
-                 models_params: dict,
-                 predictor_config: dict,
-                 spatial_anomaly_config: dict,
-                 use_spatial_pooler: bool,
-                 return_pred_count: bool = False):
+class HTMBase(ABC):
+    def __init__(self, *args, **kwargs):
+        self._iteration = 0
+        self._seed = None
+        self._out_dims = None
+        self._learning = True
+        self._configuration = dict()
+        self._anomaly_history = {'score': [], 'likelihood': []}
+        self._initialized_sp = False
+        self.lr_sch = None
+        self.sp = None
+        self.tm = None
+        self.al = None
+        self.max_pool = None
+        self.flat = None
 
-        self.iteration_ = 0
-        self.features = features
-        self.models_params = models_params
-        self.spatial_anomaly_config = spatial_anomaly_config
+    def __call__(self, *args, **kwargs) -> SDR:
+        # pre-forward hooks
+        self.learning_hook()
 
-        self.return_pred_count = return_pred_count
-        self.use_predictor = predictor_config['enable']
-        self.use_spatial_pooler = use_spatial_pooler
-        self.use_spatial_anomaly = self.spatial_anomaly_config['enable']
+        ret_val = self.forward(*args, **kwargs)
 
-        self.encoding_width = sum(feat.encoding_size for feat in self.features.values())
-        self.sp = self.init_sp()
-        self.tm = self.init_tm()
-        self.al = self.init_alikelihood()
+        # post-forward hooks
+        ret_val = self.post_forward(ret_val)
+        self._iteration += 1
+        return ret_val
 
-        # utility attributes
-        self.single_feature = self.get_single_feature_name()
-        self.feature_names = list(self.features.keys())
-        self.features_samples = {f: [] for f in self.feature_names}
-        self.feature_timestamp = separate_time_and_rest(self.features.values())[0]
+    def _init_sp(self):
+        raise NotImplementedError
 
-        # predictor (optional)
-        if self.use_predictor:
-            self.predictor_resolution = predictor_config['resolution']
-            self.predictor_steps_ahead = predictor_config['steps_ahead']
-            self.predictor = Predictor(steps=self.predictor_steps_ahead,
-                                       alpha=self.models_params["predictor"]['sdrc_alpha'])
+    def _init_tm(self):
+        raise NotImplementedError
 
-    def init_sp(self) -> Union[None, SpatialPooler]:
-        """
-        Purpose:
-            Init HTMmodel.sp
-        Inputs:
-            HTMmodel.models_params
-                type: dict
-                meaning: HTM hyperparams (user-provided in config.yaml)
-            HTMmodel.encoding_width
-                type: int
-                meaning: size in bits of total concatenated encoder (input to SP)
-        Outputs:
-            HTMmodel.sp
-                type: htm.core.SpatialPooler
-                meaning: HTM native alg that selects activeColumns for input to TM
-        """
-        if self.use_spatial_pooler:
-            return SpatialPooler(
-                inputDimensions=(self.encoding_width,),
-                columnDimensions=(self.models_params["sp"]["columnCount"],),
-                potentialPct=self.models_params["sp"]["potentialPct"],
-                potentialRadius=self.encoding_width,
-                globalInhibition=self.models_params["sp"]["globalInhibition"],
-                numActiveColumnsPerInhArea=self.models_params['sp']['numActiveColumnsPerInhArea'],
-                synPermInactiveDec=self.models_params["sp"]["synPermInactiveDec"],
-                synPermActiveInc=self.models_params["sp"]["synPermActiveInc"],
-                synPermConnected=self.models_params["sp"]["synPermConnected"],
-                boostStrength=self.models_params["sp"]["boostStrength"],
-                localAreaDensity=self.models_params['sp']['localAreaDensity'],
-                wrapAround=self.models_params['sp']['wrapAround'],
-                seed=self.models_params['sp']['seed'])
+    def post_forward(self, *args):
+        return args
+
+    def forward(self, *args, **kwargs) -> SDR:
+        raise NotImplementedError
+
+    def train(self):
+        self._learning = True
+
+    def eval(self):
+        self._learning = False
+
+    def learning_hook(self):
+        if self.lr_sch is None:
+            return
+        if self._iteration in self.lr_sch:
+            self.train()
         else:
-            return None
+            self.eval()
 
-    def init_tm(self) -> TemporalMemory:
-        """
-        Purpose:
-            Init HTMmodel.tm
-        Inputs:
-            HTMmodel.models_params
-                type: dict
-                meaning: HTM hyperparams (user-provided in config.yaml)
-        Outputs:
-            HTMmodel.tm
-                type: htm.core.TemporalMemory
-                meaning: HTM native alg that activates & depolarizes activeColumns' cells within HTM region
-        """
+    @property
+    def learning(self) -> bool:
+        return self._learning
 
-        column_dimensions = self.models_params["sp"]["columnCount"] if self.use_spatial_pooler else self.encoding_width
-        return TemporalMemory(
-            columnDimensions=(column_dimensions,),
-            cellsPerColumn=self.models_params["tm"]["cellsPerColumn"],
-            activationThreshold=self.models_params["tm"]["activationThreshold"],
-            initialPermanence=self.models_params["tm"]["initialPerm"],
-            connectedPermanence=self.models_params["tm"]["permanenceConnected"],
-            minThreshold=self.models_params["tm"]["minThreshold"],
-            maxNewSynapseCount=self.models_params["tm"]["newSynapseCount"],
-            permanenceIncrement=self.models_params["tm"]["permanenceInc"],
-            permanenceDecrement=self.models_params["tm"]["permanenceDec"],
-            predictedSegmentDecrement=self.models_params["tm"]["predictedSegmentDecrement"],
-            maxSegmentsPerCell=self.models_params["tm"]["maxSegmentsPerCell"],
-            maxSynapsesPerSegment=self.models_params["tm"]["maxSynapsesPerSegment"],
-            seed=self.models_params['sp']['seed'])
+    @property
+    def config(self) -> dict:
+        return self._configuration.copy()
 
-    def init_alikelihood(self) -> AnomalyLikelihood:
-        """
-        Purpose:
-            Init HTMModel.al
-        Inputs:
-            HTMmodel.models_params['anomaly_likelihood']
-                type: dict
-                meaning: hyperparams for alikelihood
-        Outputs:
-            HTMmodel.al
-                type: nupic.AnomalyLikelihood
-                meaning: HTM native alg that for postprocessing raw anomaly scores
-        """
+    @property
+    def seed(self) -> int:
+        return self._seed
 
-        LearningPeriod = int(math.floor(self.models_params["anomaly_likelihood"]["probationaryPeriod"] / 2.0))
-        return AnomalyLikelihood(
-            learningPeriod=LearningPeriod,
-            estimationSamples=self.models_params["anomaly_likelihood"]["probationaryPeriod"] - LearningPeriod,
-            reestimationPeriod=self.models_params["anomaly_likelihood"]["reestimationPeriod"])
+    @property
+    def output_dim(self) -> np.ndarray:
+        ret_val = self._out_dims
+        if self.max_pool not in (None, False, 1, 0):
+            ret_val[0] //= self.max_pool
+        if self.flat:
+            ret_val = squeeze_shape(ret_val)
+        return ret_val
 
-    def get_alikelihood(self, value, anomaly_score, timestamp) -> float:
-        """
-        Purpose:
-            Return anomaly likelihood for given input data point
-        Inputs:
-            value:
-                type: float
-                meaning: current input data point
-            anomaly_score:
-                type: float
-                meaning: HTM raw anomaly score output from HTMmodel.tm
-            timestamp:
-                type: datetime or int
-                meaning: timestamp feature (or HTMmodel.iteration_ if no timestamp)
-        Outputs:
-            anomalyLikelihood:
-                type: float
-                meaning: likelihood value (used to classify data as anomalous or not)
-        """
-        anomalyScore = self.al.anomalyProbability(value, anomaly_score, timestamp)
-        logScore = self.al.computeLogLikelihood(anomalyScore)
-        return logScore
+    @property
+    def anomaly(self) -> dict:
+        return self._anomaly_history.copy()
 
-    def get_single_feature_name(self) -> Union[None, str]:
-        """
-        If the model has a single feature beside the timestamp, will return the name of that feature.
-        Otherwise, returns None.
-        """
-        _, non_time_feature_names = separate_time_and_rest(self.features.values())
-        if len(non_time_feature_names) == 1:
-            return non_time_feature_names[0]
-        else:
-            return None
 
-    def get_encoding(self, features_data: Mapping) -> SDR:
-        """
-        Purpose:
-            Build total concatenated encoding from all features' encoders -- for input to SP
-        Inputs:
-            features_data
-                type: dict
-                meaning: current data for each feature
-            HTMmodel.feature_encoders
-                type: dict
-                meaning: encoder objects for each feature
-            HTMmodel.timestamp_config
-                type: dict
-                meaning: params for timestep encoding (user-provided in config.yaml)
-            HTMmodel.encoding_width
-                type: int
-                meaning: size in bits of total concatenated encoder (input to SP)
-        Outputs:
-            encoding
-                type: nup.core.SDR
-                meaning: total concatenated encoding -- input to SP
-        """
+class HTMModule(HTMBase):
+    def __init__(self, input_dims: tuple | list | np.ndarray,
+                 sp_cfg: dict | None,
+                 tm_cfg: dict,
+                 seed: int = 0,
+                 max_pool: int = 1,
+                 flatten: bool = False,
+                 learn_schedule: slice = None,
+                 anomaly_score: bool = False,
+                 anomaly_likelihood: bool = False,
+                 lazy_init: bool = True):
 
-        # Get encodings for all features
-        all_encodings = [SDR(0)] + [feature.encode(data) for _, data, feature in dict_zip(features_data, self.features)]
+        super().__init__()
+        self._configuration = {'sp': sp_cfg, 'tm': tm_cfg}
+        self._seed = seed
+        self._input_dims = input_dims
+        if not lazy_init:
+            self._init_sp()
+        self._init_tm()
+        self._out_dims = np.array((*self._get_column_dims(), self.config['tm']['cellsPerColumn']))
+        self.predictive_cells = SDR(dimensions=self._out_dims)
+        self.max_pool = max_pool
+        self.flat = flatten
+        self.calc_anomaly = anomaly_score
+        self.lr_sch = learn_schedule
 
-        # Combine all features encodings into one for Spatial Pooling
-        encoding = SDR(self.encoding_width).concatenate(all_encodings)
-        return encoding
+        if anomaly_likelihood:
+            self._init_al()
 
-    def get_predcount(self) -> float:
-        """
-        Purpose:
-            Get number of predictions made by TM at current timestep
-        Inputs:
-            HTMmodel.tm
-                type: nupic.core.TemporalMemory
-                meaning: TemporalMemory component of HTMmodel
-            HTMmodel.models_params
-                type: dict
-                meaning: HTM hyperparams (user-provided in config.yaml)
-        Outputs:
-            pred_count
-                type: float
-                meaning: number of predictions made by TM at current timestep (# predicted cells / # active columns)
-        """
+    def _init_sp(self):
+        if self.config['sp'] is not None:
+            self.sp = SpatialPooler(inputDimensions=list(self._input_dims),
+                                    columnDimensions=self.config["sp"]["columnDimensions"],
+                                    potentialPct=self.config["sp"]["potentialPct"],
+                                    potentialRadius=self.config["sp"]["potentialRadius"],  # TODO - check
+                                    globalInhibition=self.config["sp"]["globalInhibition"],
+                                    # numActiveColumnsPerInhArea=self.config['sp']['numActiveColumnsPerInhArea'],
+                                    synPermInactiveDec=self.config["sp"]["synPermInactiveDec"],
+                                    stimulusThreshold=self.config["sp"]["stimulusThreshold"],
+                                    synPermActiveInc=self.config["sp"]["synPermActiveInc"],
+                                    synPermConnected=self.config["sp"]["synPermConnected"],
+                                    boostStrength=self.config["sp"]["boostStrength"],
+                                    localAreaDensity=self.config['sp']['localAreaDensity'],
+                                    wrapAround=self.config['sp']['wrapAround'],
+                                    seed=self.seed)
+
+    def _init_tm(self):
+        column_dimensions = self._get_column_dims()
+        self.tm = TemporalMemory(columnDimensions=column_dimensions,
+                                 cellsPerColumn=self.config["tm"]["cellsPerColumn"],
+                                 activationThreshold=self.config["tm"]["activationThreshold"],
+                                 initialPermanence=self.config["tm"]["initialPerm"],
+                                 connectedPermanence=self.config["tm"]["permanenceConnected"],
+                                 minThreshold=self.config["tm"]["minThreshold"],
+                                 maxNewSynapseCount=self.config["tm"]["newSynapseCount"],
+                                 permanenceIncrement=self.config["tm"]["permanenceInc"],
+                                 permanenceDecrement=self.config["tm"]["permanenceDec"],
+                                 predictedSegmentDecrement=self.config["tm"]["predictedSegmentDecrement"],
+                                 maxSegmentsPerCell=self.config["tm"]["maxSegmentsPerCell"],
+                                 maxSynapsesPerSegment=self.config["tm"]["maxSynapsesPerSegment"],
+                                 seed=self.seed)
+
+    def _init_al(self):
+        self.al = AnomalyLikelihood(learningPeriod=2000)
+
+    def _get_column_dims(self) -> np.ndarray:
+        return np.array(self.config["sp"]["columnDimensions"] if self.config['sp'] else list(self._input_dims))
+
+    def make_prediction(self):
         self.tm.activateDendrites(learn=False)
+        self.predictive_cells = self.tm.getPredictiveCells()
 
-        # Count number of predicted cells
-        n_pred_cells = self.tm.getPredictiveCells().getSum()
-        n_cols_per_pred = self.tm.getWinnerCells().getSum()
-
-        # Normalize to number of predictions
-        pred_count = 0 if n_cols_per_pred == 0 else float(n_pred_cells) / n_cols_per_pred
-        return pred_count
-
-    def get_preds(self, timestep: int, f_data: float) -> dict:
-        """
-        Purpose:
-            Get predicted values for given feature -- for each of 'n_steps_ahead'
-        Inputs:
-            timestep
-                type: int
-                meaning: current timestep
-            f_data
-                type: float
-                meaning: current value for given feature
-            HTMmodel.predictor
-                type: htm.core.Predictor
-                meaning: HTM native alg that yields predicted values for each step ahead -- in raw feature values
-            HTMmodel.tm
-                type: nupic.core.TemporalMemory
-                meaning: TemporalMemory component of HTMmodel
-            HTMmodel.predictor_steps_ahead
-                type: list
-                meaning: set of steps ahead for HTMmodel.predictor
-            HTMmodel.predictor_resolution
-                type: int
-                meaning: resolution param for HTMmodel.predictor
-        Outputs:
-            steps_predictions
-                type: dict
-                meaning: predicted feature values for each of 'n_steps_ahead'
-        """
-        active_cells = self.tm.getActiveCells()
-        pdf = self.predictor.infer(active_cells)
-        steps_predictions = {}
-        # Get pred for each #/of steps ahead - IF available
-        for step_ahead in self.predictor_steps_ahead:
-            if pdf[step_ahead]:
-                steps_predictions[step_ahead] = np.argmax(pdf[step_ahead]) * self.predictor_resolution
-            else:
-                steps_predictions[step_ahead] = np.nan
-
-        # Train the predictor based on what just happened.
-        self.predictor.learn(timestep, active_cells, f_data // self.predictor_resolution)
-        return steps_predictions
-
-    def check_spatial_anomaly(self, params, features_data) -> bool:
-        """
-        Purpose:
-            Check for 'spatial' anomaly (if data exceed a min/max threshold)
-        Inputs:
-            params:
-                type: dict
-                meaning: info to config min/max thresholding
-            features_data:
-                type: dict
-                meaning: meaning: current data for each feature
-        Outputs:
-            spatialAnomaly:
-                type: bool
-                meaning: whether features_data is a 'spatial' anomaly
-        """
-        spatialAnomaly = False
-        # filter time feature from features_data
-        features_data = {f: val for f, val in features_data.items() if f != self.feature_timestamp}
-        # get number of feats req for spatial anomaly
-        anom_feats_req = max(int(len(features_data) * params['anom_prop']), 1)
-        # get max/min values (by percentile)
-        sample_empty = False
-        features_minmax = {f: {} for f in features_data}
-        for f in features_data:
-            if len(self.features_samples[f]) == 0:
-                sample_empty = True
-                continue
-            features_minmax[f]['min'] = np.percentile(self.features_samples[f], params['perc_min'])
-            features_minmax[f]['max'] = np.percentile(self.features_samples[f], params['perc_max'])
-        # get anom features
-        if not sample_empty:
-            features_anom = []
-            minmax_equal = False
-            for f, val in features_data.items():
-                if features_minmax[f]['max'] == features_minmax[f]['min']:
-                    minmax_equal = True
-                    continue
-                tolerance = (features_minmax[f]['max'] - features_minmax[f]['min']) * params['tolerance']
-                maxExpected = features_minmax[f]['max'] + tolerance
-                minExpected = features_minmax[f]['min'] - tolerance
-                if (val >= maxExpected) or (val <= minExpected):
-                    features_anom.append(f)
-            # check for spatial anom
-            if not minmax_equal:
-                if len(features_anom) >= anom_feats_req:
-                    spatialAnomaly = True
-        # update sample w/latest data
-        for f, val in features_data.items():
-            self.features_samples[f].append(val)
-            self.features_samples[f] = self.features_samples[f][-params['window']:]
-        return spatialAnomaly
-
-    def run(self,
-            features_data: Mapping,
-            timestep: int,
-            learn: bool,
-            ) -> (float, float, float, dict):
-        """
-        Purpose:
-            Run HTMmodel -- yielding all outputs & updating model (if 'learn'==True)
-        Inputs:
-            features_data
-                type: dict
-                meaning: current data for each feature
-            timestep
-                type: int
-                meaning: current timestep
-            learn
-                type: bool
-                meaning: whether learning is enabled in HTMmodel
-        Outputs:
-            anomaly_score
-                type: float
-                meaning: anomaly metric - from HMTModel.tm
-            anomaly_likelihood
-                type: float
-                meaning: anomaly metric - from HMTModel.anomaly_history
-            pred_count
-                type: float
-                meaning: number of predictions made by TM at current timestep (# predicted cells / # active columns)
-            steps_predictions
-                type: dict
-                meaning: predicted feature values for each of 'n_steps_ahead'
-        """
-        # select only relevant features
-        features_data = {name: features_data[name] for name in self.feature_names}
-
-        # ENCODERS
-        # Call the encoders to create bit representations for each feature
-        encoding = self.get_encoding(features_data)
+    def forward(self, input_sdr: SDR) -> SDR:
 
         # SPATIAL POOLER (or just encoding)
-        if self.use_spatial_pooler:
+        if self.sp:
             # Create an SDR to represent active columns
             active_columns = SDR(self.sp.getColumnDimensions())
-            self.sp.compute(encoding, learn, active_columns)
+            self.sp.compute(input_sdr, self.learning, active_columns)
         else:
-            active_columns = encoding
+            active_columns = input_sdr
 
         # TEMPORAL MEMORY
-        # Get prediction density
-        pred_count = self.get_predcount() if self.return_pred_count else None
-        self.tm.compute(active_columns, learn=learn)
-        # Get anomaly metrics
-        anomaly_score = self.tm.anomaly
-        # Choose feature for value arg
-        f1 = self.single_feature if self.single_feature else self.feature_names[0]
-        # Get timestamp data if available
-        timestamp = features_data[self.feature_timestamp] if self.feature_timestamp else self.iteration_
-        anomaly_likelihood = self.get_alikelihood(value=features_data[f1],
-                                                  timestamp=timestamp,
-                                                  anomaly_score=anomaly_score)
+        self.tm.activateDendrites(learn=self.learning)
+        self.tm.activateCells(activeColumns=active_columns, learn=self.learning)
+        winner_cells: SDR = self.tm.getWinnerCells()
 
-        # Check for spatial anomaly (NAB)
-        if self.use_spatial_anomaly:
-            spatialAnomaly = self.check_spatial_anomaly(self.spatial_anomaly_config, features_data)
-            if spatialAnomaly:
-                anomaly_likelihood = 1.0
+        # check anomaly
+        if self.calc_anomaly or self.al:
+            anomaly_score = 1. - self.predictive_cells.getOverlap(winner_cells) / winner_cells.getSum()
+            self._anomaly_history['score'].append(anomaly_score)
+        if self.al:
+            ...
+            # self._anomaly_history['likelihood'].append(self.al.anomalyProbability(value=))
 
-        # Ensure pred_count > 0 when anomaly_score < 1.0
-        if anomaly_score < 1.0 and pred_count == 0:
-            raise RuntimeError(f"0 preds with anomaly={anomaly_score}")
+        # predict next input
+        self.make_prediction()
 
-        # PREDICTOR
-        # Predict raw feature value -- IF enabled AND model is 1 feature (excluding timestamp)
-        if self.single_feature and self.use_predictor:
-            steps_predictions = self.get_preds(timestep=timestep,
-                                               f_data=features_data[self.single_feature])
-        else:
-            steps_predictions = None
+        return self.tm.getActiveCells()
 
-        # Increment iteration
-        self.iteration_ += 1
-
-        return anomaly_score, anomaly_likelihood, pred_count, steps_predictions
+    def post_forward(self, x: SDR) -> SDR:
+        x = sdr_max_pool(x, ratio=self.max_pool)
+        if self.flat:
+            new_shape = squeeze_shape(x.dimensions)
+            x.reshape(new_shape)
+        return x

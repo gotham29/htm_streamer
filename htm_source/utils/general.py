@@ -1,9 +1,12 @@
 from __future__ import annotations
 import argparse
+import itertools
+import random
 
 from collections.abc import Iterator, Mapping
-from typing import TypeVar, overload, Any
+from typing import TypeVar, overload, Any, List, Iterable, Sequence, MutableSequence
 
+import numpy as np
 
 """
 This is just some typing stuff for dict_zip() func.
@@ -40,6 +43,9 @@ def dict_zip(*dicts):
 
     Fails if not all dictionaries have exactly the same keys
     """
+
+    dicts = list(filter(lambda x: x is not None, dicts))
+
     if not dicts:
         return
 
@@ -93,3 +99,35 @@ def get_args():
 
 def isnumeric(val: Any) -> bool:
     return isinstance(val, (int, float))
+
+
+def choose_features(features: Sequence[Any], n_choices: int, choice_size: int) -> List[tuple]:
+    all_comb = list(itertools.combinations(features, choice_size))
+
+    if n_choices < 1:
+        return []
+
+    if n_choices > len(all_comb):
+        raise ArithmeticError(f"'n_choices' impossibly big, maximum is {len(all_comb)}")
+
+    elif n_choices == len(all_comb):
+        return all_comb
+
+    else:
+        chosen_indices = np.random.choice(len(all_comb), size=n_choices, replace=False)
+        return [all_comb[i] for i in chosen_indices]
+
+
+def split_features(features: MutableSequence[Any], size: int, shuffle: bool = False) -> List[tuple]:
+    if shuffle:
+        random.shuffle(features)
+
+    return [tuple(features[i:i + size]) for i in range(0, len(features), size)]
+
+
+def get_base_names(feature: str, fjs: str) -> list[str]:
+    return feature.split(fjs)
+
+
+def get_joined_name(features: list[str] | tuple[str], fjs: str) -> str:
+    return fjs.join(features)

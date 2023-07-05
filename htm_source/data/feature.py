@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union, Tuple, Iterable
+from typing import Union, Tuple, Iterable, List
 from htm_source.data.types import HTMType, to_htm_type
 from htm_source.data.encoding import EncoderFactory
 from htm.bindings.sdr import SDR
@@ -21,7 +21,7 @@ class Feature:
             except KeyError:
                 raise ValueError(f"Datetime-like feature `{self.name}` must have a `format` parameter")
 
-    def encode(self, data: Union[str, int, float, datetime]) -> SDR:
+    def encode(self, data: Union[str, int, float, datetime, SDR]) -> SDR:
         """
         Encodes input `data` with the appropriate encoder, based on `params` given in init
         """
@@ -47,6 +47,10 @@ class Feature:
     @property
     def encoding_size(self) -> int:
         return self._encoder.size
+
+    @property
+    def encoding_dim(self) -> List[int]:
+        return self._encoder.dimensions
 
 
 def separate_time_and_rest(features: Iterable[Feature], strict: bool = True) -> Tuple[Union[None, str], Tuple[str, ...]]:

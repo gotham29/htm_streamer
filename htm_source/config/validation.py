@@ -1,5 +1,6 @@
 import os
 import sys
+from math import prod
 
 from htm_source.config import get_mode
 
@@ -271,7 +272,7 @@ def validate_params_init(cfg: dict, cfg_model: dict) -> dict:
 
     error = False
     # Assert n valid
-    n = cfg['models_encoders']['n']
+    n = prod(cfg['models_encoders']['n'])
     if n < 200:
         error = True
         msg = f"'n' should be > 200\n  Found --> {n}"
