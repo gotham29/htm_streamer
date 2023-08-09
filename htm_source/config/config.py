@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from htm_source.data.types import HTMType, to_htm_type
-from htm_source.utils.general import isnumeric
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
@@ -35,50 +34,6 @@ def reset_config(cfg: dict) -> dict:
     cfg['models_state'] = {k: v for k, v in cfg['models_state'].items()
                            if k in keys_keep_models_state}
     return cfg
-
-
-def get_params_rdse(f: str,
-                    f_dict: dict,
-                    f_sample: list,
-                    models_encoders: dict) -> dict:
-    """
-    Purpose:
-        Get enc params for 'f'
-    Inputs:
-        f:
-            type: str
-            meaning: name of feature
-        f_dict:
-            type: dict
-            meaning: holds type, min & max for 'f'
-        f_sample:
-            type: list
-            meaning: values for 'f'
-        models_encoders:
-            type: dict
-            meaning: encoding params from config
-    Outputs:
-        params_rdse
-            type: dict
-            meaning: enc params for 'f'
-    """
-    # use min/max if specified
-    if isnumeric(f_dict['min']) and isnumeric(f_dict['max']):
-        f_min = f_dict['min']
-        f_max = f_dict['max']
-    # else find min/max from f_samples
-    else:
-        f_min, f_max = min(f_sample), max(f_sample)
-        rangePadding = abs(f_max - f_min) * (float(models_encoders['p_padding']) / 100)
-        f_min = f_min - rangePadding
-        f_max = f_max + rangePadding
-
-    # TODO: min max needed?
-    res = f_dict['resolution']
-    res = res if res is not None else get_rdse_resolution(feature=f, f_sample=f_sample)
-    params_rdse = {'resolution': res}
-
-    return params_rdse
 
 
 def get_params_category() -> dict:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping, List
+from typing import Mapping
 import time
 from warnings import warn
 
@@ -26,8 +26,10 @@ class DataStreamer:
                  concat: bool | tuple | list = False,
                  prepare: bool = False,
                  feature_join_str: str = '+'):
-
-        self._dataframe = df.reset_index()
+        """
+        TODO
+        """
+        self._dataframe = df.reset_index(drop=True)
         self._prepared = False
         self._encoded_data = None
         self._fjs = feature_join_str
@@ -40,7 +42,7 @@ class DataStreamer:
         self._concat = concat
         self._check_concat()
 
-        self._encoding_width = self.get_encoding_width()
+        self._encoding_width = self._get_encoding_width()
 
         if prepare:
             _s = time.perf_counter()
@@ -57,12 +59,16 @@ class DataStreamer:
         if self._prepared:
             item = self._encoded_data[idx]
         else:
-            row = self._dataframe.iloc[idx].drop('index')
+            row = self._dataframe.iloc[idx]
             item = self.get_encoding(row)
 
         return item
 
     def get_encoding(self, data_row: Mapping) -> SDR | dict[str, SDR]:
+        """ Encode the feature or features in the given dataframe row into SDR(s)
+            If the dataset is a single feature, or `concat` is True, returns a single SDR
+            Otherwise, returns a dict mapping feature name (or names if concatenated as a group) to SDR """
+
         if self._concat is True:
             # Get encodings for all features
             all_encodings = [SDR(0)] + [feature.encode(data) for _, data, feature in dict_zip(data_row, self.features)]
@@ -93,7 +99,11 @@ class DataStreamer:
 
         return encoding
 
-    def get_encoding_width(self) -> np.ndarray | dict[str, np.ndarray]:
+    def _get_encoding_width(self) -> np.ndarray | dict[str, np.ndarray]:
+        """ Return the encoding width(s).
+            If the dataset is a single feature, or `concat` is True, returns a 1 element np.array
+            Otherwise, returns a dict mapping feature name (or names if concatenated as a group) to encoding width """
+
         if self._concat is True:
             return concat_shapes(*(f_enc.encoding_dim for f_enc in self.features.values()))
 
@@ -110,9 +120,8 @@ class DataStreamer:
             return {f_name: np.array(f_enc.encoding_dim) for f_name, f_enc in self.features.items()}
 
     def _check_concat(self):
-        if self._concat in (True, False, None):
-            return
-        else:
+        """ Checks that the `concat` argument has a valid value """
+        if self._concat not in (True, False, None):
             features = set()
             for conc_feats in self._concat:
                 for cf in conc_feats:
@@ -124,6 +133,9 @@ class DataStreamer:
             if features != self.features.keys():
                 missing = set(self.features.keys()).difference(features)
                 warn(f"Not all features present in concatenation configuration, missing: {missing}")
+
+    def raw_data(self, idx: int) -> np.ndarray:
+        return self._dataframe.iloc[idx].values.copy()
 
     @property
     def combos(self) -> list[str] | None:

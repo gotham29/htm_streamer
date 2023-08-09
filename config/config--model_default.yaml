@@ -1,8 +1,6 @@
 models_encoders:
-  n: [20, 20]
+  n: 400  # [20, 20]
   w: 40
-  n_buckets: 13000
-  p_padding: 10
   seed: 69
 
 models_params:
@@ -14,8 +12,8 @@ models_params:
 
   sp:
     potentialPct: 0.8
-    columnDimensions: [64, 32]
-    potentialRadius: 16
+    columnDimensions: [2048]  # [64, 32]
+    potentialRadius: 2048
     localAreaDensity: 0.02
     numActiveColumnsPerInhArea: 0
     globalInhibition: true
@@ -24,7 +22,7 @@ models_params:
     synPermConnected: 0.2
     synPermActiveInc: 0.003
     synPermInactiveDec: 0.0005
-    wrapAround: no
+    wrapAround: yes
     minPctOverlapDutyCycle: 0.001
     dutyCyclePeriod: 1000
 
@@ -40,21 +38,3 @@ models_params:
     permanenceDec: 0.002
     permanenceConnected: 0.5
     predictedSegmentDecrement: 0.008  # (roughly 2 * permInc * sparsity)
-
-
-models_predictor:
-  enable: no
-  resolution: 1
-  sdrc_alpha: 0.1
-  steps_ahead:
-  - 1
-  - 2
-
-
-spatial_anomaly:
-  enable: no
-  tolerance: 0.05
-  perc_min: 0
-  perc_max: 100
-  anom_prop: 0.3
-  window: 100000

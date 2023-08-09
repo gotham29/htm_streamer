@@ -19,3 +19,5 @@ prettytable>=0.7.2 # for monitor-mixin in htm.advanced (+its tests)
 # should be placed in setup.py section extras_require. Install those by
 # pip install htm.core[examples] 
 requests
+
+numba~=0.57.1

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
+from typing import Any
 
 import numpy as np
 from htm_source.data import AnomalyLikelihood
@@ -76,6 +77,10 @@ class HTMBase(ABC):
         return self._seed
 
     @property
+    def timestep(self) -> int:
+        return self._iteration
+
+    @property
     def output_dim(self) -> np.ndarray:
         ret_val = self._out_dims
         if self.max_pool not in (None, False, 1, 0):
@@ -97,8 +102,9 @@ class HTMModule(HTMBase):
                  max_pool: int = 1,
                  flatten: bool = False,
                  learn_schedule: slice = None,
-                 anomaly_score: bool = False,
+                 anomaly_score: bool = True,
                  anomaly_likelihood: bool = False,
+                 al_learn_period: int = 1000,
                  lazy_init: bool = True):
 
         super().__init__()
@@ -114,6 +120,7 @@ class HTMModule(HTMBase):
         self.flat = flatten
         self.calc_anomaly = anomaly_score
         self.lr_sch = learn_schedule
+        self.al_learn_period = al_learn_period
 
         if anomaly_likelihood:
             self._init_al()
@@ -123,7 +130,7 @@ class HTMModule(HTMBase):
             self.sp = SpatialPooler(inputDimensions=list(self._input_dims),
                                     columnDimensions=self.config["sp"]["columnDimensions"],
                                     potentialPct=self.config["sp"]["potentialPct"],
-                                    potentialRadius=self.config["sp"]["potentialRadius"],  # TODO - check
+                                    potentialRadius=self.config["sp"]["potentialRadius"],
                                     globalInhibition=self.config["sp"]["globalInhibition"],
                                     # numActiveColumnsPerInhArea=self.config['sp']['numActiveColumnsPerInhArea'],
                                     synPermInactiveDec=self.config["sp"]["synPermInactiveDec"],
@@ -152,7 +159,7 @@ class HTMModule(HTMBase):
                                  seed=self.seed)
 
     def _init_al(self):
-        self.al = AnomalyLikelihood(learningPeriod=2000)
+        self.al = AnomalyLikelihood(learningPeriod=max(self.al_learn_period - 100, 0))
 
     def _get_column_dims(self) -> np.ndarray:
         return np.array(self.config["sp"]["columnDimensions"] if self.config['sp'] else list(self._input_dims))
@@ -161,7 +168,7 @@ class HTMModule(HTMBase):
         self.tm.activateDendrites(learn=False)
         self.predictive_cells = self.tm.getPredictiveCells()
 
-    def forward(self, input_sdr: SDR) -> SDR:
+    def forward(self, input_sdr: SDR, input_value: Any = None) -> SDR:
 
         # SPATIAL POOLER (or just encoding)
         if self.sp:
@@ -177,12 +184,16 @@ class HTMModule(HTMBase):
         winner_cells: SDR = self.tm.getWinnerCells()
 
         # check anomaly
-        if self.calc_anomaly or self.al:
+        if self.calc_anomaly:
             anomaly_score = 1. - self.predictive_cells.getOverlap(winner_cells) / winner_cells.getSum()
             self._anomaly_history['score'].append(anomaly_score)
-        if self.al:
-            ...
-            # self._anomaly_history['likelihood'].append(self.al.anomalyProbability(value=))
+            if self.al:
+                if input_value is None:
+                    raise ValueError(f"`input_value` must be specified if wanting to calculate anomaly likelihood")
+
+                self._anomaly_history['likelihood'].append(self.al.anomalyProbability(value=input_value,
+                                                                                      anomalyScore=anomaly_score,
+                                                                                      timestamp=self.timestep))
 
         # predict next input
         self.make_prediction()

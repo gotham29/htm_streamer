@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Any
 
 from htm.bindings.sdr import SDR
 from htm.encoders.date import DateEncoder
@@ -33,12 +34,12 @@ def init_rdse(rdse_params, max_fail=5, shape=None):
             pass
     return encoder
 
-# TODO identity?
-class DummyEncoder:
+
+class IdentityEncoder:
     def __init__(self, *args, **kwargs):
         pass
 
-    def encode(self, data):
+    def encode(self, data: Any) -> Any:
         return data
 
 
@@ -67,7 +68,7 @@ class EncoderFactory:
                                   season=encoder_params["season"])
 
         elif dtype is HTMType.SDR:
-            encoder = DummyEncoder()
+            encoder = IdentityEncoder()
 
         # future implementations here..
 

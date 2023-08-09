@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from typing import List, Tuple
 
 import numpy as np
@@ -8,6 +7,7 @@ from htm.bindings.sdr import SDR
 
 
 def sdr_max_pool(input_sdr: SDR, ratio: int, axis: int = 0) -> SDR:
+    """ Performs max-pooling on the given SDR, on `axis` with `ratio` """
     if ratio > 1:
         dims = input_sdr.dimensions
         dims[axis] //= ratio
@@ -24,6 +24,7 @@ def sdr_max_pool(input_sdr: SDR, ratio: int, axis: int = 0) -> SDR:
 
 
 def _check_shapes(*inputs) -> np.ndarray:
+    """ Returns true if all input SDRs have the same number of dimensions """
     s0 = inputs[0].dimensions
     for idx, sdr in enumerate(inputs):
         if s0 != sdr.dimensions:
@@ -33,6 +34,16 @@ def _check_shapes(*inputs) -> np.ndarray:
 
 
 def sdr_merge(*inputs, mode: str, axis: int = 0) -> SDR:
+    """ Merges input SDRs with given mode (axis only relevant for concatenation)
+
+        inputs: Any number of SDRs to merge (2 or more)
+        mode:
+            - `u`: Union
+            - `i`: Intersection
+            - `sd` or `xor`: Symmetric difference
+            - `c`: Concatenation
+        axis: (default 0) Axis of concatenation.
+        """
     if len(inputs) == 1:
         return inputs[0]
 
@@ -66,6 +77,7 @@ def sdr_symmetric_diff(*inputs) -> SDR:
 
 
 def sdr_subtract(sdr_1: SDR, sdr_2: SDR) -> SDR:
+    """ Subtract on-bits of `sdr_2` from `sdr_1` using set diff """
     if sdr_1.dimensions != sdr_2.dimensions:
         raise ValueError(f"When subtracting, both SDRs must have the same dimensions, got: `{sdr_1.dimensions}`,"
                          f" `{sdr_2.dimensions}`")
@@ -77,6 +89,7 @@ def sdr_subtract(sdr_1: SDR, sdr_2: SDR) -> SDR:
 
 
 def concat_shapes(*shapes, axis=0) -> tuple:
+    """ Returns the would-be shape of an SDR, if concatenated SDRs with 'shapes' on 'axis' """
     if len(shapes) < 2:
         raise ValueError("Cannot concatenate less than 2 shapes")
 
@@ -84,15 +97,18 @@ def concat_shapes(*shapes, axis=0) -> tuple:
         raise ValueError("All shapes must have same number of dimensions")
 
     ndim = len(shapes[0])
+
+    if axis >= ndim:
+        raise ValueError(f"Invalid axis {axis} for shapes with {ndim} dimensions")
+
+    # handle case for negative axis
     if axis < 0:
         _old = axis
         axis = ndim + _old
         if axis < 0:
             raise ValueError(f"Invalid axis {_old} for shapes with {ndim} dimensions")
 
-    if axis >= ndim:
-        raise ValueError(f"Invalid axis {axis} for shapes with {ndim} dimensions")
-
+    # check shapes per dimension
     for dim, _ in enumerate(shapes[0]):
         if dim == axis:
             continue
@@ -100,16 +116,17 @@ def concat_shapes(*shapes, axis=0) -> tuple:
             raise ValueError(
                 f"Shapes must be equal in all axes except the concatenated axis, got different shapes for axis {dim}")
 
+    # create new shape
     new_shape = []
     for dim, size in enumerate(shapes[0]):
-        if dim == axis:
-            size = sum(s[dim] for s in shapes)
+        size = sum(s[dim] for s in shapes) if dim == axis else size
         new_shape.append(size)
 
     return tuple(new_shape)
 
 
 def flatten_shape(shape: np.ndarray) -> np.ndarray:
+    """ Returns flattened shape, i.e. [2, 2, 32] --> [128] """
     return np.prod(shape, keepdims=True)
 
 

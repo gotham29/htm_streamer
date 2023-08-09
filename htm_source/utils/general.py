@@ -2,10 +2,10 @@ from __future__ import annotations
 import argparse
 import itertools
 import random
-
 from collections.abc import Iterator, Mapping
-from typing import TypeVar, overload, Any, List, Iterable, Sequence, MutableSequence
+from typing import TypeVar, overload, Any, List, Sequence, MutableSequence, Tuple
 
+import numba as nb
 import numpy as np
 
 """
@@ -23,7 +23,7 @@ _V3 = TypeVar('_V3')
 def dict_zip(
         m1: Mapping[_K, _V1],
         m2: Mapping[_K, _V2],
-) -> Iterator[tuple[_K, _V1, _V2]]:
+) -> Iterator[Tuple[_K, _V1, _V2]]:
     ...
 
 
@@ -32,7 +32,7 @@ def dict_zip(
         m1: Mapping[_K, _V1],
         m2: Mapping[_K, _V2],
         m3: Mapping[_K, _V3],
-) -> Iterator[tuple[_K, _V1, _V2, _V3]]:
+) -> Iterator[Tuple[_K, _V1, _V2, _V3]]:
     ...
 
 
@@ -101,7 +101,7 @@ def isnumeric(val: Any) -> bool:
     return isinstance(val, (int, float))
 
 
-def choose_features(features: Sequence[Any], n_choices: int, choice_size: int) -> List[tuple]:
+def choose_features(features: Sequence[str], n_choices: int, choice_size: int) -> List[Tuple[str]]:
     all_comb = list(itertools.combinations(features, choice_size))
 
     if n_choices < 1:
@@ -118,7 +118,7 @@ def choose_features(features: Sequence[Any], n_choices: int, choice_size: int) -
         return [all_comb[i] for i in chosen_indices]
 
 
-def split_features(features: MutableSequence[Any], size: int, shuffle: bool = False) -> List[tuple]:
+def split_features(features: MutableSequence[str], size: int, shuffle: bool = False) -> List[Tuple[str]]:
     if shuffle:
         random.shuffle(features)
 
@@ -131,3 +131,45 @@ def get_base_names(feature: str, fjs: str) -> list[str]:
 
 def get_joined_name(features: list[str] | tuple[str], fjs: str) -> str:
     return fjs.join(features)
+
+
+@nb.jit(nopython=True, nogil=True, cache=True)
+def find_first(vec: np.ndarray, value) -> int:
+    """ Given a vector, find and return index of first occurrence of `value` """
+    for i in range(len(vec)):
+        if vec[i] == value:
+            return i
+    return -1
+
+
+@nb.jit(nopython=True, nogil=True, cache=True)
+def make_windows(array: np.ndarray):
+    """ Fast numba implementation.
+        Given a binary array, extracts the slices of continuous 1s.
+        i.e: array = [0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1]
+        out: {(2, 5), (6, 7), (9, 11)} """
+    current_end_index = 0
+    done = False
+    windows = set()
+
+    while not done:
+        # open window
+        start = find_first(array[current_end_index:], 1)
+        if start == -1:
+            break
+        else:
+            start = start + current_end_index
+            current_start_index = start
+
+        # close window
+        end = find_first(array[current_start_index:], 0)
+        if end == -1:
+            end = len(array)
+            done = True
+        else:
+            end = end + current_start_index
+            current_end_index = end
+
+        windows.add((start, end))
+
+    return windows

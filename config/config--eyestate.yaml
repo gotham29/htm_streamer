@@ -41,13 +41,3 @@ features:
   AF4:
     type: float
     weight: 1
-
-models_state:
-  model_for_each_feature: true
-  return_pred_count: no
-  use_sp: true
-
-timesteps_stop:
-  learning:
-  running:
-  sampling:
