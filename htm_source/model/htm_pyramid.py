@@ -16,8 +16,8 @@ from tqdm import tqdm
 from htm_source.data.data_streamer import DataStreamer
 from htm_source.model.htm_model import HTMModule
 from htm_source.multiprocess.hive import HTMProcessHive
-from htm_source.utils.general import split_features, choose_features, get_joined_name
-from htm_source.utils.sdr import sdr_merge
+from htm_source.utils.general import split_features, choose_features, get_joined_name, manual_seed
+from htm_source.utils.sdr import sdr_merge, concat_shapes
 
 
 class ModelPyramid:
@@ -30,10 +30,11 @@ class ModelPyramid:
                  inputs_per_layer: int = 3,  # | tuple | list
                  train_percent: float = 1.0,
                  prepare_data: bool = True,
-                 feature_join_str: str = '+',
+                 feature_join_str: str = '_',
                  dummy_feat: str = 'None',
-                 mode: str = 'split',
+                 feature_mode: str = 'split',
                  merge_mode: str = 'u',
+                 concat_axis: int = 0,
                  num_choices: int = None,
                  seed: int = 0,
                  max_pool: int = 1,
@@ -46,18 +47,20 @@ class ModelPyramid:
         TODO
         """
 
+        manual_seed(seed)
+
         if dummy_feat in data.columns.tolist():
             raise AssertionError(f"Data cannot contain a feature named `{dummy_feat}`. If this is an "
                                  f"issue, change the `dummy_feat` parameter")
-        if mode == 'split':
+        if feature_mode == 'split':
             bottom_layer = split_features(data.columns.tolist(), size=inputs_per_layer)
-        elif mode == 'choose':
+        elif feature_mode == 'choose':
             if not isinstance(num_choices, int):
                 raise TypeError(f"`num_choices` must be an integer, got: {num_choices}")
 
             bottom_layer = choose_features(data.columns.tolist(), n_choices=num_choices, choice_size=inputs_per_layer)
         else:
-            raise ValueError(f"`mode` could be either `choose` or `split`, got: {mode}")
+            raise ValueError(f"`feature_mode` could be either `choose` or `split`, got: {feature_mode}")
 
         print(f"Features chosen: {bottom_layer}")
 
@@ -78,6 +81,7 @@ class ModelPyramid:
         self.lazy = lazy_init
         self.merge_mode = merge_mode
         self.al_learn_period = al_learn_period
+        self.concat_axis = concat_axis
 
         self._fjs = feature_join_str
         self._configuration = {'sp': sp_cfg, 'tm': tm_cfg}
@@ -89,6 +93,7 @@ class ModelPyramid:
         self._current_iter = 0
         self._par2ch = {}
         self._ch2par = {}
+        self._models_stats: Dict[str, str] = {}
         self._layer_dict: Dict[int, Dict[str, HTMModule]] | Dict[int, List[str]] = {}
 
         self.hive = HTMProcessHive(self.n_jobs)
@@ -119,10 +124,7 @@ class ModelPyramid:
                 new_layer.append(target)
 
                 # get model input dim
-                if layer_idx == 0:
-                    input_dims = self.ds.shape[target]
-                else:
-                    input_dims = model_dict[inputs[0]].output_dim
+                input_dims = self._get_input_dim(model_dict, layer_idx, target, inputs)
 
                 # init model
                 self._n_models += 1
@@ -139,6 +141,7 @@ class ModelPyramid:
                                   lazy_init=self.lazy)
 
                 model_dict[target] = model
+                self._models_stats[target] = model.summary()
                 self.hive.add_model(key=target, model=model)
 
             current_layer = split_features(new_layer, size=self.layer_size)
@@ -152,6 +155,18 @@ class ModelPyramid:
         print(f"Done in {time.perf_counter() - t0:.1f} sec")
         print(f"The model is {self._n_layers} layers deep with a total of {self._n_models} HTMs")
         time.sleep(0.5)
+
+    def _get_input_dim(self, model_dict, layer_idx: int, target, inputs):
+        if layer_idx == 0:
+            input_dims = self.ds.shape[target]
+        else:
+            if self.merge_mode == 'c':
+                shapes = [model_dict[x].output_dim for x in inputs if x != self._dummy]
+                input_dims = concat_shapes(*shapes, axis=self.concat_axis)
+            else:
+                input_dims = model_dict[inputs[0]].output_dim
+
+        return input_dims
 
     def _add_connection(self, inputs: Tuple[str], target: str):
         """ Register all models in `inputs` as inputs to `target` model """
@@ -186,7 +201,7 @@ class ModelPyramid:
             to_merge = [unmerged_results[child] for child in self.children(parent_model) if
                         child != self._dummy]
 
-            merged = sdr_merge(*to_merge, mode=self.merge_mode)
+            merged = sdr_merge(*to_merge, mode=self.merge_mode, axis=self.concat_axis)
             if len(next_layer) == 1:
                 # if next layer is head,
                 # get the actual data point and feed the model (for anomaly likelihood)
@@ -238,6 +253,19 @@ class ModelPyramid:
     def parent(self, child: str) -> str:
         """ Returns the name of the parent (next layer in hierarchy) model of `child` """
         return self._ch2par[child]
+
+    def model_summary(self):
+        print()
+        for idx, layer in self._layer_dict.items():
+            print((idx == 0) * "INPUT " + "LAYER " + f"{idx}" * (idx > 0))
+            longest = max(map(len, layer))
+            max_pad = longest + 15
+            for name in layer:
+                dots = "." * (max_pad - len(name))
+                summary = self._models_stats[name]
+                print(f"{name}{dots}{summary}")
+
+            print()
 
     def plot_results(self, gt=None, thresh=0.8):
         for layer_idx, layer_dict in self._layer_dict.items():

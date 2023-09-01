@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import multiprocessing as mp
+import queue
 import time
 
 INIT_COMMAND = "<<I_SP>>"
@@ -21,7 +22,7 @@ class MySimpleQueue:
             t = time.time()
             while True:
                 if time.time() - t > timeout:
-                    break
+                    raise queue.Empty
                 if self.q.empty():
                     time.sleep(0.000001)
                 else:

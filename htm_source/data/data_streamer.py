@@ -130,8 +130,7 @@ class DataStreamer:
                                              f"issue, change the `feature_join_str` parameter")
                 features.update(conc_feats)
 
-            if features != self.features.keys():
-                missing = set(self.features.keys()).difference(features)
+            if missing := set(self.features.keys()).difference(features):
                 warn(f"Not all features present in concatenation configuration, missing: {missing}")
 
     def raw_data(self, idx: int) -> np.ndarray:

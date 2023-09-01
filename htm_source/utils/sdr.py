@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Tuple
 
 import numpy as np
+import numba as nb
 from htm.bindings.sdr import SDR
 
 
@@ -61,9 +62,13 @@ def sdr_merge(*inputs, mode: str, axis: int = 0) -> SDR:
     elif mode == 'sd' or mode == 'xor':
         return sdr_symmetric_diff(*inputs)
 
+    # non overlapping sum (true symmetric diff)
+    elif mode == 'nos':
+        return sdr_non_overlapping_sum(*inputs)
+
     # concat
     elif mode == 'c':
-        old_shapes = [sdr.shape for sdr in inputs]
+        old_shapes = [sdr.dimensions for sdr in inputs]
         new_shape = concat_shapes(*old_shapes, axis=axis)
         return SDR(new_shape).concatenate(inputs, axis=axis)
 
@@ -76,6 +81,13 @@ def sdr_symmetric_diff(*inputs) -> SDR:
     return sdr_subtract(SDR(shape).union(inputs), SDR(shape).intersection(inputs))
 
 
+def sdr_non_overlapping_sum(*inputs) -> SDR:
+    calc_result = _sdr_non_overlapping_sum_impl(*[sdr.dense for sdr in inputs])
+    new_sdr = SDR(calc_result.shape)
+    new_sdr.dense = calc_result
+    return new_sdr
+
+
 def sdr_subtract(sdr_1: SDR, sdr_2: SDR) -> SDR:
     """ Subtract on-bits of `sdr_2` from `sdr_1` using set diff """
     if sdr_1.dimensions != sdr_2.dimensions:
@@ -83,9 +95,17 @@ def sdr_subtract(sdr_1: SDR, sdr_2: SDR) -> SDR:
                          f" `{sdr_2.dimensions}`")
 
     new_sdr = SDR(sdr_1.dimensions)
-    new_sdr.sparse = np.setdiff1d(sdr_1.sparse, sdr_2.sparse)  # get diff with sets
+    new_sdr.sparse = np.setdiff1d(sdr_1.sparse, sdr_2.sparse, assume_unique=True)  # get diff with sets
 
     return new_sdr
+
+
+@nb.njit
+def _sdr_non_overlapping_sum_impl(*inputs):
+    temp = np.sum(np.stack(inputs), axis=0)
+    ans = np.zeros_like(temp)
+    ans[temp == 1] = 1
+    return ans
 
 
 def concat_shapes(*shapes, axis=0) -> tuple:

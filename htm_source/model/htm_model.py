@@ -84,7 +84,7 @@ class HTMBase(ABC):
     def output_dim(self) -> np.ndarray:
         ret_val = self._out_dims
         if self.max_pool not in (None, False, 1, 0):
-            ret_val[0] //= self.max_pool
+            ret_val = tuple((ret_val[0] // self.max_pool, *ret_val[1:]))
         if self.flat:
             ret_val = squeeze_shape(ret_val)
         return ret_val
@@ -113,8 +113,9 @@ class HTMModule(HTMBase):
         self._input_dims = input_dims
         if not lazy_init:
             self._init_sp()
+
         self._init_tm()
-        self._out_dims = np.array((*self._get_column_dims(), self.config['tm']['cellsPerColumn']))
+        self._out_dims = tuple((*self._get_column_dims(), self.config['tm']['cellsPerColumn']))
         self.predictive_cells = SDR(dimensions=self._out_dims)
         self.max_pool = max_pool
         self.flat = flatten
@@ -132,7 +133,6 @@ class HTMModule(HTMBase):
                                     potentialPct=self.config["sp"]["potentialPct"],
                                     potentialRadius=self.config["sp"]["potentialRadius"],
                                     globalInhibition=self.config["sp"]["globalInhibition"],
-                                    # numActiveColumnsPerInhArea=self.config['sp']['numActiveColumnsPerInhArea'],
                                     synPermInactiveDec=self.config["sp"]["synPermInactiveDec"],
                                     stimulusThreshold=self.config["sp"]["stimulusThreshold"],
                                     synPermActiveInc=self.config["sp"]["synPermActiveInc"],
@@ -185,7 +185,7 @@ class HTMModule(HTMBase):
 
         # check anomaly
         if self.calc_anomaly:
-            anomaly_score = 1. - self.predictive_cells.getOverlap(winner_cells) / winner_cells.getSum()
+            anomaly_score = 1. - self.predictive_cells.getOverlap(winner_cells) / (winner_cells.getSum() + 1e-8)
             self._anomaly_history['score'].append(anomaly_score)
             if self.al:
                 if input_value is None:
@@ -201,8 +201,11 @@ class HTMModule(HTMBase):
         return self.tm.getActiveCells()
 
     def post_forward(self, x: SDR) -> SDR:
-        x = sdr_max_pool(x, ratio=self.max_pool)
+        x = sdr_max_pool(x, ratio=self.max_pool, axis=-1)
         if self.flat:
             new_shape = squeeze_shape(x.dimensions)
             x.reshape(new_shape)
         return x
+
+    def summary(self) -> str:
+        return f"[{self._input_dims} --> {self.output_dim}] (max_pool: {self.max_pool})"

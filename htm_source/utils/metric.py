@@ -38,7 +38,7 @@ def calc_conf_mat(preds: Set[Slice], targets: Set[Slice], data_len: int) -> Tupl
     return tp, fp, fn, tn
 
 
-def _convert_arr_to_windows(array: np.ndarray, window: int, learn_period: int, on_change=True) -> Tuple[
+def _convert_arr_to_windows(array: np.ndarray, window: int, learn_period: int, on_change=False) -> Tuple[
     np.ndarray, Set[Slice]]:
     """ Convert an array of (predictions/labels) to an array of 1s, merging with given window size
         In case of non-spike input, use `on_change=True`
@@ -77,16 +77,17 @@ def find_best_fb(preds: np.ndarray,
                  label_window_sizes: np.ndarray,
                  learn_period: int,
                  pred_window_size: int = 5,
+                 on_change: bool = False,
                  beta: float = 1.) -> Tuple[int, Tuple[float, int]]:
     """
     Find highest Fbeta score, performing a grid search on the different thresholds and label window sizes
     """
 
     best = 0
-    best_params = None
+    best_params = None, None
     data_len = len(preds)
     for w_size in label_window_sizes:
-        _, target_windows = _convert_arr_to_windows(target, w_size, learn_period=learn_period)
+        _, target_windows = _convert_arr_to_windows(target, w_size, learn_period=learn_period, on_change=on_change)
         for thresh in thresholds:
             pred_spikes = (preds > thresh).astype(np.int)
             _, pred_windows = _convert_arr_to_windows(pred_spikes, pred_window_size, on_change=False,

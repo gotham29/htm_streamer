@@ -1,279 +1,218 @@
 features:
 
-  timestamp:
-    type: timestamp
-    weight: 1.0
-    format: " %d/%m/%Y %I:%M:%S %p"
-    timeOfDay:
-      - 21  #30
-      - 9.49  #1
-    weekend: 0  #21
-    season: 0
-    dayOfWeek: 0
-    custom: 0
-    holiday: 0
+#  timestamp:
+#    type: timestamp
+#    weight: 1.0
+#    format: " %d/%m/%Y %I:%M:%S %p"
+#    timeOfDay:
+#      - 21  #30
+#      - 9.49  #1
+#    weekend: 0  #21
+#    season: 0
+#    dayOfWeek: 0
+#    custom: 0
+#    holiday: 0
 
   fit101:
     type: float
     weight: 1.0
-    min:
-    max:
+
   lit101:
     type: float
     weight: 1.0
-    min:
-    max:
+
   mv101:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p101:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p102:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   ait201:
     type: float
     weight: 1.0
-    min:
-    max:
+
   ait202:
     type: float
     weight: 1.0
-    min:
-    max:
+
   ait203:
     type: float
     weight: 1.0
-    min:
-    max:
+
   fit201:
     type: float
     weight: 1.0
-    min:
-    max:
+
   mv201:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p201:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
-  p202:
-    type: float
-    weight: 1.0
-    min:
-    max:
+
+#  p202:
+#    type: cat
+#    weight: 1.0
+
   p203:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p204:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p205:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p206:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   dpit301:
     type: float
     weight: 1.0
-    min:
-    max:
+
   fit301:
     type: float
     weight: 1.0
-    min:
-    max:
+
   lit301:
     type: float
     weight: 1.0
-    min:
-    max:
+
   mv301:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   mv302:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   mv303:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   mv304:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p301:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p302:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   ait401:
     type: float
     weight: 1.0
-    min:
-    max:
+
   ait402:
     type: float
     weight: 1.0
-    min:
-    max:
+
   fit401:
     type: float
     weight: 1.0
-    min:
-    max:
+
   lit401:
     type: float
     weight: 1.0
-    min:
-    max:
-  p401:
-    type: float
-    weight: 1.0
-    min:
-    max:
+
+#  p401:
+#    type: cat
+#    weight: 1.0
+
   p402:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   p403:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
-  p404:
-    type: float
-    weight: 1.0
-    min:
-    max:
+
+#  p404:
+#    type: cat
+#    weight: 1.0
+
   uv401:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
+
   ait501:
     type: float
     weight: 1.0
-    min:
-    max:
+
   ait502:
     type: float
     weight: 1.0
-    min:
-    max:
+
   ait503:
     type: float
     weight: 1.0
-    min:
-    max:
+
   ait504:
     type: float
     weight: 1.0
-    min:
-    max:
+
   fit501:
     type: float
     weight: 1.0
-    min:
-    max:
+
   fit502:
     type: float
     weight: 1.0
-    min:
-    max:
+
   fit503:
     type: float
     weight: 1.0
-    min:
-    max:
+
   fit504:
     type: float
     weight: 1.0
-    min:
-    max:
+
   p501:
-    type: float
+    type: cat
     weight: 1.0
-    min:
-    max:
-  p502:
-    type: float
-    weight: 1.0
-    min:
-    max:
+
+#  p502:
+#    type: cat
+#    weight: 1.0
+
   pit501:
     type: float
     weight: 1.0
-    min:
-    max:
+
   pit502:
     type: float
     weight: 1.0
-    min:
-    max:
+
   pit503:
     type: float
     weight: 1.0
-    min:
-    max:
+
   fit601:
     type: float
     weight: 1.0
-    min:
-    max:
-  p601:
-    type: float
-    weight: 1.0
-    min:
-    max:
-  p602:
-    type: float
-    weight: 1.0
-    min:
-    max:
-  p603:
-    type: float
-    weight: 1.0
-    min:
-    max:
 
-models_state:
-  model_for_each_feature: false
-  return_pred_count: false
-  use_sp: true
-timesteps_stop:
-  learning:
-  running:
-  sampling:
+#  p601:
+#    type: cat
+#    weight: 1.0
+
+  p602:
+    type: cat
+    weight: 1.0
+
+#  p603:
+#    type: cat
+#    weight: 1.0

@@ -81,7 +81,7 @@ class HTMProcessHive:
 
             worker = self._workers[w_name]
             try:
-                models = worker.out_q.get(block=True, timeout=3)
+                models = worker.out_q.get(block=True, timeout=20)
             except queue.Empty:
                 raise RuntimeError(f"Worker {w_name} model-return timed out.")
             except Exception:

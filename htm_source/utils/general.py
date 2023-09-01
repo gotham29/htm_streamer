@@ -57,6 +57,11 @@ def dict_zip(*dicts):
         yield key, first_val, *(other[key] for other in dicts[1:])
 
 
+def manual_seed(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+
+
 def check_for_missing_features(row, features_expected: list) -> list:
     features_missing = [f for f in features_expected if f not in row]
     return features_missing

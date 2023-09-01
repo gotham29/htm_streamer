@@ -12,26 +12,25 @@ models_params:
 
   sp:
     potentialPct: 0.8
-    columnDimensions: [2048]  # [64, 32]
-    potentialRadius: 2048
+    columnDimensions: [1024]  # [64, 32]
+    potentialRadius: 1024
     localAreaDensity: 0.02
-    numActiveColumnsPerInhArea: 0
     globalInhibition: true
-    boostStrength: 0.
-    stimulusThreshold: 0
+    boostStrength: .0
+    stimulusThreshold: 10
     synPermConnected: 0.2
     synPermActiveInc: 0.003
     synPermInactiveDec: 0.0005
-    wrapAround: yes
+    wrapAround: no
     minPctOverlapDutyCycle: 0.001
     dutyCyclePeriod: 1000
 
   tm:
-    cellsPerColumn: 2
+    cellsPerColumn: 4
     activationThreshold: 20
     initialPerm: 0.21
     maxSegmentsPerCell: 32
-    maxSynapsesPerSegment: 64
+    maxSynapsesPerSegment: 128
     minThreshold: 13
     newSynapseCount: 31
     permanenceInc: 0.2
