@@ -1,4 +1,8 @@
-from collections import Mapping, OrderedDict
+from collections import OrderedDict
+try:
+    from collections import Mapping
+except:
+    from collections.abc import Mapping
 
 
 class frozendict(Mapping):
