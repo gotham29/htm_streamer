@@ -45,19 +45,25 @@ def findRequirements():
 if __name__ == "__main__":
     requirements = findRequirements()
 
+    # setup(
+    #     name="htm_source",
+    #     version="0.0.90",
+    #     author="Sam Heiserman",
+    #     author_email="sheiser1@binghamton.edu",
+    #     description=(
+    #         "HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series"),
+    #     license="MIT",
+    #     packages=find_packages(),
+    #     long_description=read("README.md"),
+    #     install_requires=requirements,
+    #     include_package_data=True,
+    #     keywords=["pypi", "htm_source"]
+    # )
     setup(
-        name="htm_source",
-        version="0.0.90",
-        author="Sam Heiserman",
-        author_email="sheiser1@binghamton.edu",
-        description=(
-            "HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series"),
-        license="MIT",
+        name='htm_streamer',  # <-- Change to this
+        version='0.1.0',
         packages=find_packages(),
-        long_description=read("README.md"),
-        install_requires=requirements,
-        include_package_data=True,
-        keywords=["pypi", "htm_source"]
+        install_requires=['numpy', 'pandas', 'pyyaml'], # other deps as needed
     )
 
 """
