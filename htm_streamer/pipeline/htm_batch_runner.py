@@ -72,10 +72,10 @@ def run_batch(cfg_user: Union[dict, None],
     # 3. Init Models --> IF 'features_models' is empty
     do_init_models = True if len(features_models) == 0 else False
     if do_init_models:
-        cfg_user['features_samples'] = {f: data[f].values for f in cfg_user['features']}
+        # cfg_user['features_samples'] = {f: data[f].values for f in cfg_user['features']}
         cfg = validate_params_init(cfg_user, cfg_model)
         features_enc_params = build_enc_params(features=cfg['features'],
-                                               features_samples=cfg['features_samples'],
+                                            #    features_samples=cfg['features_samples'],
                                                models_encoders=cfg['models_encoders'])
         features_models = init_models(use_sp=cfg['models_state']['use_sp'],
                                       return_pred_count=cfg['models_state']['return_pred_count'],

@@ -35,7 +35,9 @@ def reset_config(cfg: dict) -> dict:
 
 def get_params_rdse(f: str,
                     f_dict: dict,
-                    f_sample: list,
+                    f_min: float,
+                    f_max: float,
+                    # f_sample: list,
                     models_encoders: dict) -> dict:
     """
     Purpose:
@@ -64,7 +66,7 @@ def get_params_rdse(f: str,
         f_max = f_dict['max']
     # else find min/max from f_samples
     else:
-        f_min, f_max = min(f_sample), max(f_sample)
+        # f_min, f_max = min(f_sample), max(f_sample)
         rangePadding = abs(f_max - f_min) * (float(models_encoders['p_padding']) / 100)
         f_min = f_min - rangePadding
         f_max = f_max + rangePadding
@@ -94,7 +96,7 @@ def get_params_category() -> dict:
 
 def build_enc_params(features: dict,
                      models_encoders: dict,
-                     features_samples: dict,
+                    #  features_samples: dict,
                      ) -> dict:
     """
     Purpose:
@@ -103,9 +105,9 @@ def build_enc_params(features: dict,
         cfg
             type: dict
             meaning: config (yaml)
-        features_samples
-            type: dict
-            meaning: list of sampled values for each feature
+        # features_samples
+        #     type: dict
+        #     meaning: list of sampled values for each feature
         models_encoders
             type: dict
             meaning: encoder param values (user-specified in config.yaml)
@@ -120,11 +122,15 @@ def build_enc_params(features: dict,
     features_weights = {k: v.get('weight', 1.0) for k, v in features.items()}
     features_enc_params = {}
     for f, f_dict in features.items():
+        f_min = features[f]['min']
+        f_max = features[f]['max']
         # get enc - numeric
         if to_htm_type(f_dict['type']) is HTMType.Numeric:
             features_enc_params[f] = get_params_rdse(f=f,
                                                      f_dict=f_dict,
-                                                     f_sample=features_samples[f],
+                                                     f_min=f_min,
+                                                     f_max=f_max,
+                                                    #  f_sample=features_samples[f],
                                                      models_encoders=models_encoders, )
         # get enc - datetime
         elif to_htm_type(f_dict['type']) is HTMType.Datetime:
