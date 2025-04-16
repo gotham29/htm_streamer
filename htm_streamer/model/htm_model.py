@@ -39,7 +39,7 @@ class HTMmodel:
         # utility attributes
         self.single_feature = self.get_single_feature_name()
         self.feature_names = list(self.features.keys())
-        self.features_samples = {f: [] for f in self.feature_names}
+        # self.features_samples = {f: [] for f in self.feature_names}
         self.feature_timestamp = separate_time_and_rest(self.features.values())[0]
 
         # predictor (optional)
@@ -290,11 +290,13 @@ class HTMmodel:
         sample_empty = False
         features_minmax = {f: {} for f in features_data}
         for f in features_data:
-            if len(self.features_samples[f]) == 0:
-                sample_empty = True
-                continue
-            features_minmax[f]['min'] = np.percentile(self.features_samples[f], params['perc_min'])
-            features_minmax[f]['max'] = np.percentile(self.features_samples[f], params['perc_max'])
+            features_minmax[f]['min'] = self.features[f]['min']
+            features_minmax[f]['max'] = self.features[f]['max']
+            # if len(self.features_samples[f]) == 0:
+            #     sample_empty = True
+            #     continue
+            # features_minmax[f]['min'] = np.percentile(self.features_samples[f], params['perc_min'])
+            # features_minmax[f]['max'] = np.percentile(self.features_samples[f], params['perc_max'])
         # get anom features
         if not sample_empty:
             features_anom = []
@@ -313,9 +315,9 @@ class HTMmodel:
                 if len(features_anom) >= anom_feats_req:
                     spatialAnomaly = True
         # update sample w/latest data
-        for f, val in features_data.items():
-            self.features_samples[f].append(val)
-            self.features_samples[f] = self.features_samples[f][-params['window']:]
+        # for f, val in features_data.items():
+        #     self.features_samples[f].append(val)
+        #     self.features_samples[f] = self.features_samples[f][-params['window']:]
         return spatialAnomaly
 
     def run(self,
