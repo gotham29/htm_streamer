@@ -1,1 +1,1 @@
-from .HTMStreamer import HTMStreamer
+from .htm_model import HTMmodel
