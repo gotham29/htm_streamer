@@ -1,7 +1,7 @@
 #See http://www.pip-installer.org/en/latest/requirements.html for details
 
 # htm.core>=2.1.15 (fails)
-htm-core
+git+https://github.com/htm-community/htm.core.git
 setuptools>=34.4.0 # needed for Windows with MSVC
 tqdm
 pip>=19.3.1
