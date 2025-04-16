@@ -96,7 +96,6 @@ def get_params_category() -> dict:
 
 def build_enc_params(features: dict,
                      models_encoders: dict,
-                    #  features_samples: dict,
                      ) -> dict:
     """
     Purpose:
