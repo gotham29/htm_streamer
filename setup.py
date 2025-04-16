@@ -46,7 +46,7 @@ if __name__ == "__main__":
     requirements = findRequirements()
 
     # setup(
-    #     name="htm_source",
+    #     name="htm_streamer",
     #     version="0.0.90",
     #     author="Sam Heiserman",
     #     author_email="sheiser1@binghamton.edu",
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     #     long_description=read("README.md"),
     #     install_requires=requirements,
     #     include_package_data=True,
-    #     keywords=["pypi", "htm_source"]
+    #     keywords=["pypi", "htm_streamer"]
     # )
     setup(
         name='htm_streamer',  # <-- Change to this
@@ -79,11 +79,11 @@ def locate(*names):
     return os.path.relpath(os.path.join(os.path.dirname(__file__), *names))
 
 
-SOURCE = locate('htm_source')
+SOURCE = locate('htm_streamer')
 PACKAGES_REQUIRED = find_packages(SOURCE)
 PACKAGES_REQUIRED = [os.path.join(SOURCE, x) for x in PACKAGES_REQUIRED]
-if 'htm_source' not in PACKAGES_REQUIRED:
-    PACKAGES_REQUIRED.insert(0, 'htm_source')
+if 'htm_streamer' not in PACKAGES_REQUIRED:
+    PACKAGES_REQUIRED.insert(0, 'htm_streamer')
 
 print(f"SOURCE = {SOURCE}")
 print(f"PACKAGES_REQUIRED...")
@@ -109,7 +109,7 @@ authors = "Sam Heiserman"
 author_email = "sheiser1@binghamton.edu"
 
 setup(
-    name='htm_source',
+    name='htm_streamer',
     version='0.0.90',
     description='HTM Stream - Rapid ML prototyping tool for HTM anomaly detection on numeric time series',
     long_description=readme,
@@ -122,6 +122,6 @@ setup(
     },
     packages=PACKAGES_REQUIRED,
     install_requires=INSTALL_REQUIRES,
-    keywords=["pypi", "htm_source"],
+    keywords=["pypi", "htm_streamer"],
 )
 """

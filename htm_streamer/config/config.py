@@ -1,8 +1,8 @@
 import os
 import sys
 
-from htm_source.data.types import HTMType, to_htm_type
-from htm_source.utils.general import isnumeric
+from htm_streamer.data.types import HTMType, to_htm_type
+from htm_streamer.utils.general import isnumeric
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)

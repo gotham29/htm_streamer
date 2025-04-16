@@ -13,7 +13,7 @@ _DATA_STREAM_DIR = os.path.join(_TESTS_DIR, 'data')
 
 sys.path.append(_REPO_DIR)
 
-from htm_source.pipeline import run_batch, run_stream
+from htm_streamer.pipeline import run_batch, run_stream
 import unittest
 
 unittest.TestLoader.sortTestMethodsUsing = None

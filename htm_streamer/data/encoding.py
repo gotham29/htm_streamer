@@ -4,7 +4,7 @@ import sys
 from htm.encoders.date import DateEncoder
 from htm.encoders.rdse import RDSE_Parameters, RDSE
 
-from htm_source.data.types import HTMType
+from htm_streamer.data.types import HTMType
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)

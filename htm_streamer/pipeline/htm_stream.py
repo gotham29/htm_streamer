@@ -6,12 +6,12 @@ import pandas as pd
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
 
-from htm_source.utils import get_args
-from htm_source.utils.fs import load_json, save_models, load_models, save_outputs, load_config, save_config
-from htm_source.config import build_enc_params, extend_features_samples
-from htm_source.config.validation import validate_config
-from htm_source.model.runners import init_models, run_models, track_tm
-from htm_source.pipeline.htm_batch_runner import run_batch
+from htm_streamer.utils import get_args
+from htm_streamer.utils.fs import load_json, save_models, load_models, save_outputs, load_config, save_config
+from htm_streamer.config import build_enc_params, extend_features_samples
+from htm_streamer.config.validation import validate_config
+from htm_streamer.model.runners import init_models, run_models, track_tm
+from htm_streamer.pipeline.htm_batch_runner import run_batch
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)

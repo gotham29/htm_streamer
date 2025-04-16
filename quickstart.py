@@ -2,8 +2,8 @@ import os
 
 import pandas as pd
 
-from htm_source.pipeline.htm_batch_runner import run_batch
-from htm_source.utils.fs import load_config
+from htm_streamer.pipeline.htm_batch_runner import run_batch
+from htm_streamer.utils.fs import load_config
 
 if __name__ == '__main__':
     # Specify run params

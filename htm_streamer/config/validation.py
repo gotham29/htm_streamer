@@ -1,7 +1,7 @@
 import os
 import sys
 
-from htm_source.config import get_mode
+from htm_streamer.config import get_mode
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)

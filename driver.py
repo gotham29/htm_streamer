@@ -4,8 +4,8 @@ import numpy as np
 import os
 import pandas as pd
 import tqdm
-from htm_source.pipeline.htm_batch_runner import run_batch
-from htm_source.utils.fs import load_config
+from htm_streamer.pipeline.htm_batch_runner import run_batch
+from htm_streamer.utils.fs import load_config
 
 from logger import setup_applevel_logger
 log = setup_applevel_logger(file_name= os.path.join(os.getcwd(),'logs.log') )

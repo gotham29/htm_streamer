@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Union, Tuple, Iterable
-from htm_source.data.types import HTMType, to_htm_type
-from htm_source.data.encoding import EncoderFactory
+from htm_streamer.data.types import HTMType, to_htm_type
+from htm_streamer.data.encoding import EncoderFactory
 from htm.bindings.sdr import SDR
 
 

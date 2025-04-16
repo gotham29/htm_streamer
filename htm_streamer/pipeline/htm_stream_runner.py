@@ -6,10 +6,10 @@ import pandas as pd
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
 
-from htm_source.utils import get_args, check_for_missing_features
-from htm_source.utils.fs import save_json, load_config, save_config
-from htm_source.config import reset_config
-from htm_source.pipeline.htm_stream import stream_to_htm
+from htm_streamer.utils import get_args, check_for_missing_features
+from htm_streamer.utils.fs import save_json, load_config, save_config
+from htm_streamer.config import reset_config
+from htm_streamer.pipeline.htm_stream import stream_to_htm
 
 from logger import setup_applevel_logger
 log = setup_applevel_logger(file_name= os.path.join(_SOURCE_DIR,'logs.log') )

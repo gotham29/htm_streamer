@@ -1,1 +1,1 @@
-from htm_source.model.htm_model import HTMmodel
+from htm_streamer.model.htm_model import HTMmodel

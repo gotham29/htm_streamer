@@ -7,12 +7,12 @@ import pandas as pd
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)
 
-from htm_source.utils import get_args
-from htm_source.utils.fs import load_config
-from htm_source.config import build_enc_params
-from htm_source.config.validation import validate_params_init
-from htm_source.model.runners import init_models
-from htm_source.data.types import HTMType, to_htm_type
+from htm_streamer.utils import get_args
+from htm_streamer.utils.fs import load_config
+from htm_streamer.config import build_enc_params
+from htm_streamer.config.validation import validate_params_init
+from htm_streamer.model.runners import init_models
+from htm_streamer.data.types import HTMType, to_htm_type
 
 from logger import setup_applevel_logger
 log = setup_applevel_logger(file_name= os.path.join(_SOURCE_DIR,'logs.log') )

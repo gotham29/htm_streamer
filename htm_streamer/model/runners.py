@@ -4,9 +4,9 @@ import os
 import sys
 from collections import defaultdict
 
-from htm_source.data import Feature, separate_time_and_rest
-from htm_source.model import HTMmodel
-from htm_source.utils import frozendict
+from htm_streamer.data import Feature, separate_time_and_rest
+from htm_streamer.model import HTMmodel
+from htm_streamer.utils import frozendict
 
 _SOURCE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(_SOURCE_DIR)

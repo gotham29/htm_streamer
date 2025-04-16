@@ -8,8 +8,8 @@ from htm.bindings.algorithms import SpatialPooler, TemporalMemory, Predictor
 from htm.bindings.sdr import SDR
 
 # from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
-from htm_source.data import Feature, separate_time_and_rest, AnomalyLikelihood
-from htm_source.utils import dict_zip, frozendict
+from htm_streamer.data import Feature, separate_time_and_rest, AnomalyLikelihood
+from htm_streamer.utils import dict_zip, frozendict
 
 
 class HTMmodel:
